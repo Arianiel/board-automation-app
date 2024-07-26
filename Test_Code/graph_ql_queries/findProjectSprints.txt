@@ -1,0 +1,22 @@
+query findProjectSprints
+{
+    organization(login: "[ORG_NAME]"){
+        projectV2(number:[PROJ_NUM]){
+            ... on ProjectV2 {
+                fields(first: 20) {
+                    nodes {
+                        ... on ProjectV2Field {
+                            name
+                        }
+                        ... on ProjectV2SingleSelectField {
+                            name
+                            options {
+                                name
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,11 @@
+query findOrgs {
+  user(login: "[USER]") {
+  	organizations (first: 5){
+      nodes {
+        id
+        name
+        login
+      }
+    }
+  }
+}

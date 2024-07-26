@@ -1,0 +1,12 @@
+query findProjects {
+  organization(login: "[ORG_NAME]"){
+    login
+      projectsV2(first: 15){
+        nodes {
+          id
+          title
+          number
+          }
+        }
+      }
+    }
