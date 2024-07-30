@@ -62,14 +62,17 @@ class ProjectInfo:
 
         # Get custom fields
         self.sprint_list_id_query = gql_queries.open_graph_ql_query_file("findProjectSprints.txt")
+
         self.fields = gql_queries.run_query(
             self.sprint_list_id_query.replace("[PROJ_NUM]", self.project_number).replace("[ORG_NAME]", self.org_name))[
             "data"]["organization"]["projectV2"]["fields"]["nodes"]
 
         # Get sprint list
         self.sprints = {}
+        self.sprint_ids = {}
         for field in self.fields:
             if field["name"] == "Sprint":
+                self.sprint_field_id = field["id"]
                 for option in field["options"]:
                     if "Next" in option["name"]:
                         sprint_name = option["name"][9:-1]
@@ -80,6 +83,7 @@ class ProjectInfo:
                     sprint_day = sprint_name[8:]
                     self.sprints[option["name"]] = datetime.datetime(year=int(sprint_year), month=int(sprint_month),
                                                                 day=int(sprint_day))
+                    self.sprint_ids[option["name"]] = option["id"]
         # Get current and next sprint
         self.current_sprint = ""
         self.next_sprint = ""

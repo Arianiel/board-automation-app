@@ -1,7 +1,8 @@
 import os
 import requests
 
-headers = {"Authorization": "token "+open(os.path.join(os.path.dirname(__file__),"..","classic_token"), "r").read()}
+headers = {"Authorization": "token "+open(os.path.join(os.path.dirname(__file__),"..","classic_token"), "r").read(),
+           'Content-Type': 'application/json'}
 
 
 def open_graph_ql_query_file(filename):

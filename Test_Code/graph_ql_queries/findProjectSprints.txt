@@ -7,11 +7,14 @@ query findProjectSprints
                     nodes {
                         ... on ProjectV2Field {
                             name
+                            id
                         }
                         ... on ProjectV2SingleSelectField {
                             name
+                            id
                             options {
                                 name
+                                id
                             }
                         }
                     }
