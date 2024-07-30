@@ -44,62 +44,15 @@ setProj = """ mutation setProject {
           }
       }"""
 
-print(gql_queries.run_query(setProj))
+result = gql_queries.run_query(setProj)
+print(result)
+item_id = result["data"]["addProjectV2ItemById"]["item"]["id"]
 
-setSprint = """ input {
-    UpdateProjectV2ItemFieldValueInput: 
-        fieldId: "PVTSSF_lADOCn5jHs4AlGI7zgdNywk"
-        itemId: "I_kwDOMZjARM6QZUHK"
-        projectId: "PVT_kwDOCn5jHs4AlGI7"
-        value: "2024_08_01"
-}
-"""
-
-test = """
-{"query": mutation UpdateProject ($project: ID!, $item: ID!, $status_field: ID!, $status_value: String!) {
-  updateProjectV2ItemFieldValue(input: { projectId: $project, itemId: $item, fieldId: $status_field, 
-  value: { singleSelectOptionId: $status_value } }) {
-    projectV2Item {
-      id
-    }
-  }
-},
-"variables":
-{
-  "project": "PVT_kwDOCn5jHs4AlGI7", 
-  "item": "I_kwDOMZjARM6QZUHK", 
-  "status_field": "PVTSSF_lADOCn5jHs4AlGI7zgdNywk",
-  "status_value": "2024_08_01"
-}
-}
-"""
-
-
-test = """
-{
-"query": "mutation ($myVar:AddReactionInput!) {
-  addReaction(input:$myVar) {
-    reaction {
-      content
-    }
-    subject {
-      id
-    }
-  }     
-}",
-"variables": {
-  "myVar": {
-    "subjectId":"I_kwDOMZjARM6QZUHK",
-    "content":"HOORAY"
-  }
-}
-}
-"""
 # Item ID for this is the same one as is returned from set_proj
-test = """ mutation UpdateProject {
+setSprint = """ mutation UpdateProject {
         updateProjectV2ItemFieldValue(input: { 
             projectId: "PVT_kwDOCn5jHs4AlGI7", 
-            itemId: "PVTI_lADOCn5jHs4AlGI7zgRWjM8", 
+            itemId: "[ITEM_ID]", 
             fieldId: "PVTSSF_lADOCn5jHs4AlGI7zgdNywk", 
             value: { 
                 singleSelectOptionId: "b51ef428" 
@@ -115,7 +68,7 @@ test = """ mutation UpdateProject {
 """
 
 
-print(gql_queries.run_query(test))
+print(gql_queries.run_query(setSprint.replace("[ITEM_ID]", item_id)))
 
 """
 match label_added:
