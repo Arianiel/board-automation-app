@@ -1,0 +1,15 @@
+mutation UpdateSprintForItemInProject {
+    updateProjectV2ItemFieldValue(input: {
+        projectId: "[PROJ_ID]",
+        itemId: "[ITEM_ID]",
+        fieldId: "[SPRINT_FIELD_ID]",
+        value: {
+            singleSelectOptionId: "[SPRINT_ID]"
+        }
+    })
+    {
+        projectV2Item {
+            id
+        }
+    }
+}

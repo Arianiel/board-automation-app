@@ -2,6 +2,7 @@
 
 from flask import Flask, request, abort
 import get_project_info
+import update_item_info
 
 app = Flask(__name__)
 
@@ -31,8 +32,17 @@ def label_added(info):
     print("Label Added function")
     print(request.json)
     print("Yes, the label added is: ", request.json["label"]["name"])
-    print("The issue ID is: ", request.json["issue"]["node"]["id"])
+    print("The issue ID is: ", request.json["issue"]["node_id"])
     print("And the current project number is:", current_project.project_number)
+    current_issue = update_item_info.IssueToUpdate(request.json["issue"]["node_id"])
+    current_issue.set_project(current_project)
+    label_name = request.json["label"]["name"]
+    match label_name:
+        case "proposal":
+            print("Proposed ticket being added to project in next sprint")
+            current_issue.place_in_next_sprint()
+        case _:
+            print("Nothing to be done with this label: ", label_name)
 
 
 def get_projects():
