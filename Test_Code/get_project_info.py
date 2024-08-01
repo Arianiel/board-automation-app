@@ -70,20 +70,26 @@ class ProjectInfo:
         # Get sprint list
         self.sprints = {}
         self.sprint_ids = {}
+        self.status_ids = {}
         for field in self.fields:
-            if field["name"] == "Sprint":
-                self.sprint_field_id = field["id"]
-                for option in field["options"]:
-                    if "Next" in option["name"]:
-                        sprint_name = option["name"][9:-1]
-                    else:
-                        sprint_name = option["name"]
-                    sprint_year = sprint_name[:4]
-                    sprint_month = sprint_name[5:7]
-                    sprint_day = sprint_name[8:]
-                    self.sprints[option["name"]] = datetime.datetime(year=int(sprint_year), month=int(sprint_month),
-                                                                day=int(sprint_day))
-                    self.sprint_ids[option["name"]] = option["id"]
+            match field["name"]:
+                case "Sprint":
+                    self.sprint_field_id = field["id"]
+                    for option in field["options"]:
+                        if "Next" in option["name"]:
+                            sprint_name = option["name"][9:-1]
+                        else:
+                            sprint_name = option["name"]
+                        sprint_year = sprint_name[:4]
+                        sprint_month = sprint_name[5:7]
+                        sprint_day = sprint_name[8:]
+                        self.sprints[option["name"]] = datetime.datetime(year=int(sprint_year), month=int(sprint_month),
+                                                                    day=int(sprint_day))
+                        self.sprint_ids[option["name"]] = option["id"]
+                case "Status":
+                    self.status_field_id = field["id"]
+                    for option in field["options"]:
+                        self.status_ids[option["name"]] = option["id"]
         # Get current and next sprint
         self.current_sprint = ""
         self.next_sprint = ""

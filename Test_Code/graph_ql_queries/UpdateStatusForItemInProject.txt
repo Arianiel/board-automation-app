@@ -1,0 +1,15 @@
+mutation UpdateStatusForItemInProject {
+    updateProjectV2ItemFieldValue(input: {
+        projectId: "[PROJ_ID]",
+        itemId: "[ITEM_ID]",
+        fieldId: "[STATUS_FIELD_ID]",
+        value: {
+            singleSelectOptionId: "[STATUS_ID]"
+        }
+    })
+    {
+        projectV2Item {
+            id
+        }
+    }
+}

@@ -17,11 +17,22 @@ class IssueToUpdate:
         self.item_id = result["data"]["addProjectV2ItemById"]["item"]["id"]
 
     def set_sprint(self, sprint_to_use):
-        setSprint = gql_queries.open_graph_ql_query_file("UpdateSprintForItemInProject.txt")
-        print(gql_queries.run_query(setSprint.replace("[ITEM_ID]", self.item_id)
+        set_sprint = gql_queries.open_graph_ql_query_file("UpdateSprintForItemInProject.txt")
+        gql_queries.run_query(set_sprint.replace("[ITEM_ID]", self.item_id)
                                     .replace("[SPRINT_FIELD_ID]", self.project_to_use.sprint_field_id)
                                     .replace("[SPRINT_ID]", sprint_to_use)
-                                    .replace("[PROJ_ID]", self.project_to_use.project_id)))
+                                    .replace("[PROJ_ID]", self.project_to_use.project_id))
+
+    def set_status(self, status_to_use):
+        set_sprint = gql_queries.open_graph_ql_query_file("UpdateStatusForItemInProject.txt")
+        gql_queries.run_query(set_sprint.replace("[ITEM_ID]", self.item_id)
+                              .replace("[STATUS_FIELD_ID]", self.project_to_use.status_field_id)
+                              .replace("[STATUS_ID]", status_to_use)
+                              .replace("[PROJ_ID]", self.project_to_use.project_id))
 
     def place_in_next_sprint(self):
         self.set_sprint(self.project_to_use.sprint_ids[self.project_to_use.next_sprint])
+        self.set_status(self.project_to_use.status_ids["Backlog"])
+
+    def place_in_current_sprint(self):
+        self.set_sprint(self.project_to_use.sprint_ids[self.project_to_use.current_sprint])

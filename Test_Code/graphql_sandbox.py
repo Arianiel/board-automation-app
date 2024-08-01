@@ -20,6 +20,8 @@ print("current_sprint: "+current_project.current_sprint)
 print("next_sprint: "+current_project.next_sprint)
 """
 current_project = get_project_info.ProjectInfo(True)
+print(current_project.status_ids)
+print(current_project.status_ids["Backlog"])
 label_added = "proposal"
 issue_id = "I_kwDOMZjARM6QZUHK"
 current_issue = up_info.IssueToUpdate(issue_id)
