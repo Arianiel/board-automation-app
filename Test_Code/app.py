@@ -10,15 +10,22 @@ app = Flask(__name__)
 @app.route('/webhook', methods=['POST'])
 def webhook():
     if request.method == 'POST':
-        # print(request.json["action"])
+        #print(request.json["action"])
         match request.json["action"]:
             case "unlabeled":
                 print("Label removed: ", request.json["label"]["name"])
             case "labeled":
                 label_added(request.json)
             case "edited":
-                # nothing to do here yet
-                pass
+                print("Something has been edited, I need to allow for this")
+                # print(request.json)
+                match request.json["changes"]["field_value"]["field_name"]:
+                    case "Labels":
+                        print("Labels are handled already")
+                    case "Status":
+                        print("This is the one I want to action, a status change")
+                    case _:
+                        print("Nothing decided yet for: " + request.json["changes"]["field_value"]["field_name"])
             case _:
                 # print("Data received from Webhook is: ", request.json)
                 print("No cases for action: ", request.json["action"])
