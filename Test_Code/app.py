@@ -50,6 +50,14 @@ def label_added(info):
             current_issue.place_in_next_sprint()
         case "added during sprint":
             current_issue.place_in_current_sprint()
+        case "in progress":
+            current_issue.set_status(current_issue.project_to_use.status_ids["In Progress"])
+        case "impeded":
+            current_issue.set_status(current_issue.project_to_use.status_ids["Impeded"])
+        case "review":
+            current_issue.set_status(current_issue.project_to_use.status_ids["Review"])
+        case "rework":
+            current_issue.set_status(current_issue.project_to_use.status_ids["Backlog"])
         case _:
             print("Nothing to be done with this label: ", label_name)
 
