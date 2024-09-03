@@ -36,9 +36,3 @@ class IssueToUpdate:
 
     def place_in_current_sprint(self):
         self.set_sprint(self.project_to_use.sprint_ids[self.project_to_use.current_sprint])
-
-    def update_label(self, label_added):
-        print("Change the status based on a label")
-
-    def update_status(self, previous_status=None, new_status=None):
-        print("I need to figure out how to add a label")

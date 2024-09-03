@@ -1,0 +1,9 @@
+mutation UpdateItemLabel {
+    addLabelsToLabelable(input: {
+        labelableId: "I_kwDOMZjARM6U3OLH",
+        labelIds: ["LA_kwDOMZjARM8AAAABr0GyUA"]
+    })
+    {
+        clientMutationId
+    }
+}
