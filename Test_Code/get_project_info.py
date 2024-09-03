@@ -4,23 +4,17 @@ import datetime
 
 
 class ProjectInfo:
-    def __init__(self, test_status):
+    def __init__(self, org_name="Arianiel", user_name="KathrynBaker"):
         # TODO make this something more variable than me
-        self.user_name = "KathrynBaker"
+        self.user_name = user_name
+        self.org_name = org_name
 
         # Get the users orgs
         orgs_query = gql_queries.open_graph_ql_query_file("findOrgs.txt")
         result = gql_queries.run_query(orgs_query.replace("<USER>", self.user_name))  # Execute the query
         self.orgs = result["data"]["user"]["organizations"]["nodes"]
 
-        # Assign the organization to use
-        # TODO make this a parameter rather than magic values
-        if test_status is True:
-            self.org_name = "Arianiel"
-        else:
-            self.org_name = "ISISComputingGroup"
-
-        # TODO verify that the organisation in use is in the available orgs for the user for the token
+        # TODO PHase 2 verify that the organisation in use is in the available orgs for the user for the token
 
         # Get the date to use to automate some of the coding
         today = datetime.datetime.today()
@@ -55,7 +49,7 @@ class ProjectInfo:
                 else:
                     print("This is not the PI I'm looking for")
 
-        if test_status is True:
+        if org_name == "Arianiel":
             self.project_number = "1"
 
         if self.project_number == "0":

@@ -175,7 +175,7 @@ query findRepoInfo {
 
 #print(ql.run_query(query))
 
-current_project = get_project_info.ProjectInfo(True)
+current_project = get_project_info.ProjectInfo()
 current_project.add_repo("issues-repo")
 
 print(current_project.repos["issues-repo"].labels["bug"])

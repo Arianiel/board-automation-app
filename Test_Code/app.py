@@ -94,11 +94,11 @@ def label_added(info):
             current_issue.set_status(current_issue.project_to_use.status_ids["Backlog"])
         case "0", "1", "2", "5", "8", "13", "20", "40":
             print("Points label, need to apply this in time")
-            # TODO: Deal with points labels
+            # TODO: Phase 2: Deal with points labels
         case _:
             print("Nothing to be done with this label: ", label_name)
 
 
 if __name__ == '__main__':
-    current_project = get_project_info.ProjectInfo(True)
+    current_project = get_project_info.ProjectInfo()
     app.run()
