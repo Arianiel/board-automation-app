@@ -1,7 +1,7 @@
 mutation setProject {
     addProjectV2ItemById(input: {
-        contentId: "[ISSUE_ID]",
-        projectId: "[PROJ_ID]"
+        contentId: "<ISSUE_ID>",
+        projectId: "<PROJ_ID>"
     })
     {
         item{

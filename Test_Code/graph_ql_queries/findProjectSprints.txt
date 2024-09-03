@@ -1,7 +1,7 @@
 query findProjectSprints
 {
-    organization(login: "[ORG_NAME]"){
-        projectV2(number:[PROJ_NUM]){
+    organization(login: "<ORG_NAME>"){
+        projectV2(number:<PROJ_NUM>){
             ... on ProjectV2 {
                 fields(first: 20) {
                     nodes {

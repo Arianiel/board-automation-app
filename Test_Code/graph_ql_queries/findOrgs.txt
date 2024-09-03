@@ -1,5 +1,5 @@
 query findOrgs {
-  user(login: "[USER]") {
+  user(login: "<USER>") {
   	organizations (first: 5){
       nodes {
         id
