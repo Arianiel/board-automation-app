@@ -43,5 +43,9 @@ class IssueToUpdate:
         self.repo_name = gql_queries.run_query(get_repo_query)["data"]["node"]["repository"]["name"]
 
     def add_label(self, label_id_to_add):
-        update_labels = gql_queries.open_graph_ql_query_file("UpdateItemLabel.txt")
+        update_labels = gql_queries.open_graph_ql_query_file("AddLabel.txt")
         gql_queries.run_query(update_labels.replace("<ISSUE>", self.issue_id).replace("<LABEL_ID>", label_id_to_add))
+
+    def remove_label(self, label_id_to_remove):
+        update_labels = gql_queries.open_graph_ql_query_file("RemoveLabel.txt")
+        gql_queries.run_query(update_labels.replace("<ISSUE>", self.issue_id).replace("<LABEL_ID>", label_id_to_remove))

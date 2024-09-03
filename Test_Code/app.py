@@ -17,11 +17,10 @@ def webhook():
                 print("Something has been edited, I need to allow for this")
                 match request.json["changes"]["field_value"]["field_name"]:
                     case "Labels":
-                        print("Labels are handled already, ignore this")
+                        # Labels should already have been handled elsewhere
+                        pass
                     case "Status":
-                        print("This is the one I want to action, a status change")
                         status_changed(request.json)
-                        # TODO: Handle the status changes
                     case _:
                         print("Nothing decided yet for: " + request.json["changes"]["field_value"]["field_name"])
             case _:
@@ -42,6 +41,16 @@ def status_changed(info):
         match status_from:
             case "Done":
                 # Nothing to do for Done
+                return
+            case "In Progress":
+                current_issue.remove_label(current_project.repos[current_issue.repo_name].labels["in progress"])
+            case "Impeded":
+                current_issue.remove_label(current_project.repos[current_issue.repo_name].labels["impeded"])
+            case "Review":
+                current_issue.remove_label(current_project.repos[current_issue.repo_name].labels["review"])
+                current_issue.remove_label(current_project.repos[current_issue.repo_name].labels["under review"])
+            case "Backlog":
+                # Nothing to do for Backlog here
                 return
             case _:
                 print("Nothing planned for going from this status: ", status_from)

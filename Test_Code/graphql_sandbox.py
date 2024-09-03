@@ -179,3 +179,29 @@ current_project = get_project_info.ProjectInfo(True)
 current_project.add_repo("issues-repo")
 
 print(current_project.repos["issues-repo"].labels["bug"])
+
+add_label = """
+mutation UpdateItemLabels {
+    addLabelsToLabelable(input: {
+        labelableId: "I_kwDOMZjARM6U3OLH",
+        labelIds: ["LA_kwDOMZjARM8AAAABr0GyRQ"]
+    })
+    {
+        clientMutationId
+    }
+}
+"""
+
+
+drop_label = """
+mutation RemoveItemLabels {
+    removeLabelsFromLabelable(input: {
+        labelableId: "I_kwDOMZjARM6U3OLH",
+        labelIds: ["LA_kwDOMZjARM8AAAABr0GyRQ"]
+    })
+    {
+        clientMutationId
+    }
+}
+"""
+print(ql.run_query(drop_label))

@@ -1,0 +1,9 @@
+mutation RemoveItemLabels {
+    removeLabelsFromLabelable(input: {
+        labelableId: "<ISSUE>",
+        labelIds: ["<LABEL_ID>"]
+    })
+    {
+        clientMutationId
+    }
+}
