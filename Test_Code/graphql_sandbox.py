@@ -115,7 +115,7 @@ query getIssueRepo {
 }
 """
 
-print(ql.run_query(check_repos))
+#print(ql.run_query(check_repos))
 
 add_label = """
 mutation UpdateItemLabels {
@@ -129,4 +129,53 @@ mutation UpdateItemLabels {
 }
 """
 
-print(ql.run_query(add_label))
+#print(ql.run_query(add_label))
+"""
+current_project = get_project_info.ProjectInfo(True)
+print(current_project.repos)
+current_project.add_repo("Test 1")
+print(current_project.repos)
+current_project.add_repo("Test 2")
+print(current_project.repos)
+current_project.add_repo("Test 3")
+print(str(current_project.repos))
+
+for entry in current_project.repos.keys():
+    print(current_project.repos[entry])
+
+testing = ["Test 2", "Test 4"]
+
+for item in testing:
+    if item not in current_project.repos.keys():
+        print(item + " is not in there")
+        current_project.add_repo(item)
+    else:
+        print(item + " is there")
+
+for entry in current_project.repos.keys():
+    print(current_project.repos[entry])
+"""
+
+
+# Check on a repo
+query = """
+query findRepoInfo {
+  repository(owner: "Arianiel", name: "issues-repo") {
+    name
+    id
+    labels(first: 100){
+      nodes {
+        name
+        id
+      }
+    }
+  }
+}
+"""
+
+#print(ql.run_query(query))
+
+current_project = get_project_info.ProjectInfo(True)
+current_project.add_repo("issues-repo")
+
+print(current_project.repos["issues-repo"].labels["bug"])

@@ -1,0 +1,11 @@
+query getIssueRepo {
+  node(id: "<ISSUE>") {
+    ... on Issue {
+      number
+      id
+      repository {
+        name
+      }
+    }
+  }
+}

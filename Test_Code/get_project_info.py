@@ -1,4 +1,5 @@
 import graph_ql_queries.graph_ql_functions as gql_queries
+import repo_information as repo_info
 import datetime
 
 
@@ -9,7 +10,7 @@ class ProjectInfo:
 
         # Get the users orgs
         orgs_query = gql_queries.open_graph_ql_query_file("findOrgs.txt")
-        result = gql_queries.run_query(orgs_query.replace("[USER]", self.user_name))  # Execute the query
+        result = gql_queries.run_query(orgs_query.replace("<USER>", self.user_name))  # Execute the query
         self.orgs = result["data"]["user"]["organizations"]["nodes"]
 
         # Assign the organization to use
@@ -30,7 +31,7 @@ class ProjectInfo:
 
         # Find the V2 projects owned by the organization
         self.proj_list_query = gql_queries.open_graph_ql_query_file("findProjects.txt")
-        self.result_projects = gql_queries.run_query(self.proj_list_query.replace("[ORG_NAME]", self.org_name))["data"]["organization"]["projectsV2"]["nodes"]
+        self.result_projects = gql_queries.run_query(self.proj_list_query.replace("<ORG_NAME>", self.org_name))["data"]["organization"]["projectsV2"]["nodes"]
         projects = {}
 
         # Find the appropriate project for this PI
@@ -64,7 +65,7 @@ class ProjectInfo:
         self.sprint_list_id_query = gql_queries.open_graph_ql_query_file("findProjectSprints.txt")
 
         self.fields = gql_queries.run_query(
-            self.sprint_list_id_query.replace("[PROJ_NUM]", self.project_number).replace("[ORG_NAME]", self.org_name))[
+            self.sprint_list_id_query.replace("<PROJ_NUM>", self.project_number).replace("<ORG_NAME>", self.org_name))[
             "data"]["organization"]["projectV2"]["fields"]["nodes"]
 
         # Get sprint list
@@ -108,3 +109,10 @@ class ProjectInfo:
                         self.next_sprint = str(sprint)
                 except KeyError:
                     self.next_sprint = sprint
+
+        # Initialise extra parameters needed
+        self.repos = {}
+
+    def add_repo(self, repo_name):
+        if repo_name not in self.repos.keys():
+            self.repos[repo_name] = repo_info.RepoInfo(self.org_name, repo_name)

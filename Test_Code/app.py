@@ -10,17 +10,17 @@ def webhook():
     if request.method == 'POST':
         match request.json["action"]:
             case "unlabeled":
-                print("Label removed: ", request.json["label"]["name"])
+                print("Label removed, nothing to do: ", request.json["label"]["name"])
             case "labeled":
                 label_added(request.json)
             case "edited":
                 print("Something has been edited, I need to allow for this")
                 match request.json["changes"]["field_value"]["field_name"]:
                     case "Labels":
-                        print("Labels are handled already")
+                        print("Labels are handled already, ignore this")
                     case "Status":
                         print("This is the one I want to action, a status change")
-                        print(request.json)
+                        status_changed(request.json)
                         # TODO: Handle the status changes
                     case _:
                         print("Nothing decided yet for: " + request.json["changes"]["field_value"]["field_name"])
@@ -29,6 +29,39 @@ def webhook():
         return 'success', 200
     else:
         abort(400)
+
+
+def status_changed(info):
+    print("Handle a status change")
+    if info["projects_v2_item"]["content_type"] == "Issue":
+        status_from = info["changes"]["field_value"]["from"]["name"]
+        status_to = info["changes"]["field_value"]["to"]["name"]
+        current_issue = update_item_info.IssueToUpdate(info["projects_v2_item"]["content_node_id"])
+        current_issue.get_repo()
+        current_project.add_repo(current_issue.repo_name)
+        match status_from:
+            case "Done":
+                # Nothing to do for Done
+                return
+            case _:
+                print("Nothing planned for going from this status: ", status_from)
+        match status_to:
+            case "Done":
+                # Nothing to do for Done
+                return
+            case "In Progress":
+                current_issue.add_label(current_project.repos[current_issue.repo_name].labels["in progress"])
+                if status_from == "Review":
+                    current_issue.add_label(current_project.repos[current_issue.repo_name].labels["rework"])
+            case "Impeded":
+                current_issue.add_label(current_project.repos[current_issue.repo_name].labels["impeded"])
+            case "Review":
+                current_issue.add_label(current_project.repos[current_issue.repo_name].labels["review"])
+            case "Backlog":
+                if status_from == "Review":
+                    current_issue.add_label(current_project.repos[current_issue.repo_name].labels["rework"])
+            case _:
+                print("Nothing planned for going to this status: ", status_to)
 
 
 def label_added(info):
@@ -55,10 +88,6 @@ def label_added(info):
             # TODO: Deal with points labels
         case _:
             print("Nothing to be done with this label: ", label_name)
-
-
-def get_projects():
-    print("get_projects")
 
 
 if __name__ == '__main__':

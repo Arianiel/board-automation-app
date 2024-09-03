@@ -1,0 +1,12 @@
+query findRepoInfo {
+  repository(owner: "<ORG_NAME>", name: "<REPO>") {
+    name
+    id
+    labels(first: 100){
+      nodes {
+        name
+        id
+      }
+    }
+  }
+}
