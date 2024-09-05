@@ -1,4 +1,4 @@
-import graph_ql_queries.graph_ql_functions as gql_queries
+import graph_ql_interactions.graph_ql_functions as gql_queries
 
 
 class RepoInfo:

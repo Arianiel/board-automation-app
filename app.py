@@ -1,6 +1,5 @@
 from flask import Flask, request, abort
-import get_project_info
-import update_item_info
+from github_interactions import get_project_info, update_item_info
 
 app = Flask(__name__)
 

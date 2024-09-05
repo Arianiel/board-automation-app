@@ -1,11 +1,10 @@
-import graph_ql_queries.graph_ql_functions as gql_queries
-import repo_information as repo_info
+import graph_ql_interactions.graph_ql_functions as gql_queries
+import github_interactions.repo_information as repo_info
 import datetime
 
 
 class ProjectInfo:
     def __init__(self, org_name="Arianiel", user_name="KathrynBaker"):
-        # TODO make this something more variable than me
         self.user_name = user_name
         self.org_name = org_name
 

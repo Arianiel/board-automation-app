@@ -1,6 +1,5 @@
-import get_project_info
-import Test_Code.update_item_info as up_info
-import graph_ql_queries.graph_ql_functions as ql
+from github_interactions import get_project_info
+import graph_ql_interactions.graph_ql_functions as ql
 
 """
 current_project = get_project_info.ProjectInfo(True)
