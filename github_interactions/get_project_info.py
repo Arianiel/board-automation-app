@@ -1,19 +1,25 @@
 import graph_ql_interactions.graph_ql_functions as gql_queries
 import github_interactions.repo_information as repo_info
 import datetime
+import configparser
+import os
 
 
 class ProjectInfo:
-    def __init__(self, org_name="Arianiel", user_name="KathrynBaker"):
-        self.user_name = user_name
-        self.org_name = org_name
+    def __init__(self):
+        # Get values from config.ini
+        config = configparser.ConfigParser()
+        config.read(os.path.join(os.path.dirname(__file__), "..", "config_info", "config.ini"))
+
+        self.user_name = config["GITHUB.INTERACTION"]["user_name"]
+        self.org_name = config["GITHUB.INTERACTION"]["org_name"]
 
         # Get the users orgs
         orgs_query = gql_queries.open_graph_ql_query_file("findOrgs.txt")
         result = gql_queries.run_query(orgs_query.replace("<USER>", self.user_name))  # Execute the query
         self.orgs = result["data"]["user"]["organizations"]["nodes"]
 
-        # TODO PHase 2 verify that the organisation in use is in the available orgs for the user for the token
+        # TODO verify that the organisation in use is in the available orgs for the user for the token
 
         # Get the date to use to automate some of the coding
         today = datetime.datetime.today()
@@ -48,9 +54,6 @@ class ProjectInfo:
                 else:
                     print("This is not the PI I'm looking for")
 
-        if org_name == "Arianiel":
-            self.project_number = "1"
-
         if self.project_number == "0":
             return
 
@@ -58,7 +61,7 @@ class ProjectInfo:
         self.sprint_list_id_query = gql_queries.open_graph_ql_query_file("findProjectSprints.txt")
 
         self.fields = gql_queries.run_query(
-            self.sprint_list_id_query.replace("<PROJ_NUM>", self.project_number).replace("<ORG_NAME>", self.org_name))[
+            self.sprint_list_id_query.replace("<PROJ_NUM>", str(self.project_number)).replace("<ORG_NAME>", self.org_name))[
             "data"]["organization"]["projectV2"]["fields"]["nodes"]
 
         # Get sprint list
