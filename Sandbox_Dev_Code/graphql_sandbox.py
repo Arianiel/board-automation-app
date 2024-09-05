@@ -203,4 +203,4 @@ mutation RemoveItemLabels {
     }
 }
 """
-print(ql.run_query(drop_label))
+print(ql.run_query(add_label))

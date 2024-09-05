@@ -1,9 +1,12 @@
 import os
 import requests
+import configparser
 
-headers = {"Authorization": "token "+open(os.path.join(os.path.dirname(__file__),"..", "config_info","classic_token"),
-                                          "r").read(),
-           'Content-Type': 'application/json'}
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.dirname(__file__), "..", "config_info","config.ini"))
+token = config["GITHUB.INTERACTION"]["token"]
+
+headers = {"Authorization": "token "+token, 'Content-Type': 'application/json'}
 
 
 def open_graph_ql_query_file(filename):
@@ -12,7 +15,7 @@ def open_graph_ql_query_file(filename):
     return output
 
 
-def run_query(query): # A simple function to use requests.post to make the API call. Note the json= section.
+def run_query(query):  # A simple function to use requests.post to make the API call. Note the json= section.
     request = requests.post('https://api.github.com/graphql', json={'query': query}, headers=headers)
     if request.status_code == 200:
         return request.json()

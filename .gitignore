@@ -161,4 +161,4 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 /Sandbox_Dev_Code/token
-/config_info/classic_token
+/config_info/config.ini
