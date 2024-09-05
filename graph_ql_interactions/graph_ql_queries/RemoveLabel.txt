@@ -1,4 +1,4 @@
-mutation RemoveItemLabels {
+mutation RemoveLabel {
     removeLabelsFromLabelable(input: {
         labelableId: "<ISSUE>",
         labelIds: ["<LABEL_ID>"]

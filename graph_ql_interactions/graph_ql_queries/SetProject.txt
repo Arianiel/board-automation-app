@@ -1,4 +1,4 @@
-mutation setProject {
+mutation SetProject {
     addProjectV2ItemById(input: {
         contentId: "<ISSUE_ID>",
         projectId: "<PROJ_ID>"

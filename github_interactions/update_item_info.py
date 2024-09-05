@@ -11,7 +11,7 @@ class IssueToUpdate:
     def set_project(self, project):
         self.project_to_use = project
 
-        set_proj_mutation = gql_queries.open_graph_ql_query_file("setProject.txt")
+        set_proj_mutation = gql_queries.open_graph_ql_query_file("SetProject.txt")
 
         result = gql_queries.run_query(
             set_proj_mutation.replace("<ISSUE_ID>", self.issue_id).replace("<PROJ_ID>", self.project_to_use.project_id))
@@ -39,11 +39,11 @@ class IssueToUpdate:
         self.set_sprint(self.project_to_use.sprint_ids[self.project_to_use.current_sprint])
 
     def get_repo(self):
-        get_repo_query = gql_queries.open_graph_ql_query_file("findRepo.txt").replace("<ISSUE>", self.issue_id)
+        get_repo_query = gql_queries.open_graph_ql_query_file("findIssueRepo.txt").replace("<ISSUE>", self.issue_id)
         self.repo_name = gql_queries.run_query(get_repo_query)["data"]["node"]["repository"]["name"]
 
     def add_label(self, label_id_to_add):
-        update_labels = gql_queries.open_graph_ql_query_file("AddLabel.txt")
+        update_labels = gql_queries.open_graph_ql_query_file("UpdateItemLabel.txt")
         gql_queries.run_query(update_labels.replace("<ISSUE>", self.issue_id).replace("<LABEL_ID>", label_id_to_add))
 
     def remove_label(self, label_id_to_remove):

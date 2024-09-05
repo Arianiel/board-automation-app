@@ -1,4 +1,4 @@
-query getIssueRepo {
+query findIssueRepo {
   node(id: "<ISSUE>") {
     ... on Issue {
       number
