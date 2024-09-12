@@ -1,6 +1,7 @@
 from flask import Flask, request, abort
 from github_interactions import get_project_info, update_item_info
 
+
 app = Flask(__name__)
 
 
@@ -13,7 +14,6 @@ def webhook():
             case "labeled":
                 label_added(request.json)
             case "edited":
-                print("Something has been edited, I need to allow for this")
                 match request.json["changes"]["field_value"]["field_name"]:
                     case "Labels":
                         # Labels should already have been handled elsewhere
@@ -29,8 +29,17 @@ def webhook():
         abort(400)
 
 
+@app.route("/")
+def hello_world():
+    return "<p>Hello, World!</p>"
+
+
+@app.route("/burndown")
+def burndown():
+    return current_project.current_burndown.burndown_display()
+
+
 def status_changed(info):
-    print("Handle a status change")
     if info["projects_v2_item"]["content_type"] == "Issue":
         status_from = info["changes"]["field_value"]["from"]["name"]
         status_to = info["changes"]["field_value"]["to"]["name"]
@@ -93,11 +102,12 @@ def label_added(info):
             current_issue.set_status(current_issue.project_to_use.status_ids["Backlog"])
         case "0", "1", "2", "5", "8", "13", "20", "40":
             print("Points label, need to apply this in time")
-            # TODO: Phase 2: Deal with points labels
+            # TODO: Deal with points labels
         case _:
             print("Nothing to be done with this label: ", label_name)
 
 
 if __name__ == '__main__':
+    # Initialise the classes that will be needed for the overall app
     current_project = get_project_info.ProjectInfo()
     app.run()

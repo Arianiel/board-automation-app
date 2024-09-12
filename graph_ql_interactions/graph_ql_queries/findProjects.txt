@@ -1,7 +1,7 @@
 query findProjects {
   organization(login: "<ORG_NAME>"){
     login
-      projectsV2(first: 15){
+      projectsV2(first: 100){
         nodes {
           id
           title

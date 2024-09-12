@@ -1,5 +1,8 @@
+import datetime
+
 from github_interactions import get_project_info
 import graph_ql_interactions.graph_ql_functions as ql
+from collections import Counter
 
 """
 current_project = get_project_info.ProjectInfo(True)
@@ -174,10 +177,10 @@ query findRepoInfo {
 
 #print(ql.run_query(query))
 
-current_project = get_project_info.ProjectInfo()
-current_project.add_repo("issues-repo")
 
-print(current_project.repos["issues-repo"].labels["bug"])
+#current_project.add_repo("issues-repo")
+
+#print(current_project.repos["issues-repo"].labels["bug"])
 
 add_label = """
 mutation UpdateItemLabels {
@@ -203,4 +206,137 @@ mutation RemoveItemLabels {
     }
 }
 """
-print(ql.run_query(add_label))
+
+
+query = """
+query findCardCounts {
+	organization(login: "ISISComputingGroup"){
+    projectV2(number: 20){
+      title
+    }
+  }
+}
+"""
+
+
+query = """
+query findCardInfo {
+    organization(login: "ISISComputingGroup"){
+        projectV2(number: 20){
+            ... on ProjectV2 {
+                items(first: 100){
+                    nodes {
+                        ... on ProjectV2Item{
+                            fieldValues(first: 10) {
+                                nodes {
+                                    ... on ProjectV2ItemFieldSingleSelectValue {
+                                        name
+                                        field {
+                                            ... on ProjectV2SingleSelectField {
+                                                name
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+"""
+
+query1 = """
+query {
+  node(id: "PVTI_lADOAHkvXM4Akjg1zgQzo3k") {
+    ... on Issue {
+      number
+      id
+      repository {
+        name
+      }
+    }
+  }
+}
+"""
+"""
+fields_to_count = ["Backlog", "In Progress"]
+current_sprint = "2024_09_05"
+
+result = ql.run_query(query)
+print(result)
+
+card_statuses = []
+
+refined_cards = {}
+cards_to_refine = []
+
+items = result["data"]["organization"]["projectV2"]["items"]["nodes"]
+for item in items:
+    field_values = item["fieldValues"]["nodes"]
+    for value in field_values:
+        try:
+            if value["field"]["name"] == "Sprint" and value["name"] == current_sprint:
+                cards_to_refine.append([i for i in field_values if i])
+        except KeyError:
+            # Section is empty ignore it
+            pass
+        # try:
+        #     print(value["name"])
+        # except KeyError:
+        #     # Section is empty ignore it
+        #     pass
+
+
+    # for value in item["fieldValues"]["nodes"]:
+    #     try:
+    #         if value["name"] in fields_to_count:
+    #             status = value["name"]
+    #     except:
+    #         # Nothing to
+    #     try:
+    #         if value["name"] == current_sprint:
+    #             print("I WILL BE COUNTING THIS ONE - it is", status)
+    #     except KeyError:
+    #         # Nothing to do if no data
+    #         pass
+
+print(cards_to_refine)
+
+for card in cards_to_refine:
+    print(card)
+    status = ""
+    for value in card:
+        print(value)
+        try:
+            print(value["field"]["name"])
+            if value["field"]["name"] == "Status":
+                card_statuses.append(value["name"])
+        except KeyError:
+            # Nothing to worry about this doesn't exist
+            pass
+
+print(card_statuses)
+card_frequency = Counter(card_statuses)
+print(card_frequency)
+
+today = datetime.datetime.today().strftime("%Y-%m-%d")
+print(today)
+
+entry_list = [today, ",", str(card_frequency["Backlog"]), ",", str(card_frequency["In Progress"]), ",",
+              str(card_frequency["Impeded"]), ",", str(card_frequency["Review"]), ",", str(card_frequency["Done"]), "\r\n"]
+entry = "".join(entry_list)
+
+print(entry)
+
+with open("burndown-points.csv", "a") as f:
+    f.write(entry)
+"""
+
+current_project = get_project_info.ProjectInfo()
+print(current_project.project_number)
+current_project.current_burndown.update_csv()
+

@@ -1,0 +1,26 @@
+query findCardInfo {
+    organization(login: "<ORG_NAME>"){
+        projectV2(number: <PROJ_NUM>){
+            ... on ProjectV2 {
+                items(first: 100){
+                    nodes {
+                        ... on ProjectV2Item{
+                            fieldValues(first: 10) {
+                                nodes {
+                                    ... on ProjectV2ItemFieldSingleSelectValue {
+                                        name
+                                        field {
+                                            ... on ProjectV2SingleSelectField {
+                                                name
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
