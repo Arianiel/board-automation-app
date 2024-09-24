@@ -18,13 +18,13 @@ class Burndown:
         # TODO: If it doesn't exist create a burndown csv
         self.burndown_web_page = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "templates", "burndown-points.html"))
         self.burndown_csv = os.path.join(os.path.dirname(__file__), "burndown-points.csv")
-        self.last_update = None
         self.update_display()
 
     def burndown_display(self):
         return "This will be a class for a burndown display"
 
     def update_display(self):
+        today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"), "%Y-%m-%d")
         start_date = self.sprints[self.current_sprint_name].sprint_start_date
         end_date = self.sprints[self.next_sprint_name].sprint_start_date
 
@@ -34,10 +34,8 @@ class Burndown:
         last_line_index = len(dates)
 
         last_day = datetime.strptime(df["Date"][start_index + last_line_index - 1], "%Y-%m-%d")
-        today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"), "%Y-%m-%d")
         if today > last_day:
             self.update_csv()
-        self.last_update = today
 
         done = df["Done"].values[start_index:]
         backlog = df["Backlog"].values[start_index:]

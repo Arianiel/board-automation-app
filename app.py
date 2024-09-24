@@ -9,6 +9,7 @@ app = Flask(__name__)
 @app.route('/webhook', methods=['POST'])
 def webhook():
     if request.method == 'POST':
+        # This is assuming a post from GitHub, other sources will not do much
         match request.json["action"]:
             case "unlabeled":
                 print("Label removed, nothing to do: ", request.json["label"]["name"])
@@ -30,13 +31,16 @@ def webhook():
         abort(400)
 
 
+# Just so that something is displayed if you go to a non-existent web page whilst the app is still under development
 @app.route("/")
 def hello_world():
     return "<p>Hello, World!</p>"
 
 
+# Display the burndown chart of the IBEX board
 @app.route("/burndown")
 def burndown():
+    # Update the display before rendering
     current_project.current_burndown.update_display()
     return render_template("burndown-points.html")
 
