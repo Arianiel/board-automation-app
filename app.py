@@ -1,5 +1,6 @@
-from flask import Flask, request, abort
+from flask import Flask, request, abort, render_template
 from github_interactions import get_project_info, update_item_info
+from datetime import datetime
 
 
 app = Flask(__name__)
@@ -36,7 +37,8 @@ def hello_world():
 
 @app.route("/burndown")
 def burndown():
-    return current_project.current_burndown.burndown_display()
+    current_project.current_burndown.update_display()
+    return render_template("burndown-points.html")
 
 
 def status_changed(info):

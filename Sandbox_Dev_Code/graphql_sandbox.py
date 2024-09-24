@@ -337,6 +337,5 @@ with open("burndown-points.csv", "a") as f:
 """
 
 current_project = get_project_info.ProjectInfo()
-print(current_project.project_number)
-current_project.current_burndown.update_csv()
+current_project.current_burndown.update_display()
 

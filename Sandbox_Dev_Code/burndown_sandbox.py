@@ -7,17 +7,26 @@ import pandas as pd
 current_project = get_project_info.ProjectInfo()
 print(current_project.current_sprint)
 print(current_project.next_sprint)
+# Simulate the inputs
+sprints = current_project.sprint_by_class
+current_sprint_name = current_project.current_sprint
+next_sprint_name = current_project.next_sprint
 
-start_date = current_project.sprint_by_class[current_project.current_sprint].sprint_start_date
-end_date = current_project.sprint_by_class[current_project.next_sprint].sprint_start_date
-print(start_date)
-print(end_date)
-print((end_date-start_date).days)
+# This is the code to start thinking about copying over
+start_date = sprints[current_sprint_name].sprint_start_date
+end_date = sprints[next_sprint_name].sprint_start_date
+# print(start_date)
+# print(end_date)
+# print((end_date-start_date).days)
 
 dates = start_date.isoformat()
+print("isofromat")
+print(dates)
 df = pd.read_csv("burndown-points.csv")
 start_index = 0
 dates = df["Date"][start_index:]
+print("df")
+print(dates)
 last_line_index = len(dates)
 
 last_day = datetime.strptime(df["Date"][start_index + last_line_index - 1], "%Y-%m-%d")

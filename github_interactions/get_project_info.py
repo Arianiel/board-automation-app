@@ -109,7 +109,7 @@ class ProjectInfo:
         # TODO: Handle start/end of PI/Sprint better - at the moment this takes a restart of the server
 
         self.current_burndown = burndown.Burndown(self.org_name, self.project_number, self.current_sprint,
-                                                  self.next_sprint)
+                                                  self.next_sprint, self.sprint_by_class)
 
         # Initialise extra parameters needed
         self.repos = {}
