@@ -2,7 +2,7 @@ query findCardInfo {
     organization(login: "<ORG_NAME>"){
         projectV2(number: <PROJ_NUM>){
             ... on ProjectV2 {
-                items(first: 100){
+                items(first: 10, after: <AFTER>){
                     nodes {
                         ... on ProjectV2Item{
                             fieldValues(first: 10) {
@@ -18,6 +18,12 @@ query findCardInfo {
                                 }
                             }
                         }
+                    }
+                    pageInfo {
+                        endCursor
+                        startCursor
+                        hasNextPage
+                        hasPreviousPage
                     }
                 }
             }

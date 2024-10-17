@@ -336,6 +336,78 @@ with open("burndown-points.csv", "a") as f:
     f.write(entry)
 """
 
-current_project = get_project_info.ProjectInfo()
-current_project.current_burndown.update_display()
+#current_project = get_project_info.ProjectInfo()
+#current_project.current_burndown.update_display()
 
+card_info_query = ql.open_graph_ql_query_file("findCardInfo.txt")
+result = ql.run_query(card_info_query.replace("<ORG_NAME>", "ISISComputingGroup").replace("<PROJ_NUM>", str(20)).replace("<AFTER>", "null"))
+#print(result)
+#print(result["data"]["organization"]["projectV2"]["items"]["pageInfo"])
+
+startCursor = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["startCursor"]
+hasNextPage = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["hasNextPage"]
+hasPreviousPage = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["hasPreviousPage"]
+items = []
+for item in result["data"]["organization"]["projectV2"]["items"]["nodes"]:
+    items.append(item)
+print("There are " + str(len(items)) + " items")
+
+while hasNextPage:
+    endCursor = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["endCursor"]
+    result = ql.run_query(
+        card_info_query.replace("<ORG_NAME>", "ISISComputingGroup").replace("<PROJ_NUM>", str(20)).replace("<AFTER>",
+                                                                                                           "\"" + endCursor + "\""))
+    #print(result)
+    #print(result["data"]["organization"]["projectV2"]["items"]["pageInfo"])
+    hasNextPage = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["hasNextPage"]
+    #endCursor = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["endCursor"]
+    for item in result["data"]["organization"]["projectV2"]["items"]["nodes"]:
+        items.append(item)
+    print("There are " + str(len(items)) + " items")
+print("There are " + str(len(items)) + " items")
+"""
+extra = {'fieldValues': {'nodes': [{}, {}, {}, {'name': 'Project/Feature', 'field': {'name': 'Classification'}}, {'name': 'In Progress', 'field': {'name': 'Status'}}]}}
+print("There are " + str(len(items)) + " items")
+print(type(items))
+test = []
+for item in items:
+    test.append(item)
+    print(item)
+print("Here are my tests")
+print(test)
+for thing in test:
+    print(thing)
+
+cards_to_refine = []
+for item in items:
+    # Split to a further iterable
+    field_values = item["fieldValues"]["nodes"]
+    for value in field_values:
+        try:
+            if value["field"]["name"] == "Sprint" and value["name"] == "2024_11_28":
+                # Get rid of empty values
+                cards_to_refine.append([i for i in field_values if i])
+        except KeyError:
+            # Section is empty ignore it
+            pass
+print(cards_to_refine)
+
+cards_to_refine = []
+for item in test:
+    # Split to a further iterable
+    field_values = item["fieldValues"]["nodes"]
+    for value in field_values:
+        try:
+            if value["field"]["name"] == "Sprint" and value["name"] == "2024_11_28":
+                # Get rid of empty values
+                cards_to_refine.append([i for i in field_values if i])
+        except KeyError:
+            # Section is empty ignore it
+            pass
+print(cards_to_refine)
+
+
+items = result["data"]["organization"]["projectV2"]["items"]["nodes"]
+for item in items:
+    print(item)
+"""

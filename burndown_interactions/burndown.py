@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import os
 
+
 class Burndown:
     def __init__(self, org_name, project_number, current_sprint_name, next_sprint_name, sprints):
         self.card_info_query = gql_queries.open_graph_ql_query_file("findCardInfo.txt")
@@ -108,12 +109,25 @@ class Burndown:
     def update_csv(self):
         # TODO: Verify that the csv is correct for the sprint
         # TODO: Clear csv before appending on start of sprint
-        result = gql_queries.run_query(self.card_info_query.replace("<ORG_NAME>", self.org_name).replace("<PROJ_NUM>", str(self.project_number)))
-        card_statuses = []
-        cards_to_refine = []
-        # First split to a new iterable
-        items = result["data"]["organization"]["projectV2"]["items"]["nodes"]
+
+        # Get the list of items in the project - note that there should always be at least one page, and the paignation is added afterwards
+        result = gql_queries.run_query(self.card_info_query.replace("<ORG_NAME>", self.org_name).replace("<PROJ_NUM>", str(self.project_number)).replace("<AFTER>", "null"))
+        has_next_page = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["hasNextPage"]
+        items = []
+        for item in result["data"]["organization"]["projectV2"]["items"]["nodes"]:
+            items.append(item)
+        # Add items from any further pages
+        while has_next_page:
+            endCursor = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["endCursor"]
+            result = gql_queries.run_query(self.card_info_query.replace("<ORG_NAME>", "ISISComputingGroup").replace("<PROJ_NUM>", str(self.project_number)).replace(
+                    "<AFTER>",
+                    "\"" + endCursor + "\""))
+            has_next_page = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["hasNextPage"]
+            for item in result["data"]["organization"]["projectV2"]["items"]["nodes"]:
+                items.append(item)
+
         # Get the cards in this sprint
+        cards_to_refine = []
         for item in items:
             # Split to a further iterable
             field_values = item["fieldValues"]["nodes"]
@@ -125,7 +139,10 @@ class Burndown:
                 except KeyError:
                     # Section is empty ignore it
                     pass
+
+
         # Get the statuses for the cards in this sprint
+        card_statuses = []
         for card in cards_to_refine:
             for value in card:
                 try:
