@@ -36,7 +36,14 @@ class Burndown:
 
         last_day = datetime.strptime(df["Date"][start_index + last_line_index - 1], "%Y-%m-%d")
         if today > last_day:
-            self.update_csv()
+            # Append the entry for today to the CSV file
+            with open(self.burndown_csv, "a") as f:
+                f.write(self.get_new_csv_line())
+            # Update the values that were read with the updated CSV info
+            df = pd.read_csv(self.burndown_csv)
+            start_index = 0
+            dates = df["Date"][start_index:]
+            last_line_index = len(dates)
 
         done = df["Done"].values[start_index:]
         backlog = df["Backlog"].values[start_index:]
@@ -106,10 +113,7 @@ class Burndown:
         fig.update_layout(showlegend=True)
         fig.write_html(self.burndown_web_page)
 
-    def update_csv(self):
-        # TODO: Verify that the csv is correct for the sprint
-        # TODO: Clear csv before appending on start of sprint
-
+    def get_new_csv_line(self):
         # Get the list of items in the project - note that there should always be at least one page, and the paignation is added afterwards
         result = gql_queries.run_query(self.card_info_query.replace("<ORG_NAME>", self.org_name).replace("<PROJ_NUM>", str(self.project_number)).replace("<AFTER>", "null"))
         has_next_page = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["hasNextPage"]
@@ -140,7 +144,6 @@ class Burndown:
                     # Section is empty ignore it
                     pass
 
-
         # Get the statuses for the cards in this sprint
         card_statuses = []
         for card in cards_to_refine:
@@ -158,6 +161,10 @@ class Burndown:
                       str(card_frequency["Impeded"]), ",", str(card_frequency["Review"]), ",",
                       str(card_frequency["Done"]), "\n"]
         entry = "".join(entry_list)
-        # Append the entry to the CSV file
-        with open(self.burndown_csv, "a") as f:
-            f.write(entry)
+        return entry
+
+    def verify_csv(self):
+        # TODO: Verify that the csv is correct for the sprint
+        # TODO: Clear csv before appending on start of sprint
+        # TODO: Tidy up missing lines in the CSV?
+        pass
