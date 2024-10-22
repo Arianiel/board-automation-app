@@ -17,6 +17,28 @@ class TestHandler(tornado.web.RequestHandler):
         self.write("This is my test")
 
 
+class WebhookHandler(tornado.web.RequestHandler):
+    def post(self):
+        request = tornado.escape.json_decode(self.request.body)
+        # This is assuming a post from GitHub, other sources will not do much
+        match request["action"]:
+            case "unlabeled":
+                print("Label removed, nothing to do: ", request["label"]["name"])
+            case "labeled":
+                label_added(request)
+            case "edited":
+                match request["changes"]["field_value"]["field_name"]:
+                    case "Labels":
+                        # Labels should already have been handled elsewhere
+                        pass
+                    case "Status":
+                        status_changed(request)
+                    case _:
+                        print("Nothing decided yet for: " + request["changes"]["field_value"]["field_name"])
+            case _:
+                print("No cases for action: ", request["action"])
+
+
 # Display the burndown chart of the IBEX board
 class BurndownHandler(tornado.web.RequestHandler):
     current_project.current_burndown.update_display()
@@ -99,6 +121,7 @@ def make_app():
         (r"/", MainHandler),
         (r"/test", TestHandler),
         (r"/burndown", BurndownHandler),
+        (r"/webhook", WebhookHandler),
     ])
 
 
