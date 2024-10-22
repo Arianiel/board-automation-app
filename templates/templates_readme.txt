@@ -1,2 +1,0 @@
-This folder is to simplify the flask app, and can hold any html pages that are needed in the interim.
-Initially there is only one built page, so this readme has been added to ensure the presence of this folder in github.

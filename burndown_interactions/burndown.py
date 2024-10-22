@@ -17,7 +17,7 @@ class Burndown:
         self.sprints = sprints
         self.csv_headings = "Date,Backlog,In Progress,Impeded,Review,Done"
         # TODO: If it doesn't exist create a burndown csv
-        self.burndown_web_page = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "templates", "burndown-points.html"))
+        self.burndown_web_page = os.path.abspath(os.path.join(os.path.dirname(__file__), "burndown-points.html"))
         self.burndown_csv = os.path.join(os.path.dirname(__file__), "burndown-points.csv")
         self.update_display()
 
