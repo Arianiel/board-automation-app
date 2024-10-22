@@ -79,6 +79,7 @@ class ProjectInfo:
                 case "Sprint":
                     self.sprint_field_id = field["id"]
                     for option in field["options"]:
+                        self.sprint_ids[option["name"]] = option["id"]
                         self.sprint_by_class[option["name"]] = SprintInfo(option)
                 case "Status":
                     self.status_field_id = field["id"]

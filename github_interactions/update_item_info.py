@@ -10,7 +10,6 @@ class IssueToUpdate:
 
     def set_project(self, project):
         self.project_to_use = project
-
         set_proj_mutation = gql_queries.open_graph_ql_query_file("SetProject.txt")
 
         result = gql_queries.run_query(

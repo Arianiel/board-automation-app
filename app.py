@@ -1,61 +1,70 @@
-from flask import Flask, request, abort, render_template
+import asyncio
+import tornado
 from github_interactions import get_project_info, update_item_info
-from datetime import datetime
+import os
+
+# Initialise the classes that will be needed for the overall app
+current_project = get_project_info.ProjectInfo()
 
 
-app = Flask(__name__)
+class MainHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write("This probably already exists")
 
 
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    if request.method == 'POST':
+class TestHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write("This is my test")
+
+
+class WebhookHandler(tornado.web.RequestHandler):
+    def post(self):
+        request = tornado.escape.json_decode(self.request.body)
         # This is assuming a post from GitHub, other sources will not do much
-        match request.json["action"]:
+        match request["action"]:
             case "unlabeled":
-                print("Label removed, nothing to do: ", request.json["label"]["name"])
+                print("Label removed, nothing to do: ", request["label"]["name"])
             case "labeled":
-                label_added(request.json)
+                label_added(request)
             case "edited":
-                match request.json["changes"]["field_value"]["field_name"]:
+                match request["changes"]["field_value"]["field_name"]:
                     case "Labels":
                         # Labels should already have been handled elsewhere
                         pass
                     case "Status":
-                        status_changed(request.json)
+                        status_changed(request)
                     case _:
-                        print("Nothing decided yet for: " + request.json["changes"]["field_value"]["field_name"])
+                        print("Nothing decided yet for: " + request["changes"]["field_value"]["field_name"])
             case _:
-                print("No cases for action: ", request.json["action"])
-        return 'success', 200
-    else:
-        abort(400)
-
-
-# Just so that something is displayed if you go to a non-existent web page whilst the app is still under development
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
+                print("No cases for action: ", request["action"])
 
 
 # Display the burndown chart of the IBEX board
-@app.route("/burndown")
-def burndown():
-    # Update the display before rendering
+class BurndownHandler(tornado.web.RequestHandler):
     current_project.current_burndown.update_display()
-    return render_template("burndown-points.html")
+
+    def get(self):
+        self.render(os.path.join(os.path.dirname(__file__), "burndown_interactions/burndown-points.html"))
+    # Update the display before rendering
 
 
 def status_changed(info):
     if info["projects_v2_item"]["content_type"] == "Issue":
-        status_from = info["changes"]["field_value"]["from"]["name"]
-        status_to = info["changes"]["field_value"]["to"]["name"]
+        try:
+            status_from = info["changes"]["field_value"]["from"]["name"]
+        except KeyError:
+            status_from = "Unknown"
+        try:
+            status_to = info["changes"]["field_value"]["to"]["name"]
+        except KeyError:
+            status_to = "Unknown"
         current_issue = update_item_info.IssueToUpdate(info["projects_v2_item"]["content_node_id"])
         current_issue.get_repo()
         current_project.add_repo(current_issue.repo_name)
         match status_from:
             case "Done":
                 # Nothing to do for Done
-                return
+                pass
             case "In Progress":
                 current_issue.remove_label(current_project.repos[current_issue.repo_name].labels["in progress"])
             case "Impeded":
@@ -65,13 +74,13 @@ def status_changed(info):
                 current_issue.remove_label(current_project.repos[current_issue.repo_name].labels["under review"])
             case "Backlog":
                 # Nothing to do for Backlog here
-                return
+                pass
             case _:
                 print("Nothing planned for going from this status: ", status_from)
         match status_to:
             case "Done":
                 # Nothing to do for Done
-                return
+                pass
             case "In Progress":
                 current_issue.add_label(current_project.repos[current_issue.repo_name].labels["in progress"])
                 if status_from == "Review":
@@ -110,10 +119,23 @@ def label_added(info):
             print("Points label, need to apply this in time")
             # TODO: Deal with points labels
         case _:
-            print("Nothing to be done with this label: ", label_name)
+            pass
+            # print("Nothing to be done with this label: ", label_name)
 
 
-if __name__ == '__main__':
-    # Initialise the classes that will be needed for the overall app
-    current_project = get_project_info.ProjectInfo()
-    app.run()
+def make_app():
+    return tornado.web.Application([
+        (r"/", MainHandler),
+        (r"/test", TestHandler),
+        (r"/burndown", BurndownHandler),
+        (r"/webhook", WebhookHandler),
+    ])
+
+
+async def main():
+    app = make_app()
+    app.listen(8888)
+    await asyncio.Event().wait()
+
+if __name__ == "__main__":
+    asyncio.run(main())

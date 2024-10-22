@@ -3,6 +3,7 @@ import datetime
 from github_interactions import get_project_info
 import graph_ql_interactions.graph_ql_functions as ql
 from collections import Counter
+from github_interactions.sprint_information import SprintInfo
 
 """
 current_project = get_project_info.ProjectInfo(True)
@@ -175,17 +176,16 @@ query findRepoInfo {
 }
 """
 
-#print(ql.run_query(query))
-
-
-#current_project.add_repo("issues-repo")
+print(ql.run_query(query))
+current_project = get_project_info.ProjectInfo()
+current_project.add_repo("issues-repo")
 
 #print(current_project.repos["issues-repo"].labels["bug"])
 
 add_label = """
 mutation UpdateItemLabels {
     addLabelsToLabelable(input: {
-        labelableId: "I_kwDOMZjARM6U3OLH",
+        labelableId: "I_kwDOMZjARM6QZUHK",
         labelIds: ["LA_kwDOMZjARM8AAAABr0GyRQ"]
     })
     {
@@ -198,7 +198,7 @@ mutation UpdateItemLabels {
 drop_label = """
 mutation RemoveItemLabels {
     removeLabelsFromLabelable(input: {
-        labelableId: "I_kwDOMZjARM6U3OLH",
+        labelableId: "I_kwDOMZjARM6QZUHK",
         labelIds: ["LA_kwDOMZjARM8AAAABr0GyRQ"]
     })
     {
@@ -206,6 +206,7 @@ mutation RemoveItemLabels {
     }
 }
 """
+print(ql.run_query(ql.open_graph_ql_query_file("UpdateItemLabel.txt").replace("<ISSUE>", "I_kwDOMZjARM6QZUHK").replace("<LABEL_ID>", "LA_kwDOMZjARM8AAAABtsil1A")))
 
 
 query = """
@@ -334,7 +335,7 @@ print(entry)
 
 with open("burndown-points.csv", "a") as f:
     f.write(entry)
-"""
+
 
 #current_project = get_project_info.ProjectInfo()
 #current_project.current_burndown.update_display()
@@ -365,7 +366,7 @@ while hasNextPage:
         items.append(item)
     print("There are " + str(len(items)) + " items")
 print("There are " + str(len(items)) + " items")
-"""
+
 extra = {'fieldValues': {'nodes': [{}, {}, {}, {'name': 'Project/Feature', 'field': {'name': 'Classification'}}, {'name': 'In Progress', 'field': {'name': 'Status'}}]}}
 print("There are " + str(len(items)) + " items")
 print(type(items))
@@ -411,3 +412,43 @@ items = result["data"]["organization"]["projectV2"]["items"]["nodes"]
 for item in items:
     print(item)
 """
+
+# current_project = get_project_info.ProjectInfo()
+# print(current_project.user_name)
+# print(current_project.orgs)
+# print(current_project.org_name)
+# print(current_project.result_projects)
+# print(current_project.project_id)
+# print(current_project.fields)
+# print(current_project.sprint_ids)
+#
+# sprint_list_id_query = ql.open_graph_ql_query_file("findProjectSprints.txt")
+#
+# fields = ql.run_query(
+#     sprint_list_id_query.replace("<PROJ_NUM>", "1")
+#     .replace("<ORG_NAME>", "Arianiel"))["data"]["organization"]["projectV2"]["fields"]["nodes"]
+#
+# print(fields)
+#
+# sprints = {}
+# sprint_ids = {}
+# sprint_by_class = {}
+# status_ids = {}
+# for field in fields:
+#     match field["name"]:
+#         case "Sprint":
+#             print("These are my sprints")
+#             print(field)
+#             sprint_field_id = field["id"]
+#             for option in field["options"]:
+#                 print("The option I have is: " + option["name"])
+#                 sprint_by_class[option["name"]] = SprintInfo(option)
+#         case "Status":
+#             status_field_id = field["id"]
+#             for option in field["options"]:
+#                 status_ids[option["name"]] = option["id"]
+#         case _:
+#             print(field["name"] + " not found, doing nothing")
+# print("Setting up my sprint information")
+# print(sprint_ids)
+# print(sprint_by_class["2024_10_01"])
