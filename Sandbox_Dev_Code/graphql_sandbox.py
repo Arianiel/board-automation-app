@@ -176,9 +176,9 @@ query findRepoInfo {
 }
 """
 
-print(ql.run_query(query))
-current_project = get_project_info.ProjectInfo()
-current_project.add_repo("issues-repo")
+# print(ql.run_query(query))
+# current_project = get_project_info.ProjectInfo()
+# current_project.add_repo("issues-repo")
 
 #print(current_project.repos["issues-repo"].labels["bug"])
 
@@ -422,33 +422,65 @@ for item in items:
 # print(current_project.fields)
 # print(current_project.sprint_ids)
 #
-# sprint_list_id_query = ql.open_graph_ql_query_file("findProjectSprints.txt")
-#
-# fields = ql.run_query(
-#     sprint_list_id_query.replace("<PROJ_NUM>", "1")
-#     .replace("<ORG_NAME>", "Arianiel"))["data"]["organization"]["projectV2"]["fields"]["nodes"]
-#
-# print(fields)
-#
-# sprints = {}
-# sprint_ids = {}
-# sprint_by_class = {}
-# status_ids = {}
-# for field in fields:
-#     match field["name"]:
-#         case "Sprint":
-#             print("These are my sprints")
-#             print(field)
-#             sprint_field_id = field["id"]
-#             for option in field["options"]:
-#                 print("The option I have is: " + option["name"])
-#                 sprint_by_class[option["name"]] = SprintInfo(option)
-#         case "Status":
-#             status_field_id = field["id"]
-#             for option in field["options"]:
-#                 status_ids[option["name"]] = option["id"]
-#         case _:
-#             print(field["name"] + " not found, doing nothing")
-# print("Setting up my sprint information")
-# print(sprint_ids)
-# print(sprint_by_class["2024_10_01"])
+
+today = datetime.datetime.today()
+today_day = today.strftime("%d")
+today_month = today.strftime("%m")
+today_year = today.strftime("%Y")
+today = datetime.datetime(year=int(today_year), month=int(today_month), day=int(today_day))
+
+sprint_list_id_query = ql.open_graph_ql_query_file("findProjectSprints.txt")
+
+fields = ql.run_query(
+    sprint_list_id_query.replace("<PROJ_NUM>", "1")
+    .replace("<ORG_NAME>", "Arianiel"))["data"]["organization"]["projectV2"]["fields"]["nodes"]
+
+print(fields)
+
+sprints = {}
+sprint_ids = {}
+sprint_by_class = {}
+status_ids = {}
+for field in fields:
+    match field["name"]:
+        case "Sprint":
+            print("These are my sprints")
+            print(field)
+            sprint_field_id = field["id"]
+            for option in field["options"]:
+                print("The option I have is: " + option["name"])
+                sprint_ids[option["name"]] = option["id"]
+                sprint_by_class[option["name"]] = SprintInfo(option)
+        case "Status":
+            status_field_id = field["id"]
+            for option in field["options"]:
+                status_ids[option["name"]] = option["id"]
+        case _:
+            print(field["name"] + " not found, doing nothing")
+print("Setting up my sprint information")
+print(sprint_ids)
+print(sprint_by_class["2024_10_01"])
+
+current_sprint = ""
+next_sprint = ""
+
+for sprint in sprint_by_class.keys():
+    if sprint_by_class[sprint] == today:
+        current_sprint = sprint
+    if sprint_by_class[sprint].sprint_start_date < today:
+        try:
+            if sprint_by_class[current_sprint].sprint_start_date < \
+                    sprint_by_class[sprint].sprint_start_date:
+                current_sprint = sprint
+        except KeyError:
+            current_sprint = sprint
+    if sprint_by_class[sprint].sprint_start_date > today:
+        try:
+            if (sprint_by_class[next_sprint].sprint_start_date > sprint_by_class[sprint].
+                    sprint_start_date):
+                next_sprint = sprint
+        except KeyError:
+            next_sprint = sprint
+
+print(current_sprint)
+print(next_sprint)

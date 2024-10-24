@@ -6,7 +6,10 @@ There are a number of things related to project management of projects wihin Git
 This repository contains those specifically used by the Experiment Controls Group at ISIS Pulsed Neutron and Muon Source.
 
 # To use
-This is a flask application, which will need to be run on an appropriate server.
+This can be run as a test application on a developer work station if you use app.py
+
+To use this alongside our JSONBourne server copying of these directories and replacing webserver_forJSONBourne in the appropriate directory with webserver_forJSONBourne_and_git_automation should allow both to be used alongside each other.
+Note that you will also need to generate a python install potentially depending on the server.
 
 Configuration information is detailed in the [Configuration Readme](/config_info/config_readme.md).
 
