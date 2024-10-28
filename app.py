@@ -11,6 +11,10 @@ current_project = get_project_info.ProjectInfo()
 config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), "config_info","config.ini"))
 secret = config["GITHUB.INTERACTION"]["webhook_secret"]
+host = config["WWW.INTERACTION"]["host"]
+port = config["WWW.INTERACTION"]["port"]
+
+print(host, port)
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
@@ -168,7 +172,7 @@ def make_app():
 
 async def main():
     app = make_app()
-    app.listen(8888)
+    app.listen(port, host)
     await asyncio.Event().wait()
 
 if __name__ == "__main__":

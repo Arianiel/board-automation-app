@@ -31,7 +31,9 @@ logger.setLevel(logging.INFO)
 logger.addHandler(handler)
 
 # use dataweb2.isis.rl.ac.uk / ndaextweb3-data.nd.rl.ac.uk (130.246.92.89)
-HOST, PORT = '130.246.92.89', 443
+# HOST, PORT = '130.246.92.89', 443
+host = config["WWW.INTERACTION"]["host"]
+port = config["WWW.INTERACTION"]["port"]
 
 class MyHandler(tornado.web.RequestHandler):
     """
@@ -239,7 +241,7 @@ if __name__ == '__main__':
             "certfile": r"C:\Users\ibexbuilder\dataweb2_isis_rl_ac_uk.crt",
             "keyfile": r"C:\Users\ibexbuilder\dataweb2_isis_rl_ac_uk.key",
         })
-        http_server.listen(PORT, HOST)
+        http_server.listen(port, host)
         tornado.ioloop.IOLoop.current().start()
     except KeyboardInterrupt:
         print("Shutting down")
