@@ -68,6 +68,7 @@ class Burndown:
                     y=done,
                     text=done,
                     offsetgroup=0,
+                    marker=dict(color="#0052CC"),
                 ),
                 go.Bar(
                     name="Review",
@@ -76,6 +77,7 @@ class Burndown:
                     text=review,
                     offsetgroup=0,
                     base=done,
+                    marker=dict(color="#5319E7"),
                 ),
                 go.Bar(
                     name="Impeded",
@@ -84,6 +86,7 @@ class Burndown:
                     text=impeded,
                     offsetgroup=0,
                     base=review + done,
+                    marker=dict(color="#B60205"),
                 ),
                 go.Bar(
                     name="In Progress",
@@ -92,6 +95,7 @@ class Burndown:
                     text=in_progres,
                     offsetgroup=0,
                     base=impeded + review + done,
+                    marker=dict(color="#0E8A16"),
                 ),
                 go.Bar(
                     name="Backlog",
@@ -100,6 +104,7 @@ class Burndown:
                     text=backlog,
                     offsetgroup=0,
                     base=in_progres + impeded + review + done,
+                    marker=dict(color="#B816A5"),
                 ),
             ],
             layout=go.Layout(
@@ -108,6 +113,7 @@ class Burndown:
                     traceorder="reversed",
                 )
             )
+
         )
 
         fig.update_layout(showlegend=True)
