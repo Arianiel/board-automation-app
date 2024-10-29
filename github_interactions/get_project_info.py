@@ -23,12 +23,11 @@ class ProjectInfo:
 
         # TODO verify that the organisation in use is in the available orgs for the user for the token
 
-        # Get the date to use to automate some of the coding
-        today = datetime.datetime.today()
-        today_day = today.strftime("%d")
-        today_month = today.strftime("%m")
-        today_year = today.strftime("%Y")
-        self.today = datetime.datetime(year=int(today_year), month=int(today_month), day=int(today_day))
+        self.today = None
+        self.today_day = None
+        self.today_month = None
+        self.today_year = None
+        today = self.set_today()
 
         # Find the V2 projects owned by the organization
         self.proj_list_query = gql_queries.open_graph_ql_query_file("findProjects.txt")
@@ -46,14 +45,14 @@ class ProjectInfo:
             if "PI" not in title:
                 # At the moment I'm not interested in anything that isn't a PI
                 pass
-            if today_year in title:
-                offset = title.find(today_year)
+            if self.today_year in title:
+                offset = title.find(self.today_year)
                 pi_id = title[offset:offset + 7]
                 pi_month = title[offset + 5:offset + 7]
-                if int(pi_month) < int(today_month):
+                if int(pi_month) < int(self.today_month):
                     self.project_number = result_project["number"]
                     break
-                elif int(pi_month) == int(today_month):
+                elif int(pi_month) == int(self.today_month):
                     # TODO: Look into the sprints and the date here to support changeover
                     pass
                 else:
@@ -89,23 +88,8 @@ class ProjectInfo:
         self.current_sprint = ""
         self.next_sprint = ""
         # TODO: Get previous sprint
-        for sprint in self.sprint_by_class.keys():
-            if self.sprint_by_class[sprint] == today:
-                self.current_sprint = sprint
-            if self.sprint_by_class[sprint].sprint_start_date < today:
-                try:
-                    if self.sprint_by_class[self.current_sprint].sprint_start_date < \
-                            self.sprint_by_class[sprint].sprint_start_date:
-                        self.current_sprint = sprint
-                except KeyError:
-                    self.current_sprint = sprint
-            if self.sprint_by_class[sprint].sprint_start_date > today:
-                try:
-                    if (self.sprint_by_class[self.next_sprint].sprint_start_date > self.sprint_by_class[sprint].
-                            sprint_start_date):
-                        self.next_sprint = sprint
-                except KeyError:
-                    self.next_sprint = sprint
+
+        self.set_current_and_next_sprint(today)
 
         # TODO: Handle start/end of PI/Sprint better - at the moment this takes a restart of the server
 
@@ -118,3 +102,36 @@ class ProjectInfo:
     def add_repo(self, repo_name):
         if repo_name not in self.repos.keys():
             self.repos[repo_name] = repo_info.RepoInfo(self.org_name, repo_name)
+
+    def set_today(self):
+        # Get the date to use to automate some of the coding
+        today = datetime.datetime.today()
+        self.today_day = today.strftime("%d")
+        self.today_month = today.strftime("%m")
+        self.today_year = today.strftime("%Y")
+        self.today = datetime.datetime(year=int(self.today_year), month=int(self.today_month), day=int(self.today_day))
+        return today
+
+    def set_current_and_next_sprint(self, today):
+        self.current_sprint = None
+        self.next_sprint = None
+        for sprint in self.sprint_by_class.keys():
+            if self.sprint_by_class[sprint] == today:
+                self.current_sprint = sprint
+            if self.sprint_by_class[sprint].sprint_start_date < today:
+                try:
+                    if self.sprint_by_class[self.current_sprint].sprint_start_date < \
+                            self.sprint_by_class[sprint].sprint_start_date:
+                        self.current_sprint = sprint
+                except KeyError:
+                    self.current_sprint = sprint
+            if self.sprint_by_class[sprint].sprint_start_date > today:
+                try:
+                    if (self.sprint_by_class[self.next_sprint].sprint_start_date >
+                            self.sprint_by_class[sprint].sprint_start_date):
+                        self.next_sprint = sprint
+                except KeyError:
+                    self.next_sprint = sprint
+
+    def update_sprints(self):
+        self.set_current_and_next_sprint(self.set_today())
