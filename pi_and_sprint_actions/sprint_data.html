@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sprint Data</title>
+</head>
+
+<body>
+    <p>
+        This is just a page to ask the system to move the sprint along to the next one.<br>
+        Current sprint: {{ current_sprint }}<br>
+        Next sprint: {{ next_sprint }}<br>
+    </p>
+    <form action="/sprint" method="post">
+        <input type="submit" value="Change Sprint">
+    </form>
+</body>
+</html>

@@ -14,7 +14,6 @@ secret = config["GITHUB.INTERACTION"]["webhook_secret"]
 host = config["WWW.INTERACTION"]["host"]
 port = config["WWW.INTERACTION"]["port"]
 
-print(host, port)
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
@@ -23,13 +22,28 @@ class MainHandler(tornado.web.RequestHandler):
 
 class TestHandler(tornado.web.RequestHandler):
     def get(self):
-        self.write("This is my test")
+        self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "test_form.html"))
+
+    def post(self):
+        name = self.get_argument("name")
+        self.write(f"Hello, {name}!")
+
+
+class SprintHandler(tornado.web.RequestHandler):
+    def get(self):
+        print(current_project.current_sprint)
+        self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "sprint_data.html"),
+                    current_sprint=current_project.current_sprint, next_sprint=current_project.next_sprint)
+
+    def post(self):
+        self.write(f"This will update the values for the sprint changeover")
 
 
 class WebhookError(Exception):
     def __init__(self, status_code, detail):
         self.status_code = status_code
         self.detail = detail
+
 
 def verify_signature(payload_body, secret_token, signature_header):
     """Verify that the payload was sent from GitHub by validating SHA256.
@@ -83,7 +97,6 @@ class BurndownHandler(tornado.web.RequestHandler):
         # Update the display before rendering
         current_project.current_burndown.update_display()
         self.render(os.path.join(os.path.dirname(__file__), "burndown_interactions/burndown-points.html"))
-
 
 
 def status_changed(info):
@@ -167,6 +180,7 @@ def make_app():
         (r"/test", TestHandler),
         (r"/burndown", BurndownHandler),
         (r"/webhook", WebhookHandler),
+        (r"/sprint", SprintHandler),
     ])
 
 
