@@ -145,6 +145,15 @@ class BurndownHandler(tornado.web.RequestHandler):
         self.render(os.path.join(os.path.dirname(__file__), "burndown_interactions/burndown-points.html"))
 
 
+class SprintHandler(tornado.web.RequestHandler):
+    def get(self):
+        print(current_project.current_sprint)
+        self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "sprint_data.html"),
+                    current_sprint=current_project.current_sprint, next_sprint=current_project.next_sprint)
+
+    def post(self):
+        self.write(f"This will update the values for the sprint changeover")
+
 
 def status_changed(info):
     if info["projects_v2_item"]["content_type"] == "Issue":
@@ -236,6 +245,7 @@ if __name__ == '__main__':
             (r"/", MyHandler),
             (r"/burndown", BurndownHandler),
             (r"/webhook", WebhookHandler),
+            (r"/sprint", SprintHandler),
         ])
         http_server = tornado.httpserver.HTTPServer(application, ssl_options={
             "certfile": r"C:\Users\ibexbuilder\dataweb2_isis_rl_ac_uk.crt",
