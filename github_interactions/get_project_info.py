@@ -53,10 +53,11 @@ class ProjectInfo:
                     self.project_number = result_project["number"]
                     break
                 elif int(pi_month) == int(self.today_month):
-                    # TODO: Look into the sprints and the date here to support changeover
+                    # This may be the first sprint of the PI, need to look into those dates
                     pass
                 else:
-                    print("This is not the PI I'm looking for")
+                    # This is not the current PI, so I don't need to consider it in detail
+                    pass
 
         if self.project_number == "0":
             return

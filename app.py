@@ -5,14 +5,51 @@ import os
 import hashlib
 import hmac
 import configparser
+import logging
+from logging.handlers import TimedRotatingFileHandler
+
+# Set up the logging as soon as possible
+pm_log_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'log', 'board_automation.log')
+pm_logger = logging.getLogger('JSON_bourne')
+pm_handler = TimedRotatingFileHandler(pm_log_filepath, when='midnight', backupCount=30)
+pm_handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
+pm_logger.setLevel(logging.INFO)
+pm_logger.addHandler(pm_handler)
+
+
+def pm_logging(message, message_level):
+    if app_log_level == "developer":
+        print(message)
+    match message_level:
+        case "error":
+            pm_logger.exception(message)
+        case "info":
+            if app_log_level in ["developer", "info", "all"]:
+                pm_logger.info(message)
+        case "debug":
+            if app_log_level in ["developer", "debug", "all"]:
+                pm_logger.debug(message)
+
 
 # Initialise the classes that will be needed for the overall app
 current_project = get_project_info.ProjectInfo()
+
+# Get the items from the config file
 config = configparser.ConfigParser()
-config.read(os.path.join(os.path.dirname(__file__), "config_info","config.ini"))
-secret = config["GITHUB.INTERACTION"]["webhook_secret"]
-host = config["WWW.INTERACTION"]["host"]
-port = config["WWW.INTERACTION"]["port"]
+config.read(os.path.join(os.path.dirname(__file__), "config_info", "config.ini"))
+try:
+    secret = config["GITHUB.INTERACTION"]["webhook_secret"]
+    host = config["WWW.INTERACTION"]["host"]
+    port = config["WWW.INTERACTION"]["port"]
+    app_log_level = config["SETTINGS"]["log_level"]
+except KeyError as ke:
+    match ke.args[0]:
+        case "GITHUB.INTERACTION", "WWW.INTERACTION":
+            pm_logging("Config section needed but not present: {}".format(ke), "error")
+        case "log_level":
+            app_log_level = ""
+        case _:
+            pm_logging("Section missing from config: {}".format(ke), "error")
 
 
 class MainHandler(tornado.web.RequestHandler):
@@ -31,7 +68,6 @@ class TestHandler(tornado.web.RequestHandler):
 
 class SprintHandler(tornado.web.RequestHandler):
     def get(self):
-        print(current_project.current_sprint)
         self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "sprint_data.html"),
                     current_sprint=current_project.current_sprint, next_sprint=current_project.next_sprint)
 
@@ -70,27 +106,31 @@ class WebhookHandler(tornado.web.RequestHandler):
         try:
             verify_signature(self.request.body,secret,self.request.headers["X-Hub-Signature-256"])
         except WebhookError as e:
-            print("Found a signature issue: " + e.detail)
+            pm_logging("Found a signature issue: {}".format(e.detail), "error")
             self.set_status(e.status_code)
             return
         request = tornado.escape.json_decode(self.request.body)
         # This is assuming a post from GitHub, other sources will not do much
         match request["action"]:
             case "unlabeled":
-                print("Label removed, nothing to do: ", request["label"]["name"])
+                pm_logging("Label removed, nothing to do: {}".format(request["label"]["name"]), "debug")
             case "labeled":
                 label_added(request)
             case "edited":
-                match request["changes"]["field_value"]["field_name"]:
-                    case "Labels":
-                        # Labels should already have been handled elsewhere
-                        pass
-                    case "Status":
-                        status_changed(request)
-                    case _:
-                        print("Nothing decided yet for: " + request["changes"]["field_value"]["field_name"])
+                try:
+                    match request["changes"]["field_value"]["field_name"]:
+                        case "Labels":
+                            # Labels should already have been handled elsewhere
+                            pass
+                        case "Status":
+                            status_changed(request)
+                        case _:
+                            pm_logging("Nothing decided yet for: {}".
+                                       format(request["changes"]["field_value"]["field_name"]), "debug")
+                except KeyError as e:
+                    pm_logging("Error matching the request: {}".format(e), "error")
             case _:
-                print("No cases for action: ", request["action"])
+                pm_logging("No cases for action: {}".format(request["action"]), "debug")
 
 
 # Display the burndown chart of the IBEX board
@@ -129,7 +169,7 @@ def status_changed(info):
                 # Nothing to do for Backlog here
                 pass
             case _:
-                print("Nothing planned for going from this status: ", status_from)
+                pm_logging("Nothing planned for going from this status: {}".format(status_from), "debug")
         match status_to:
             case "Done":
                 # Nothing to do for Done
@@ -146,17 +186,17 @@ def status_changed(info):
                 if status_from == "Review":
                     current_issue.add_label(current_project.repos[current_issue.repo_name].labels["rework"])
             case _:
-                print("Nothing planned for going to this status: ", status_to)
+                pm_logging("Nothing planned for going to this status: {}".format(status_to), "debug")
 
 
 def label_added(info):
-    print("Label added: ", info["label"]["name"])
+    pm_logging("Label added: {}".format(info["label"]["name"]), "info")
     current_issue = update_item_info.IssueToUpdate(info["issue"]["node_id"])
     current_issue.set_project(current_project)
     label_name = info["label"]["name"]
     match label_name:
         case "proposal":
-            print("Proposed ticket being added to project in next sprint")
+            pm_logging("Proposed ticket being added to project in next sprint", "info")
             current_issue.place_in_next_sprint()
         case "added during sprint":
             current_issue.place_in_current_sprint()
@@ -169,7 +209,7 @@ def label_added(info):
         case "rework":
             current_issue.set_status(current_issue.project_to_use.status_ids["Backlog"])
         case "0", "1", "2", "5", "8", "13", "20", "40":
-            print("Points label, need to apply this in time")
+            pm_logging("Points label, need to apply this in time", "debug")
             # TODO: Deal with points labels
         case _:
             pass
@@ -192,4 +232,8 @@ async def main():
     await asyncio.Event().wait()
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        pm_logging("Shutting down with Keyboard Interrupt", "info")
+

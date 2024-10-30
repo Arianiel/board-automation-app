@@ -152,7 +152,9 @@ class SprintHandler(tornado.web.RequestHandler):
                     current_sprint=current_project.current_sprint, next_sprint=current_project.next_sprint)
 
     def post(self):
-        self.write(f"This will update the values for the sprint changeover")
+        current_project.update_sprints()
+        self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "updated_sprint_data.html"),
+                    current_sprint=current_project.current_sprint, next_sprint=current_project.next_sprint)
 
 
 def status_changed(info):
