@@ -9,7 +9,7 @@ import os
 
 class Burndown:
     def __init__(self, org_name, project_number, current_sprint_name, next_sprint_name, sprints):
-        self.fig = None
+        self.fig = go.Figure()
         self.card_info_query = gql_queries.open_graph_ql_query_file("findCardInfo.txt")
         self.org_name = org_name
         self.project_number = project_number
@@ -22,7 +22,7 @@ class Burndown:
         self.update_display()
 
     def burndown_display(self):
-        return self.fig
+        return self.fig.to_html()
 
     def update_display(self):
         today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"), "%Y-%m-%d")
