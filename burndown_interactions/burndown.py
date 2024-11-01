@@ -16,8 +16,7 @@ class Burndown:
         self.current_sprint_name = current_sprint_name
         self.next_sprint_name = next_sprint_name
         self.sprints = sprints
-        self.csv_headings = "Date,Backlog,In Progress,Impeded,Review,Done"
-        # TODO: If it doesn't exist create a burndown csv
+        self.csv_headings = "Date,Backlog,In Progress,Impeded,Review,Done\n"
         self.burndown_csv = os.path.join(os.path.dirname(__file__), "burndown-points.csv")
         self.update_display()
 
@@ -25,25 +24,15 @@ class Burndown:
         return self.fig.to_html()
 
     def update_display(self):
-        today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"), "%Y-%m-%d")
         start_date = self.sprints[self.current_sprint_name].sprint_start_date
         end_date = self.sprints[self.next_sprint_name].sprint_start_date
 
-        df = pd.read_csv(self.burndown_csv)
+        df = self.get_data_frame()
         start_index = 0
+
         dates = df["Date"][start_index:]
         last_line_index = len(dates)
-
         last_day = datetime.strptime(df["Date"][start_index + last_line_index - 1], "%Y-%m-%d")
-        if today > last_day:
-            # Append the entry for today to the CSV file
-            with open(self.burndown_csv, "a") as f:
-                f.write(self.get_new_csv_line())
-            # Update the values that were read with the updated CSV info
-            df = pd.read_csv(self.burndown_csv)
-            start_index = 0
-            dates = df["Date"][start_index:]
-            last_line_index = len(dates)
 
         done = df["Done"].values[start_index:]
         backlog = df["Backlog"].values[start_index:]
@@ -120,18 +109,23 @@ class Burndown:
         self.fig = fig
 
     def get_new_csv_line(self):
-        # Get the list of items in the project - note that there should always be at least one page, and the paignation is added afterwards
-        result = gql_queries.run_query(self.card_info_query.replace("<ORG_NAME>", self.org_name).replace("<PROJ_NUM>", str(self.project_number)).replace("<AFTER>", "null"))
+        # Get the list of items in the project
+        # Note that there should always be at least one page so the pagination is added afterwards
+        result = gql_queries.run_query(self.card_info_query.
+                                       replace("<ORG_NAME>", self.org_name).
+                                       replace("<PROJ_NUM>", str(self.project_number)).
+                                       replace("<AFTER>", "null"))
         has_next_page = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["hasNextPage"]
         items = []
         for item in result["data"]["organization"]["projectV2"]["items"]["nodes"]:
             items.append(item)
         # Add items from any further pages
         while has_next_page:
-            endCursor = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["endCursor"]
-            result = gql_queries.run_query(self.card_info_query.replace("<ORG_NAME>", "ISISComputingGroup").replace("<PROJ_NUM>", str(self.project_number)).replace(
-                    "<AFTER>",
-                    "\"" + endCursor + "\""))
+            end_cursor = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["endCursor"]
+            result = gql_queries.run_query(self.card_info_query.
+                                           replace("<ORG_NAME>", "ISISComputingGroup").
+                                           replace("<PROJ_NUM>", str(self.project_number)).
+                                           replace("<AFTER>", "\"" + end_cursor + "\""))
             has_next_page = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["hasNextPage"]
             for item in result["data"]["organization"]["projectV2"]["items"]["nodes"]:
                 items.append(item)
@@ -169,8 +163,37 @@ class Burndown:
         entry = "".join(entry_list)
         return entry
 
-    def verify_csv(self):
-        # TODO: Verify that the csv is correct for the sprint
-        # TODO: Clear csv before appending on start of sprint
-        # TODO: Tidy up missing lines in the CSV?
-        pass
+    def add_csv_titles(self):
+        with open(self.burndown_csv, "w") as f:
+            f.write(self.csv_headings)
+
+    def add_csv_line(self):
+        with open(self.burndown_csv, "a") as f:
+            f.write(self.get_new_csv_line())
+
+    def get_data_frame(self):
+        today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"), "%Y-%m-%d")
+
+        # Make sure the file exists and has something in it (start for today)
+        try:
+            df = pd.read_csv(self.burndown_csv)
+        except (pd.errors.EmptyDataError, FileNotFoundError):
+            self.add_csv_titles()
+            self.add_csv_line()
+            return pd.read_csv(self.burndown_csv)
+
+        # Get the last day listed in the file
+        start_index = 0
+        dates = df["Date"][start_index:]
+        last_line_index = len(dates)
+        try:
+            last_day = datetime.strptime(df["Date"][start_index + last_line_index - 1], "%Y-%m-%d")
+        except KeyError:
+            # if there is no data just add for today
+            self.add_csv_line()
+            return pd.read_csv(self.burndown_csv)
+
+        if today > last_day:
+            self.add_csv_line()
+
+        return pd.read_csv(self.burndown_csv)
