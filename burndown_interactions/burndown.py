@@ -108,7 +108,7 @@ class Burndown:
         fig.update_layout(showlegend=True)
         self.fig = fig
 
-    def get_new_csv_line(self):
+    def add_csv_line(self):
         # Get the list of items in the project
         # Note that there should always be at least one page so the pagination is added afterwards
         result = gql_queries.run_query(self.card_info_query.
@@ -161,15 +161,12 @@ class Burndown:
                       str(card_frequency["Impeded"]), ",", str(card_frequency["Review"]), ",",
                       str(card_frequency["Done"]), "\n"]
         entry = "".join(entry_list)
-        return entry
+        with open(self.burndown_csv, "a") as f:
+            f.write(entry)
 
     def add_csv_titles(self):
         with open(self.burndown_csv, "w") as f:
             f.write(self.csv_headings)
-
-    def add_csv_line(self):
-        with open(self.burndown_csv, "a") as f:
-            f.write(self.get_new_csv_line())
 
     def get_data_frame(self):
         today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"), "%Y-%m-%d")
