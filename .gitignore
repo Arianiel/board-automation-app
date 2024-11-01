@@ -164,4 +164,4 @@ cython_debug/
 /config_info/config.ini
 /Sandbox_Dev_Code/burndown-points.html
 /burndown_interactions/burndown-points.csv
-/burndown_interactions/burndown-points.html
+/log/.

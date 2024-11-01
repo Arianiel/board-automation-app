@@ -9,6 +9,7 @@ import asyncio
 import hashlib
 import hmac
 import configparser
+import plotly.graph_objects as go
 
 from external_webpage.request_handler_utils import get_detailed_state_of_specific_instrument, \
     get_summary_details_of_all_instruments, get_instrument_and_callback
@@ -140,10 +141,10 @@ class WebhookHandler(tornado.web.RequestHandler):
 # Display the burndown chart of the IBEX board
 class BurndownHandler(tornado.web.RequestHandler):
     def get(self):
-        # Update the display before rendering
+        # Update the display before displaying
         current_project.current_burndown.update_display()
-        self.render(os.path.join(os.path.dirname(__file__), "burndown_interactions/burndown-points.html"))
-
+        fig = go.Figure(current_project.current_burndown.fig)
+        self.write(fig.to_html())
 
 class SprintHandler(tornado.web.RequestHandler):
     def get(self):

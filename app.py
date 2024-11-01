@@ -7,6 +7,7 @@ import hmac
 import configparser
 import logging
 from logging.handlers import TimedRotatingFileHandler
+import plotly.graph_objects as go
 
 # Set up the logging as soon as possible
 pm_log_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'log', 'board_automation.log')
@@ -136,9 +137,10 @@ class WebhookHandler(tornado.web.RequestHandler):
 # Display the burndown chart of the IBEX board
 class BurndownHandler(tornado.web.RequestHandler):
     def get(self):
-        # Update the display before rendering
+        # Update the display before displaying
         current_project.current_burndown.update_display()
-        self.render(os.path.join(os.path.dirname(__file__), "burndown_interactions/burndown-points.html"))
+        fig = go.Figure(current_project.current_burndown.fig)
+        self.write(fig.to_html())
 
 
 def status_changed(info):

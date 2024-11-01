@@ -9,6 +9,7 @@ import os
 
 class Burndown:
     def __init__(self, org_name, project_number, current_sprint_name, next_sprint_name, sprints):
+        self.fig = None
         self.card_info_query = gql_queries.open_graph_ql_query_file("findCardInfo.txt")
         self.org_name = org_name
         self.project_number = project_number
@@ -17,12 +18,11 @@ class Burndown:
         self.sprints = sprints
         self.csv_headings = "Date,Backlog,In Progress,Impeded,Review,Done"
         # TODO: If it doesn't exist create a burndown csv
-        self.burndown_web_page = os.path.abspath(os.path.join(os.path.dirname(__file__), "burndown-points.html"))
         self.burndown_csv = os.path.join(os.path.dirname(__file__), "burndown-points.csv")
         self.update_display()
 
     def burndown_display(self):
-        return "This will be a class for a burndown display"
+        return self.fig
 
     def update_display(self):
         today = datetime.strptime(datetime.today().strftime("%Y-%m-%d"), "%Y-%m-%d")
@@ -117,7 +117,7 @@ class Burndown:
         )
 
         fig.update_layout(showlegend=True)
-        fig.write_html(self.burndown_web_page)
+        self.fig = fig
 
     def get_new_csv_line(self):
         # Get the list of items in the project - note that there should always be at least one page, and the paignation is added afterwards
