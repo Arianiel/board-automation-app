@@ -108,7 +108,7 @@ class Burndown:
         fig.update_layout(showlegend=True)
         self.fig = fig
 
-    def add_csv_line(self):
+    def add_new_csv_line(self):
         # Get the list of items in the project
         # Note that there should always be at least one page so the pagination is added afterwards
         result = gql_queries.run_query(self.card_info_query.
@@ -164,6 +164,17 @@ class Burndown:
         with open(self.burndown_csv, "a") as f:
             f.write(entry)
 
+    def fill_csv_lines(self, today, last_day_inner, data):
+        print(data)
+        for missing_day in range((today - last_day_inner).days - 1):
+            with open(self.burndown_csv, "a") as f:
+                entry_list = [(last_day_inner + timedelta(days=(missing_day + 1))).strftime("%Y-%m-%d"), ",",
+                              str(data["Backlog"]), ",", str(data["In Progress"]), ",",
+                              str(data["Impeded"]), ",", str(data["Review"]), ",",
+                              str(data["Done"]), "\n"]
+                entry = "".join(entry_list)
+                f.write(entry)
+
     def add_csv_titles(self):
         with open(self.burndown_csv, "w") as f:
             f.write(self.csv_headings)
@@ -176,7 +187,7 @@ class Burndown:
             df = pd.read_csv(self.burndown_csv)
         except (pd.errors.EmptyDataError, FileNotFoundError):
             self.add_csv_titles()
-            self.add_csv_line()
+            self.add_new_csv_line()
             return pd.read_csv(self.burndown_csv)
 
         # Get the last day listed in the file
@@ -187,10 +198,12 @@ class Burndown:
             last_day = datetime.strptime(df["Date"][start_index + last_line_index - 1], "%Y-%m-%d")
         except KeyError:
             # if there is no data just add for today
-            self.add_csv_line()
+            self.add_new_csv_line()
             return pd.read_csv(self.burndown_csv)
 
         if today > last_day:
-            self.add_csv_line()
+            if (today - last_day).days > 1:
+                self.fill_csv_lines(today, last_day, df.iloc[-1])
+            self.add_new_csv_line()
 
         return pd.read_csv(self.burndown_csv)

@@ -213,9 +213,23 @@ def get_data_frame():
         return pd.read_csv(burndown_csv)
 
     if today > last_day_inner:
+        if (today - last_day_inner).days > 1:
+            fill_csv_lines(today, last_day_inner,df_inner.iloc[-1])
         add_csv_line()
 
     return pd.read_csv(burndown_csv)
+
+
+def fill_csv_lines(today, last_day_inner, data):
+    print(data)
+    for missing_day in range((today - last_day_inner).days - 1):
+        with open(burndown_csv, "a") as f:
+            entry_list = [(last_day_inner + timedelta(days=(missing_day + 1))).strftime("%Y-%m-%d"), ",",
+                          str(data["Backlog"]), ",", str(data["In Progress"]), ",",
+                          str(data["Impeded"]), ",", str(data["Review"]), ",",
+                          str(data["Done"]), "\n"]
+            entry = "".join(entry_list)
+            f.write(entry)
 
 
 # The code I'm trying to resolve
