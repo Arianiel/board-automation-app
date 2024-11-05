@@ -206,3 +206,7 @@ class Burndown:
             self.add_new_csv_line()
 
         return pd.read_csv(self.burndown_csv)
+
+    def change_sprint(self):
+        # As the titles assume a non-existent file this will overwrite the file contents with just the titles
+        self.add_csv_titles()

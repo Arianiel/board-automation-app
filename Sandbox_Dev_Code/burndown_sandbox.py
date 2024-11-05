@@ -214,14 +214,13 @@ def get_data_frame():
 
     if today > last_day_inner:
         if (today - last_day_inner).days > 1:
-            fill_csv_lines(today, last_day_inner,df_inner.iloc[-1])
+            fill_csv_lines(today, last_day_inner, df_inner.iloc[-1])
         add_csv_line()
 
     return pd.read_csv(burndown_csv)
 
 
 def fill_csv_lines(today, last_day_inner, data):
-    print(data)
     for missing_day in range((today - last_day_inner).days - 1):
         with open(burndown_csv, "a") as f:
             entry_list = [(last_day_inner + timedelta(days=(missing_day + 1))).strftime("%Y-%m-%d"), ",",
@@ -233,26 +232,27 @@ def fill_csv_lines(today, last_day_inner, data):
 
 
 # The code I'm trying to resolve
-start_date = sprints[current_sprint_name].sprint_start_date
-end_date = sprints[next_sprint_name].sprint_start_date
-
-df = get_data_frame()
-start_index = 0
-dates = df["Date"][start_index:]
-last_line_index = len(dates)
-last_day = datetime.strptime(df["Date"][start_index + last_line_index - 1], "%Y-%m-%d")
-
-done = df["Done"].values[start_index:]
-backlog = df["Backlog"].values[start_index:]
-in_progres = df["In Progress"].values[start_index:]
-impeded = df["Impeded"].values[start_index:]
-review = df["Review"].values[start_index:]
-
-for i in range(1, (end_date - start_date).days + 1):
-    dates = np.append(dates, [(last_day + timedelta(days=i))])
-    if i > last_line_index:
-        done = np.append(done, [done[-1]])
-        backlog = np.append(backlog, [backlog[-1]])
-        in_progres = np.append(in_progres, [in_progres[-1]])
-        impeded = np.append(impeded, [impeded[-1]])
-        review = np.append(review, [review[-1]])
+# start_date = sprints[current_sprint_name].sprint_start_date
+# end_date = sprints[next_sprint_name].sprint_start_date
+#
+# df = get_data_frame()
+# start_index = 0
+# dates = df["Date"][start_index:]
+# last_line_index = len(dates)
+# last_day = datetime.strptime(df["Date"][start_index + last_line_index - 1], "%Y-%m-%d")
+#
+# done = df["Done"].values[start_index:]
+# backlog = df["Backlog"].values[start_index:]
+# in_progres = df["In Progress"].values[start_index:]
+# impeded = df["Impeded"].values[start_index:]
+# review = df["Review"].values[start_index:]
+#
+# for i in range(1, (end_date - start_date).days + 1):
+#     dates = np.append(dates, [(last_day + timedelta(days=i))])
+#     if i > last_line_index:
+#         done = np.append(done, [done[-1]])
+#         backlog = np.append(backlog, [backlog[-1]])
+#         in_progres = np.append(in_progres, [in_progres[-1]])
+#         impeded = np.append(impeded, [impeded[-1]])
+#         review = np.append(review, [review[-1]])
+add_csv_titles()

@@ -135,4 +135,5 @@ class ProjectInfo:
                     self.next_sprint = sprint
 
     def update_sprints(self):
+        self.current_burndown.change_sprint()
         self.set_current_and_next_sprint(self.set_today())
