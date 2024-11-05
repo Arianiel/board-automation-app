@@ -18,12 +18,8 @@ from external_webpage.instrument_scapper import scraped_data, scraped_data_lock
 
 # Additions for github automation
 from github_interactions import get_project_info, update_item_info
-# Initialise the classes that will be needed for the overall automation work
-current_project = get_project_info.ProjectInfo()
-config = configparser.ConfigParser()
-config.read(os.path.join(os.path.dirname(__file__), "config_info","config.ini"))
-secret = config["GITHUB.INTERACTION"]["webhook_secret"]
 
+# Set up JSON_bourne logger
 logger = logging.getLogger('JSON_bourne')
 log_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'log', 'JSON_bourne.log')
 handler = TimedRotatingFileHandler(log_filepath, when='midnight', backupCount=30)
@@ -31,10 +27,50 @@ handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
 logger.setLevel(logging.INFO)
 logger.addHandler(handler)
 
+# Set up project management logger
+pm_log_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'log', 'board_automation.log')
+pm_logger = logging.getLogger('board_automation')
+pm_handler = TimedRotatingFileHandler(pm_log_filepath, when='midnight', backupCount=30)
+pm_handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
+pm_logger.setLevel(logging.INFO)
+pm_logger.addHandler(pm_handler)
+
+
+def pm_logging(message, message_level):
+    if app_log_level == "developer":
+        print(message)
+    match message_level:
+        case "error":
+            pm_logger.exception(message)
+        case "info":
+            if app_log_level in ["developer", "info", "all"]:
+                pm_logger.info(message)
+        case "debug":
+            if app_log_level in ["developer", "debug", "all"]:
+                pm_logger.debug(message)
+
 # use dataweb2.isis.rl.ac.uk / ndaextweb3-data.nd.rl.ac.uk (130.246.92.89)
 # HOST, PORT = '130.246.92.89', 443
-host = config["WWW.INTERACTION"]["host"]
-port = config["WWW.INTERACTION"]["port"]
+
+
+# Initialise the classes that will be needed for the overall automation work
+current_project = get_project_info.ProjectInfo()
+# Get the items from the config file
+config = configparser.ConfigParser()
+config.read(os.path.join(os.path.dirname(__file__), "config_info", "config.ini"))
+try:
+    secret = config["GITHUB.INTERACTION"]["webhook_secret"]
+    host = config["WWW.INTERACTION"]["host"]
+    port = config["WWW.INTERACTION"]["port"]
+    app_log_level = config["SETTINGS"]["log_level"]
+except KeyError as ke:
+    match ke.args[0]:
+        case "GITHUB.INTERACTION", "WWW.INTERACTION":
+            pm_logging("Config section needed but not present: {}".format(ke), "error")
+        case "log_level":
+            app_log_level = ""
+        case _:
+            pm_logging("Section missing from config: {}".format(ke), "error")
 
 class MyHandler(tornado.web.RequestHandler):
     """
@@ -143,8 +179,8 @@ class BurndownHandler(tornado.web.RequestHandler):
     def get(self):
         # Update the display before displaying
         current_project.current_burndown.update_display()
-        fig = go.Figure(current_project.current_burndown.fig)
-        self.write(fig.to_html())
+        self.write(current_project.current_burndown.burndown_display())
+
 
 class SprintHandler(tornado.web.RequestHandler):
     def get(self):
