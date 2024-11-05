@@ -1,4 +1,6 @@
 import graph_ql_interactions.graph_ql_functions as gql_queries
+import graph_ql_interactions.card_interactions as cards
+import graph_ql_interactions.repo_interactions as repos
 import github_interactions.repo_information as repo_info
 import datetime
 import configparser
@@ -135,5 +137,12 @@ class ProjectInfo:
                     self.next_sprint = sprint
 
     def update_sprints(self):
-        self.current_burndown.change_sprint()
         self.set_current_and_next_sprint(self.set_today())
+        self.current_burndown.change_sprint()
+        cards_to_refine = cards.get_card_ids_in_sprint(org_name=self.org_name,
+                                                       project_number=self.project_number,
+                                                       sprint=self.current_sprint)
+        for card in cards_to_refine:
+            cards.remove_label(card, repos.get_label_id(org_name=self.org_name,
+                                                        repo_name=cards.get_repo_for_issue(card),
+                                                        label_name="proposal"))

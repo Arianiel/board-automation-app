@@ -4,6 +4,8 @@ from github_interactions import get_project_info
 import graph_ql_interactions.graph_ql_functions as ql
 from collections import Counter
 from github_interactions.sprint_information import SprintInfo
+import graph_ql_interactions.card_interactions as cards
+import graph_ql_interactions.repo_interactions as repos
 
 """
 current_project = get_project_info.ProjectInfo(True)
@@ -206,7 +208,7 @@ mutation RemoveItemLabels {
     }
 }
 """
-print(ql.run_query(ql.open_graph_ql_query_file("UpdateItemLabel.txt").replace("<ISSUE>", "I_kwDOMZjARM6QZUHK").replace("<LABEL_ID>", "LA_kwDOMZjARM8AAAABtsil1A")))
+#print(ql.run_query(ql.open_graph_ql_query_file("UpdateItemLabel.txt").replace("<ISSUE>", "I_kwDOMZjARM6QZUHK").replace("<LABEL_ID>", "LA_kwDOMZjARM8AAAABtsil1A")))
 
 
 query = """
@@ -423,6 +425,7 @@ for item in items:
 # print(current_project.sprint_ids)
 #
 
+"""
 today = datetime.datetime.today()
 today_day = today.strftime("%d")
 today_month = today.strftime("%m")
@@ -484,3 +487,20 @@ for sprint in sprint_by_class.keys():
 
 print(current_sprint)
 print(next_sprint)
+"""
+
+
+current_project = get_project_info.ProjectInfo()
+#cards_to_refine = cards.get_cards_with_field_values_in_sprint(org_name=current_project.org_name, project_number=current_project.project_number, sprint=current_project.current_sprint)
+#for card in cards_to_refine:
+#    print(card)
+cards_to_refine = cards.get_card_ids_in_sprint(org_name=current_project.org_name, project_number=current_project.project_number, sprint=current_project.current_sprint)
+for card in cards_to_refine:
+    #cards.remove_label(card, current_project.repos[cards.get_repo_for_issue(card)].labels["proposal"])
+    #current_issue.remove_label(current_project.repos[current_issue.repo_name].labels["review"])
+    repo = cards.get_repo_for_issue(card)
+    print(card)
+    print(repo)
+    label_id = repos.get_label_id(org_name=current_project.org_name, repo_name=repo, label_name="proposal")
+    print(label_id)
+    cards.remove_label(card, repos.get_label_id(org_name=current_project.org_name, repo_name=cards.get_repo_for_issue(card), label_name="proposal"))

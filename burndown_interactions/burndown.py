@@ -110,8 +110,8 @@ class Burndown:
 
     def add_new_csv_line(self):
         # Get the list of items in the project
-        cards_to_refine = cards.get_cards_in_sprint(org_name=self.org_name, project_number=self.project_number,
-                                                    sprint=self.current_sprint_name)
+        cards_to_refine = cards.get_cards_with_field_values_in_sprint(org_name=self.org_name, project_number=self.project_number,
+                                                                      sprint=self.current_sprint_name)
 
         # Get the statuses for the cards in this sprint
         card_statuses = []

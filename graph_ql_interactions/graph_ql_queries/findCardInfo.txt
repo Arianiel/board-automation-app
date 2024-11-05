@@ -5,6 +5,11 @@ query findCardInfo {
                 items(first: 100, after: <AFTER>){
                     nodes {
                         ... on ProjectV2Item{
+                            content {
+                            ... on Issue {
+                                id
+                            }
+                            }
                             fieldValues(first: 10) {
                                 nodes {
                                     ... on ProjectV2ItemFieldSingleSelectValue {

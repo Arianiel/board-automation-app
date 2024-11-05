@@ -1,4 +1,5 @@
 import graph_ql_interactions.graph_ql_functions as gql_queries
+import graph_ql_interactions.card_interactions as cards
 
 
 class IssueToUpdate:
@@ -42,9 +43,7 @@ class IssueToUpdate:
         self.repo_name = gql_queries.run_query(get_repo_query)["data"]["node"]["repository"]["name"]
 
     def add_label(self, label_id_to_add):
-        update_labels = gql_queries.open_graph_ql_query_file("UpdateItemLabel.txt")
-        gql_queries.run_query(update_labels.replace("<ISSUE>", self.issue_id).replace("<LABEL_ID>", label_id_to_add))
+        cards.add_label(self.issue_id, label_id_to_add)
 
     def remove_label(self, label_id_to_remove):
-        update_labels = gql_queries.open_graph_ql_query_file("RemoveLabel.txt")
-        gql_queries.run_query(update_labels.replace("<ISSUE>", self.issue_id).replace("<LABEL_ID>", label_id_to_remove))
+        cards.remove_label(self.issue_id, label_id_to_remove)
