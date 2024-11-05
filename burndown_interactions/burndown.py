@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 import os
+import logging
 
 
 class Burndown:
@@ -199,6 +200,13 @@ class Burndown:
             # if there is no data just add for today
             self.add_new_csv_line()
             return pd.read_csv(self.burndown_csv)
+
+        if not (self.sprints[self.current_sprint_name].sprint_start_date < last_day <
+                self.sprints[self.next_sprint_name].sprint_start_date):
+            pm_logger = logging.getLogger('board_automation')
+            pm_logger.exception("Burndown CSV overwritten due to out of date information")
+            self.add_csv_titles()
+            self.add_new_csv_line()
 
         if today > last_day:
             if (today - last_day).days > 1:

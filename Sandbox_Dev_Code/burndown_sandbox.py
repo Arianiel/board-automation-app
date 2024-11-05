@@ -7,6 +7,7 @@ import pandas as pd
 import os
 import graph_ql_interactions.graph_ql_functions as gql_queries
 from collections import Counter
+import logging
 
 # current_project = get_project_info.ProjectInfo()
 # print(current_project.current_sprint)
@@ -212,6 +213,14 @@ def get_data_frame():
         add_csv_line()
         return pd.read_csv(burndown_csv)
 
+    print(sprints[current_sprint_name])
+    print(last_day_inner)
+    print(sprints[next_sprint_name])
+    if not (sprints[current_sprint_name].sprint_start_date < last_day_inner < sprints[next_sprint_name].sprint_start_date):
+        pm_logger = logging.getLogger('board_automation')
+        pm_logger.exception("The error from the burndown")
+        print("This is my error state")
+
     if today > last_day_inner:
         if (today - last_day_inner).days > 1:
             fill_csv_lines(today, last_day_inner, df_inner.iloc[-1])
@@ -235,7 +244,9 @@ def fill_csv_lines(today, last_day_inner, data):
 # start_date = sprints[current_sprint_name].sprint_start_date
 # end_date = sprints[next_sprint_name].sprint_start_date
 #
-# df = get_data_frame()
+
+
+df = get_data_frame()
 # start_index = 0
 # dates = df["Date"][start_index:]
 # last_line_index = len(dates)
@@ -255,4 +266,4 @@ def fill_csv_lines(today, last_day_inner, data):
 #         in_progres = np.append(in_progres, [in_progres[-1]])
 #         impeded = np.append(impeded, [impeded[-1]])
 #         review = np.append(review, [review[-1]])
-add_csv_titles()
+# add_csv_titles()

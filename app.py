@@ -10,7 +10,7 @@ from logging.handlers import TimedRotatingFileHandler
 
 # Set up the logging as soon as possible
 pm_log_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'log', 'board_automation.log')
-pm_logger = logging.getLogger('JSON_bourne')
+pm_logger = logging.getLogger('board_automation')
 pm_handler = TimedRotatingFileHandler(pm_log_filepath, when='midnight', backupCount=30)
 pm_handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
 pm_logger.setLevel(logging.INFO)
