@@ -23,8 +23,6 @@ class ProjectInfo:
         result = gql_queries.run_query(orgs_query.replace("<USER>", self.user_name))  # Execute the query
         self.orgs = result["data"]["user"]["organizations"]["nodes"]
 
-        # TODO verify that the organisation in use is in the available orgs for the user for the token
-
         self.today = None
         self.today_day = None
         self.today_month = None
@@ -90,12 +88,7 @@ class ProjectInfo:
         # Get current and next sprint
         self.current_sprint = ""
         self.next_sprint = ""
-        # TODO: Get previous sprint
-
         self.set_current_and_next_sprint(today)
-
-        # TODO: Handle start/end of PI/Sprint better - at the moment this takes a restart of the server
-
         self.current_burndown = burndown.Burndown(self.org_name, self.project_number, self.current_sprint,
                                                   self.next_sprint, self.sprint_by_class)
 

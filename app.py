@@ -210,7 +210,6 @@ def label_added(info):
             current_issue.set_status(current_issue.project_to_use.status_ids["Backlog"])
         case "0", "1", "2", "5", "8", "13", "20", "40":
             pm_logging("Points label, need to apply this in time", "debug")
-            # TODO: Deal with points labels
         case _:
             pass
             # print("Nothing to be done with this label: ", label_name)
