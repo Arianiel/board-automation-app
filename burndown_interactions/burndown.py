@@ -165,7 +165,6 @@ class Burndown:
             f.write(entry)
 
     def fill_csv_lines(self, today, last_day_inner, data):
-        print(data)
         for missing_day in range((today - last_day_inner).days - 1):
             with open(self.burndown_csv, "a") as f:
                 entry_list = [(last_day_inner + timedelta(days=(missing_day + 1))).strftime("%Y-%m-%d"), ",",
