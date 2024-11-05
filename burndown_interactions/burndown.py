@@ -1,4 +1,4 @@
-import graph_ql_interactions.graph_ql_functions as gql_queries
+import graph_ql_interactions.card_interactions as cards
 from collections import Counter
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
@@ -11,7 +11,6 @@ import logging
 class Burndown:
     def __init__(self, org_name, project_number, current_sprint_name, next_sprint_name, sprints):
         self.fig = go.Figure()
-        self.card_info_query = gql_queries.open_graph_ql_query_file("findCardInfo.txt")
         self.org_name = org_name
         self.project_number = project_number
         self.current_sprint_name = current_sprint_name
@@ -111,39 +110,8 @@ class Burndown:
 
     def add_new_csv_line(self):
         # Get the list of items in the project
-        # Note that there should always be at least one page so the pagination is added afterwards
-        result = gql_queries.run_query(self.card_info_query.
-                                       replace("<ORG_NAME>", self.org_name).
-                                       replace("<PROJ_NUM>", str(self.project_number)).
-                                       replace("<AFTER>", "null"))
-        has_next_page = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["hasNextPage"]
-        items = []
-        for item in result["data"]["organization"]["projectV2"]["items"]["nodes"]:
-            items.append(item)
-        # Add items from any further pages
-        while has_next_page:
-            end_cursor = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["endCursor"]
-            result = gql_queries.run_query(self.card_info_query.
-                                           replace("<ORG_NAME>", "ISISComputingGroup").
-                                           replace("<PROJ_NUM>", str(self.project_number)).
-                                           replace("<AFTER>", "\"" + end_cursor + "\""))
-            has_next_page = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["hasNextPage"]
-            for item in result["data"]["organization"]["projectV2"]["items"]["nodes"]:
-                items.append(item)
-
-        # Get the cards in this sprint
-        cards_to_refine = []
-        for item in items:
-            # Split to a further iterable
-            field_values = item["fieldValues"]["nodes"]
-            for value in field_values:
-                try:
-                    if value["field"]["name"] == "Sprint" and value["name"] == self.current_sprint_name:
-                        # Get rid of empty values
-                        cards_to_refine.append([i for i in field_values if i])
-                except KeyError:
-                    # Section is empty ignore it
-                    pass
+        cards_to_refine = cards.get_cards_in_sprint(org_name=self.org_name, project_number=self.project_number,
+                                                    sprint=self.current_sprint_name)
 
         # Get the statuses for the cards in this sprint
         card_statuses = []
