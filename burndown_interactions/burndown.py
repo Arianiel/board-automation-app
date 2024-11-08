@@ -7,6 +7,8 @@ import pandas as pd
 import os
 import logging
 
+pm_logger = logging.getLogger('board_automation')
+
 
 class Burndown:
     def __init__(self, org_name, project_number, current_sprint_name, next_sprint_name, sprints):
@@ -18,95 +20,104 @@ class Burndown:
         self.sprints = sprints
         self.csv_headings = "Date,Backlog,In Progress,Impeded,Review,Done\n"
         self.burndown_csv = os.path.join(os.path.dirname(__file__), "burndown-points.csv")
-        self.update_display()
+        if sprints:
+            self.update_display()
+        else:
+            pm_logger.exception("Burndown unavailable as no sprints available")
 
     def burndown_display(self):
         return self.fig.to_html()
 
     def update_display(self):
-        start_date = self.sprints[self.current_sprint_name].sprint_start_date
-        end_date = self.sprints[self.next_sprint_name].sprint_start_date
+        if self.sprints:
+            start_date = self.sprints[self.current_sprint_name].sprint_start_date
+            end_date = self.sprints[self.next_sprint_name].sprint_start_date
 
-        df = self.get_data_frame()
-        start_index = 0
+            df = self.get_data_frame()
+            start_index = 0
 
-        dates = df["Date"][start_index:]
-        last_line_index = len(dates)
-        last_day = datetime.strptime(df["Date"][start_index + last_line_index - 1], "%Y-%m-%d")
+            dates = df["Date"][start_index:]
+            last_line_index = len(dates)
+            last_day = datetime.strptime(df["Date"][start_index + last_line_index - 1], "%Y-%m-%d")
 
-        done = df["Done"].values[start_index:]
-        backlog = df["Backlog"].values[start_index:]
-        in_progres = df["In Progress"].values[start_index:]
-        impeded = df["Impeded"].values[start_index:]
-        review = df["Review"].values[start_index:]
+            done = df["Done"].values[start_index:]
+            backlog = df["Backlog"].values[start_index:]
+            in_progres = df["In Progress"].values[start_index:]
+            impeded = df["Impeded"].values[start_index:]
+            review = df["Review"].values[start_index:]
 
-        for i in range(1, (end_date - start_date).days + 1):
-            dates = np.append(dates, [(last_day + timedelta(days=i))])
-            if i > last_line_index:
-                done = np.append(done, [done[-1]])
-                backlog = np.append(backlog, [backlog[-1]])
-                in_progres = np.append(in_progres, [in_progres[-1]])
-                impeded = np.append(impeded, [impeded[-1]])
-                review = np.append(review, [review[-1]])
+            for i in range(1, (end_date - start_date).days + 1):
+                dates = np.append(dates, [(last_day + timedelta(days=i))])
+                if i > last_line_index:
+                    done = np.append(done, [done[-1]])
+                    backlog = np.append(backlog, [backlog[-1]])
+                    in_progres = np.append(in_progres, [in_progres[-1]])
+                    impeded = np.append(impeded, [impeded[-1]])
+                    review = np.append(review, [review[-1]])
 
-        fig = go.Figure(
-            data=[
-                go.Bar(
-                    name="Done",
-                    x=dates,
-                    y=done,
-                    text=done,
-                    offsetgroup=0,
-                    marker=dict(color="#0052CC"),
-                ),
-                go.Bar(
-                    name="Review",
-                    x=dates,
-                    y=review,
-                    text=review,
-                    offsetgroup=0,
-                    base=done,
-                    marker=dict(color="#5319E7"),
-                ),
-                go.Bar(
-                    name="Impeded",
-                    x=dates,
-                    y=impeded,
-                    text=impeded,
-                    offsetgroup=0,
-                    base=review + done,
-                    marker=dict(color="#B60205"),
-                ),
-                go.Bar(
-                    name="In Progress",
-                    x=dates,
-                    y=in_progres,
-                    text=in_progres,
-                    offsetgroup=0,
-                    base=impeded + review + done,
-                    marker=dict(color="#0E8A16"),
-                ),
-                go.Bar(
-                    name="Backlog",
-                    x=dates,
-                    y=backlog,
-                    text=backlog,
-                    offsetgroup=0,
-                    base=in_progres + impeded + review + done,
-                    marker=dict(color="#B816A5"),
-                ),
-            ],
-            layout=go.Layout(
-                title="Sprint Tracking",
-                legend=dict(
-                    traceorder="reversed",
+            fig = go.Figure(
+                data=[
+                    go.Bar(
+                        name="Done",
+                        x=dates,
+                        y=done,
+                        text=done,
+                        offsetgroup=0,
+                        marker=dict(color="#0052CC"),
+                    ),
+                    go.Bar(
+                        name="Review",
+                        x=dates,
+                        y=review,
+                        text=review,
+                        offsetgroup=0,
+                        base=done,
+                        marker=dict(color="#5319E7"),
+                    ),
+                    go.Bar(
+                        name="Impeded",
+                        x=dates,
+                        y=impeded,
+                        text=impeded,
+                        offsetgroup=0,
+                        base=review + done,
+                        marker=dict(color="#B60205"),
+                    ),
+                    go.Bar(
+                        name="In Progress",
+                        x=dates,
+                        y=in_progres,
+                        text=in_progres,
+                        offsetgroup=0,
+                        base=impeded + review + done,
+                        marker=dict(color="#0E8A16"),
+                    ),
+                    go.Bar(
+                        name="Backlog",
+                        x=dates,
+                        y=backlog,
+                        text=backlog,
+                        offsetgroup=0,
+                        base=in_progres + impeded + review + done,
+                        marker=dict(color="#B816A5"),
+                    ),
+                ],
+                layout=go.Layout(
+                    title="Sprint Tracking",
+                    legend=dict(
+                        traceorder="reversed",
+                    )
                 )
+
             )
 
-        )
+            fig.update_layout(showlegend=True)
+            self.fig = fig
+        else:
+            with open(os.path.join(os.path.dirname(__file__), "burndown_unavailable"), "r") as f:
+                self.fig = f.read()
 
-        fig.update_layout(showlegend=True)
-        self.fig = fig
+
 
     def add_new_csv_line(self):
         # Get the list of items in the project
@@ -171,7 +182,6 @@ class Burndown:
 
         if not (self.sprints[self.current_sprint_name].sprint_start_date < last_day <
                 self.sprints[self.next_sprint_name].sprint_start_date):
-            pm_logger = logging.getLogger('board_automation')
             pm_logger.exception("Burndown CSV overwritten due to out of date information")
             self.add_csv_titles()
             self.add_new_csv_line()

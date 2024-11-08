@@ -1,7 +1,7 @@
 import pandas.errors
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
-from github_interactions import get_project_info
+from github_interactions import automation_information
 import numpy as np
 import pandas as pd
 import os
@@ -113,7 +113,7 @@ fig.add_scatter(x=dates, y=review, name="Review", line_color="purple", mode="lin
 # fig.update_layout(showlegend=True)
 # fig.write_html("burndown-points.html")
 # The setup section
-current_project = get_project_info.ProjectInfo()
+current_project = get_project_info.AutomationInfo()
 sprints = current_project.sprint_by_class
 current_sprint_name = current_project.current_sprint
 next_sprint_name = current_project.next_sprint

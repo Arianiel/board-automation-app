@@ -1,6 +1,6 @@
 import datetime
 
-from github_interactions import get_project_info
+from github_interactions import automation_information
 import graph_ql_interactions.graph_ql_functions as ql
 from collections import Counter
 from github_interactions.sprint_information import SprintInfo
@@ -490,7 +490,7 @@ print(next_sprint)
 """
 
 
-current_project = get_project_info.ProjectInfo()
+current_project = automation_information.AutomationInfo()
 #cards_to_refine = cards.get_cards_with_field_values_in_sprint(org_name=current_project.org_name, project_number=current_project.project_number, sprint=current_project.current_sprint)
 #for card in cards_to_refine:
 #    print(card)

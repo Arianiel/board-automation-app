@@ -1,6 +1,6 @@
 import asyncio
 import tornado
-from github_interactions import get_project_info, update_item_info
+from github_interactions import automation_information, update_item_info
 import os
 import hashlib
 import hmac
@@ -32,7 +32,7 @@ def pm_logging(message, message_level):
 
 
 # Initialise the classes that will be needed for the overall app
-current_project = get_project_info.ProjectInfo()
+working_information = automation_information.AutomationInfo()
 
 # Get the items from the config file
 config = configparser.ConfigParser()
@@ -40,7 +40,7 @@ config.read(os.path.join(os.path.dirname(__file__), "config_info", "config.ini")
 try:
     secret = config["GITHUB.INTERACTION"]["webhook_secret"]
     host = config["WWW.INTERACTION"]["host"]
-    port = config["WWW.INTERACTION"]["port"]
+    port = int(config["WWW.INTERACTION"]["port"])
     app_log_level = config["SETTINGS"]["log_level"]
 except KeyError as ke:
     match ke.args[0]:
@@ -54,27 +54,18 @@ except KeyError as ke:
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.write("This probably already exists")
-
-
-class TestHandler(tornado.web.RequestHandler):
-    def get(self):
-        self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "test_form.html"))
-
-    def post(self):
-        name = self.get_argument("name")
-        self.write(f"Hello, {name}!")
+        self.write("This has not been implemented yet for the automation")
 
 
 class SprintHandler(tornado.web.RequestHandler):
     def get(self):
         self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "sprint_data.html"),
-                    current_sprint=current_project.current_sprint, next_sprint=current_project.next_sprint)
+                    current_sprint=working_information.current_sprint, next_sprint=working_information.next_sprint)
 
     def post(self):
-        current_project.update_sprints()
+        working_information.update_sprints()
         self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "updated_sprint_data.html"),
-                    current_sprint=current_project.current_sprint, next_sprint=current_project.next_sprint)
+                    current_sprint=working_information.current_sprint, next_sprint=working_information.next_sprint)
 
 
 class WebhookError(Exception):
@@ -104,7 +95,7 @@ def verify_signature(payload_body, secret_token, signature_header):
 class WebhookHandler(tornado.web.RequestHandler):
     def post(self):
         try:
-            verify_signature(self.request.body,secret,self.request.headers["X-Hub-Signature-256"])
+            verify_signature(self.request.body, secret, self.request.headers["X-Hub-Signature-256"])
         except WebhookError as e:
             pm_logging("Found a signature issue: {}".format(e.detail), "error")
             self.set_status(e.status_code)
@@ -137,8 +128,8 @@ class WebhookHandler(tornado.web.RequestHandler):
 class BurndownHandler(tornado.web.RequestHandler):
     def get(self):
         # Update the display before displaying
-        current_project.current_burndown.update_display()
-        self.write(current_project.current_burndown.burndown_display())
+        working_information.current_burndown.update_display()
+        self.write(working_information.current_burndown.burndown_display())
 
 
 def status_changed(info):
@@ -153,18 +144,18 @@ def status_changed(info):
             status_to = "Unknown"
         current_issue = update_item_info.IssueToUpdate(info["projects_v2_item"]["content_node_id"])
         current_issue.get_repo()
-        current_project.add_repo(current_issue.repo_name)
+        working_information.add_repo(current_issue.repo_name)
         match status_from:
             case "Done":
                 # Nothing to do for Done
                 pass
             case "In Progress":
-                current_issue.remove_label(current_project.repos[current_issue.repo_name].labels["in progress"])
+                current_issue.remove_label(working_information.repos[current_issue.repo_name].labels["in progress"])
             case "Impeded":
-                current_issue.remove_label(current_project.repos[current_issue.repo_name].labels["impeded"])
+                current_issue.remove_label(working_information.repos[current_issue.repo_name].labels["impeded"])
             case "Review":
-                current_issue.remove_label(current_project.repos[current_issue.repo_name].labels["review"])
-                current_issue.remove_label(current_project.repos[current_issue.repo_name].labels["under review"])
+                current_issue.remove_label(working_information.repos[current_issue.repo_name].labels["review"])
+                current_issue.remove_label(working_information.repos[current_issue.repo_name].labels["under review"])
             case "Backlog":
                 # Nothing to do for Backlog here
                 pass
@@ -175,16 +166,16 @@ def status_changed(info):
                 # Nothing to do for Done
                 pass
             case "In Progress":
-                current_issue.add_label(current_project.repos[current_issue.repo_name].labels["in progress"])
+                current_issue.add_label(working_information.repos[current_issue.repo_name].labels["in progress"])
                 if status_from == "Review":
-                    current_issue.add_label(current_project.repos[current_issue.repo_name].labels["rework"])
+                    current_issue.add_label(working_information.repos[current_issue.repo_name].labels["rework"])
             case "Impeded":
-                current_issue.add_label(current_project.repos[current_issue.repo_name].labels["impeded"])
+                current_issue.add_label(working_information.repos[current_issue.repo_name].labels["impeded"])
             case "Review":
-                current_issue.add_label(current_project.repos[current_issue.repo_name].labels["review"])
+                current_issue.add_label(working_information.repos[current_issue.repo_name].labels["review"])
             case "Backlog":
                 if status_from == "Review":
-                    current_issue.add_label(current_project.repos[current_issue.repo_name].labels["rework"])
+                    current_issue.add_label(working_information.repos[current_issue.repo_name].labels["rework"])
             case _:
                 pm_logging("Nothing planned for going to this status: {}".format(status_to), "debug")
 
@@ -192,7 +183,7 @@ def status_changed(info):
 def label_added(info):
     pm_logging("Label added: {}".format(info["label"]["name"]), "info")
     current_issue = update_item_info.IssueToUpdate(info["issue"]["node_id"])
-    current_issue.set_project(current_project)
+    current_issue.set_project(working_information)
     label_name = info["label"]["name"]
     match label_name:
         case "proposal":
@@ -218,7 +209,6 @@ def label_added(info):
 def make_app():
     return tornado.web.Application([
         (r"/", MainHandler),
-        (r"/test", TestHandler),
         (r"/burndown", BurndownHandler),
         (r"/webhook", WebhookHandler),
         (r"/sprint", SprintHandler),
@@ -235,4 +225,3 @@ if __name__ == "__main__":
         asyncio.run(main())
     except KeyboardInterrupt:
         pm_logging("Shutting down with Keyboard Interrupt", "info")
-

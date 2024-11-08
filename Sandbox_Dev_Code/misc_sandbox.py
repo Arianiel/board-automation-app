@@ -1,4 +1,4 @@
-from github_interactions import get_project_info
+from github_interactions import automation_information
 import configparser
 import os
 
@@ -31,4 +31,4 @@ import os
 #         case _:
 #             print("Section missing from config: {}".format(ke))
 
-project = get_project_info.ProjectInfo()
+project = get_project_info.AutomationInfo()

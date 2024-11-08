@@ -17,7 +17,7 @@ from external_webpage.web_scrapper_manager import WebScrapperManager
 from external_webpage.instrument_scapper import scraped_data, scraped_data_lock
 
 # Additions for github automation
-from github_interactions import get_project_info, update_item_info
+from github_interactions import automation_information, update_item_info
 
 # Set up JSON_bourne logger
 logger = logging.getLogger('JSON_bourne')
@@ -54,7 +54,7 @@ def pm_logging(message, message_level):
 
 
 # Initialise the classes that will be needed for the overall automation work
-current_project = get_project_info.ProjectInfo()
+current_project = get_project_info.AutomationInfo()
 # Get the items from the config file
 config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), "config_info", "config.ini"))

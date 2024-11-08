@@ -2,26 +2,25 @@ import graph_ql_interactions.graph_ql_functions as gql_queries
 import graph_ql_interactions.card_interactions as cards
 import graph_ql_interactions.repo_interactions as repos
 import github_interactions.repo_information as repo_info
+import github_interactions.project_increment_information as projects
 import datetime
 import configparser
 import os
 from burndown_interactions import burndown
-from github_interactions.sprint_information import SprintInfo
+import logging
+
+pm_logger = logging.getLogger('board_automation')
 
 
-class ProjectInfo:
+class AutomationInfo:
     def __init__(self):
+        self.html_message = ""
         # Get values from config.ini
         config = configparser.ConfigParser()
         config.read(os.path.join(os.path.dirname(__file__), "..", "config_info", "config.ini"))
 
         self.user_name = config["GITHUB.INTERACTION"]["user_name"]
         self.org_name = config["GITHUB.INTERACTION"]["org_name"]
-
-        # Get the users orgs
-        orgs_query = gql_queries.open_graph_ql_query_file("findOrgs.txt")
-        result = gql_queries.run_query(orgs_query.replace("<USER>", self.user_name))  # Execute the query
-        self.orgs = result["data"]["user"]["organizations"]["nodes"]
 
         self.today = None
         self.today_day = None
@@ -31,60 +30,43 @@ class ProjectInfo:
 
         # Find the V2 projects owned by the organization
         self.proj_list_query = gql_queries.open_graph_ql_query_file("findProjects.txt")
-        self.result_projects = \
+        result_projects = \
             gql_queries.run_query(self.proj_list_query.replace("<ORG_NAME>", self.org_name))["data"]["organization"][
                 "projectsV2"]["nodes"]
-        projects = {}
+
+        # Filter out a dictionary of the PIs
+        self.available_program_increments = {}
+        for result_project in result_projects:
+            if "PI" in result_project["title"]:
+                self.available_program_increments[result_project["title"]] = (projects.ProjectIncrement(
+                    project_id=result_project["id"], number=result_project["number"], title=result_project["title"],
+                    org_name=self.org_name))
 
         # Find the appropriate project for this PI
-        self.project_number = "0"
-        for result_project in self.result_projects:
-            title = result_project["title"]
-            self.project_id = result_project["id"]
-            projects[title] = self.project_id
-            if "PI" not in title:
-                # At the moment I'm not interested in anything that isn't a PI
-                pass
-            if self.today_year in title:
-                offset = title.find(self.today_year)
-                pi_id = title[offset:offset + 7]
-                pi_month = title[offset + 5:offset + 7]
-                if int(pi_month) < int(self.today_month):
-                    self.project_number = result_project["number"]
-                    break
-                elif int(pi_month) == int(self.today_month):
-                    # This may be the first sprint of the PI, need to look into those dates
-                    pass
+        # Set the values to the first entry in the dictionary as somewhere to start
+        self.current_project = None
+        self.next_project = None
+        for program_increment in self.available_program_increments.keys():
+            if self.available_program_increments[program_increment].PI_has_sprints:
+                if self.current_project is None and self.next_project is None:
+                    self.current_project = program_increment
+                    self.next_project = program_increment
                 else:
-                    # This is not the current PI, so I don't need to consider it in detail
-                    pass
+                    try:
+                        if self.available_program_increments[program_increment].start_date < today:
+                            if self.available_program_increments[program_increment].start_date < self.available_program_increments[self.current_project].start_date:
+                                self.current_project = program_increment
+                        if self.available_program_increments[program_increment].start_date > today:
+                            if self.available_program_increments[program_increment].start_date < self.available_program_increments[self.next_project].start_date:
+                                self.next_project = program_increment
+                    except TypeError:
+                        pm_logger.info("There is no start date for one of the PIs being looked at")
+            else:
+                pm_logger.info("There is a PI with no sprints set")
 
-        if self.project_number == "0":
-            return
+        self.project_number = self.available_program_increments[self.current_project].number
+        self.sprint_by_class = self.available_program_increments[self.current_project].sprint_by_class
 
-        # Get custom fields
-        self.sprint_list_id_query = gql_queries.open_graph_ql_query_file("findProjectSprints.txt")
-
-        self.fields = gql_queries.run_query(
-            self.sprint_list_id_query.replace("<PROJ_NUM>", str(self.project_number))
-            .replace("<ORG_NAME>", self.org_name))["data"]["organization"]["projectV2"]["fields"]["nodes"]
-
-        # Get sprint list
-        self.sprints = {}
-        self.sprint_ids = {}
-        self.sprint_by_class = {}
-        self.status_ids = {}
-        for field in self.fields:
-            match field["name"]:
-                case "Sprint":
-                    self.sprint_field_id = field["id"]
-                    for option in field["options"]:
-                        self.sprint_ids[option["name"]] = option["id"]
-                        self.sprint_by_class[option["name"]] = SprintInfo(option)
-                case "Status":
-                    self.status_field_id = field["id"]
-                    for option in field["options"]:
-                        self.status_ids[option["name"]] = option["id"]
         # Get current and next sprint
         self.current_sprint = ""
         self.next_sprint = ""
@@ -128,6 +110,11 @@ class ProjectInfo:
                         self.next_sprint = sprint
                 except KeyError:
                     self.next_sprint = sprint
+        try:
+            if self.sprint_by_class[self.next_sprint].in_next_pi:
+                print("Here's where to set a message for the next PI/check the PI exists")
+        except KeyError:
+            print("No sprints found")
 
     def update_sprints(self):
         self.set_current_and_next_sprint(self.set_today())

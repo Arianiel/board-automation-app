@@ -6,7 +6,7 @@ import json
 import logging
 import os
 from logging.handlers import TimedRotatingFileHandler
-from github_interactions import get_project_info, update_item_info
+from github_interactions import automation_information, update_item_info
 
 import tornado.ioloop
 import tornado.web
