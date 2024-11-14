@@ -28,41 +28,10 @@ class AutomationInfo:
         self.today_year = None
         today = self.set_today()
 
-        # Find the V2 projects owned by the organization
-        self.proj_list_query = gql_queries.open_graph_ql_query_file("findProjects.txt")
-        result_projects = \
-            gql_queries.run_query(self.proj_list_query.replace("<ORG_NAME>", self.org_name))["data"]["organization"][
-                "projectsV2"]["nodes"]
-
-        # Filter out a dictionary of the PIs
         self.available_program_increments = {}
-        for result_project in result_projects:
-            if "PI" in result_project["title"]:
-                self.available_program_increments[result_project["title"]] = (projects.ProjectIncrement(
-                    project_id=result_project["id"], number=result_project["number"], title=result_project["title"],
-                    org_name=self.org_name))
-
-        # Find the appropriate project for this PI
-        # Set the values to the first entry in the dictionary as somewhere to start
         self.current_project = None
         self.next_project = None
-        for program_increment in self.available_program_increments.keys():
-            if self.available_program_increments[program_increment].PI_has_sprints:
-                if self.current_project is None and self.next_project is None:
-                    self.current_project = program_increment
-                    self.next_project = program_increment
-                else:
-                    try:
-                        if self.available_program_increments[program_increment].start_date < today:
-                            if self.available_program_increments[program_increment].start_date < self.available_program_increments[self.current_project].start_date:
-                                self.current_project = program_increment
-                        if self.available_program_increments[program_increment].start_date > today:
-                            if self.available_program_increments[program_increment].start_date < self.available_program_increments[self.next_project].start_date:
-                                self.next_project = program_increment
-                    except TypeError:
-                        pm_logger.info("There is no start date for one of the PIs being looked at")
-            else:
-                pm_logger.info("There is a PI with no sprints set")
+        self.update_projects(today)
 
         self.project_number = self.available_program_increments[self.current_project].number
         self.sprint_by_class = self.available_program_increments[self.current_project].sprint_by_class
@@ -112,11 +81,14 @@ class AutomationInfo:
                     self.next_sprint = sprint
         try:
             if self.sprint_by_class[self.next_sprint].in_next_pi:
-                print("Here's where to set a message for the next PI/check the PI exists")
+                if not (self.available_program_increments[self.next_project].start_date > today):
+                    self.html_message = "MAKE SURE THAT THE NEXT PI PROJECT IS CREATED!"
+                    pm_logger.info("Next PI needed, and/or server restart needed")
         except KeyError:
-            print("No sprints found")
+            pm_logger.info("No sprints found")
 
     def update_sprints(self):
+        self.update_projects(self.set_today())
         self.set_current_and_next_sprint(self.set_today())
         self.current_burndown.change_sprint()
         cards_to_refine = cards.get_card_ids_in_sprint(org_name=self.org_name,
@@ -126,3 +98,43 @@ class AutomationInfo:
             cards.remove_label(card, repos.get_label_id(org_name=self.org_name,
                                                         repo_name=cards.get_repo_for_issue(card),
                                                         label_name="proposal"))
+
+    def update_projects(self, today):
+        # Find the V2 projects owned by the organization
+        self.html_message = ""
+        proj_list_query = gql_queries.open_graph_ql_query_file("findProjects.txt")
+        result_projects = \
+            gql_queries.run_query(proj_list_query.replace("<ORG_NAME>", self.org_name))["data"]["organization"][
+                "projectsV2"]["nodes"]
+
+        # Filter out a dictionary of the PIs
+        for result_project in result_projects:
+            if "PI" in result_project["title"]:
+                if result_project["title"] not in self.available_program_increments.keys():
+                    self.available_program_increments[result_project["title"]] = (projects.ProjectIncrement(
+                        project_id=result_project["id"], number=result_project["number"], title=result_project["title"],
+                        org_name=self.org_name))
+
+        # Find the appropriate project for this PI
+        # Set the values to the first entry in the dictionary as somewhere to start
+        self.current_project = None
+        self.next_project = None
+        for program_increment in self.available_program_increments.keys():
+            if self.available_program_increments[program_increment].PI_has_sprints:
+                if self.current_project is None and self.next_project is None:
+                    self.current_project = program_increment
+                    self.next_project = program_increment
+                else:
+                    try:
+                        if self.available_program_increments[program_increment].start_date < today:
+                            if (self.available_program_increments[program_increment].start_date <
+                                    self.available_program_increments[self.current_project].start_date):
+                                self.current_project = program_increment
+                        if self.available_program_increments[program_increment].start_date > today:
+                            if (self.available_program_increments[program_increment].start_date <
+                                    self.available_program_increments[self.next_project].start_date):
+                                self.next_project = program_increment
+                    except TypeError:
+                        pm_logger.info("There is no start date for one of the PIs being looked at")
+            else:
+                pm_logger.info("There is a PI with no sprints set")

@@ -60,12 +60,14 @@ class MainHandler(tornado.web.RequestHandler):
 class SprintHandler(tornado.web.RequestHandler):
     def get(self):
         self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "sprint_data.html"),
-                    current_sprint=working_information.current_sprint, next_sprint=working_information.next_sprint)
+                    current_sprint=working_information.current_sprint, next_sprint=working_information.next_sprint,
+                    misc_message=working_information.html_message)
 
     def post(self):
         working_information.update_sprints()
         self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "updated_sprint_data.html"),
-                    current_sprint=working_information.current_sprint, next_sprint=working_information.next_sprint)
+                    current_sprint=working_information.current_sprint, next_sprint=working_information.next_sprint,
+                    misc_message=working_information.html_message)
 
 
 class WebhookError(Exception):
