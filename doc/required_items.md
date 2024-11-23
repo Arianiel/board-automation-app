@@ -2,6 +2,10 @@
 In order for this to work correctly the following are needed in the appropriate areas.
 
 ## Project
+
+The project name has to be of the format `PI_202n_nn` otherwise it will not be 
+considered a valid Program Increment as defined for the ISIS Computing Group. 
+
 ### Statuses
 
 | Status Label | Colour to use | Hex     |

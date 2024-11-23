@@ -8,6 +8,7 @@ import configparser
 import os
 from burndown_interactions import burndown
 import logging
+import re
 
 pm_logger = logging.getLogger('board_automation')
 
@@ -40,8 +41,6 @@ class AutomationInfo:
         self.current_sprint = ""
         self.next_sprint = ""
         self.set_current_and_next_sprint(today)
-        print(self.current_sprint)
-        print(self.next_sprint)
         self.current_burndown = burndown.Burndown(self.org_name, self.project_number, self.current_sprint,
                                                   self.next_sprint, self.sprint_by_class)
 
@@ -111,7 +110,12 @@ class AutomationInfo:
 
         # Filter out a dictionary of the PIs
         for result_project in result_projects:
-            if "PI" in result_project["title"] and not result_project["template"]:
+            # Matching the title style and using the offset to help define if it is a PI or not
+            try:
+                is_pi = re.compile("PI_\d\d\d\d_\d\d").match(result_project["title"]).span()[0]
+            except AttributeError:
+                is_pi = -1
+            if is_pi >= 0 and not result_project["template"] and not result_project["closed"]:
                 if result_project["title"] not in self.available_program_increments.keys():
                     self.available_program_increments[result_project["title"]] = (projects.ProjectIncrement(
                         project_id=result_project["id"], number=result_project["number"], title=result_project["title"],
