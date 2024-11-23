@@ -30,6 +30,8 @@ class Burndown:
 
     def update_display(self):
         if self.sprints:
+            # print(self.current_sprint_name + " to " + self.next_sprint_name)
+
             start_date = self.sprints[self.current_sprint_name].sprint_start_date
             end_date = self.sprints[self.next_sprint_name].sprint_start_date
 
@@ -116,8 +118,6 @@ class Burndown:
         else:
             with open(os.path.join(os.path.dirname(__file__), "burndown_unavailable"), "r") as f:
                 self.fig = f.read()
-
-
 
     def add_new_csv_line(self):
         # Get the list of items in the project

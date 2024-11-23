@@ -40,6 +40,8 @@ class AutomationInfo:
         self.current_sprint = ""
         self.next_sprint = ""
         self.set_current_and_next_sprint(today)
+        print(self.current_sprint)
+        print(self.next_sprint)
         self.current_burndown = burndown.Burndown(self.org_name, self.project_number, self.current_sprint,
                                                   self.next_sprint, self.sprint_by_class)
 
@@ -109,7 +111,7 @@ class AutomationInfo:
 
         # Filter out a dictionary of the PIs
         for result_project in result_projects:
-            if "PI" in result_project["title"]:
+            if "PI" in result_project["title"] and not result_project["template"]:
                 if result_project["title"] not in self.available_program_increments.keys():
                     self.available_program_increments[result_project["title"]] = (projects.ProjectIncrement(
                         project_id=result_project["id"], number=result_project["number"], title=result_project["title"],
