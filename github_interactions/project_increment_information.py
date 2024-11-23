@@ -10,14 +10,19 @@ class ProjectIncrement:
         self.number = number
         self.title = title
         self.org_name = org_name
-        try:
-            offset = re.compile("\d\d\d\d_\d\d").search(title).span()[0]
-            self.year = title[offset:offset + 4]
-            self.month = title[offset + 5:offset + 7]
-        except AttributeError:
+        if "X" in title:
             self.title = title + " is not a Program Increment"
             self.year = "2000"
             self.month = "01"
+        else:
+            try:
+                offset = re.compile("\d\d\d\d_\d\d").search(title).span()[0]
+                self.year = title[offset:offset + 4]
+                self.month = title[offset + 5:offset + 7]
+            except AttributeError:
+                self.title = title + " is not a Program Increment"
+                self.year = "2000"
+                self.month = "01"
         self.sprint_ids = {}
         self.sprint_by_class = {}
         self.status_ids = {}

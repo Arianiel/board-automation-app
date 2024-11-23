@@ -54,7 +54,7 @@ def pm_logging(message, message_level):
 
 
 # Initialise the classes that will be needed for the overall automation work
-current_project = get_project_info.AutomationInfo()
+current_project = automation_information.AutomationInfo()
 # Get the items from the config file
 config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), "config_info", "config.ini"))
