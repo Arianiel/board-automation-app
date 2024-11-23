@@ -9,7 +9,6 @@ import asyncio
 import hashlib
 import hmac
 import configparser
-import plotly.graph_objects as go
 
 from external_webpage.request_handler_utils import get_detailed_state_of_specific_instrument, \
     get_summary_details_of_all_instruments, get_instrument_and_callback
@@ -186,12 +185,14 @@ class SprintHandler(tornado.web.RequestHandler):
     def get(self):
         print(current_project.current_sprint)
         self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "sprint_data.html"),
-                    current_sprint=current_project.current_sprint, next_sprint=current_project.next_sprint)
+                    current_sprint=current_project.current_sprint, next_sprint=current_project.next_sprint,
+                    misc_message=current_project.html_message)
 
     def post(self):
         current_project.update_sprints()
         self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "updated_sprint_data.html"),
-                    current_sprint=current_project.current_sprint, next_sprint=current_project.next_sprint)
+                    current_sprint=current_project.current_sprint, next_sprint=current_project.next_sprint,
+                    misc_message=current_project.html_message)
 
 
 def status_changed(info):
@@ -267,6 +268,16 @@ def label_added(info):
             pass
             # print("Nothing to be done with this label: ", label_name)
 
+class AutomationHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "home.html"))
+
+class ColumnFrequencyHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "column_count_and_points.html"),
+                    current_sprint=current_project.current_sprint, next_sprint=current_project.next_sprint,
+                    misc_message=current_project.html_message)
+
 
 if __name__ == '__main__':
     # It can sometime be useful to define a local instrument list to add/override the instrument list do this here
@@ -284,6 +295,8 @@ if __name__ == '__main__':
             (r"/burndown", BurndownHandler),
             (r"/webhook", WebhookHandler),
             (r"/sprint", SprintHandler),
+            (r"/col_no_points", ColumnFrequencyHandler),
+            (r"/auto", AutomationHandler),
         ])
         http_server = tornado.httpserver.HTTPServer(application, ssl_options={
             "certfile": r"C:\Users\ibexbuilder\dataweb2_isis_rl_ac_uk.crt",

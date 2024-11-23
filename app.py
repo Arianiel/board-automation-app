@@ -54,7 +54,7 @@ except KeyError as ke:
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.write("This has not been implemented yet for the automation")
+        self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "home.html"))
 
 
 class SprintHandler(tornado.web.RequestHandler):
@@ -66,6 +66,13 @@ class SprintHandler(tornado.web.RequestHandler):
     def post(self):
         working_information.update_sprints()
         self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "updated_sprint_data.html"),
+                    current_sprint=working_information.current_sprint, next_sprint=working_information.next_sprint,
+                    misc_message=working_information.html_message)
+
+
+class ColumnFrequencyHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "column_count_and_points.html"),
                     current_sprint=working_information.current_sprint, next_sprint=working_information.next_sprint,
                     misc_message=working_information.html_message)
 
@@ -214,6 +221,7 @@ def make_app():
         (r"/burndown", BurndownHandler),
         (r"/webhook", WebhookHandler),
         (r"/sprint", SprintHandler),
+        (r"/col_no_points", ColumnFrequencyHandler),
     ])
 
 
