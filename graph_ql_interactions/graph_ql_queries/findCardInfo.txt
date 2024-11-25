@@ -8,6 +8,11 @@ query findCardInfo {
                             content {
                             ... on Issue {
                                 id
+                                labels (first: 20){
+                                    nodes {
+                                        name
+                                    }
+                                }
                             }
                             }
                             fieldValues(first: 20) {

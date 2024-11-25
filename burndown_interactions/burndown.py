@@ -119,11 +119,10 @@ class Burndown:
                 self.fig = f.read()
 
     def add_new_csv_line(self):
-        # Get the list of items in the project
+        # Build the string for adding to the CSV file
         card_frequency = cards.get_number_of_cards_by_status(org_name=self.org_name,
                                                              project_number=self.project_number,
                                                              sprint=self.current_sprint_name)
-
         today = datetime.today().strftime("%Y-%m-%d")
         entry_list = [today, ",", str(card_frequency["Backlog"]), ",", str(card_frequency["In Progress"]), ",",
                       str(card_frequency["Impeded"]), ",", str(card_frequency["Review"]), ",",
