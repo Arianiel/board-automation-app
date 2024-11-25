@@ -1,5 +1,4 @@
 import graph_ql_interactions.card_interactions as cards
-from collections import Counter
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import numpy as np
@@ -121,21 +120,10 @@ class Burndown:
 
     def add_new_csv_line(self):
         # Get the list of items in the project
-        cards_to_refine = cards.get_cards_with_field_values_in_sprint(org_name=self.org_name, project_number=self.project_number,
-                                                                      sprint=self.current_sprint_name)
+        card_frequency = cards.get_number_of_cards_by_status(org_name=self.org_name,
+                                                             project_number=self.project_number,
+                                                             sprint=self.current_sprint_name)
 
-        # Get the statuses for the cards in this sprint
-        card_statuses = []
-        for card in cards_to_refine:
-            for value in card:
-                try:
-                    if value["field"]["name"] == "Status":
-                        card_statuses.append(value["name"])
-                except KeyError:
-                    # Nothing to worry about this doesn't exist
-                    pass
-        # Build the string for adding to the CSV file
-        card_frequency = Counter(card_statuses)
         today = datetime.today().strftime("%Y-%m-%d")
         entry_list = [today, ",", str(card_frequency["Backlog"]), ",", str(card_frequency["In Progress"]), ",",
                       str(card_frequency["Impeded"]), ",", str(card_frequency["Review"]), ",",

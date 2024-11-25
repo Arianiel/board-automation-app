@@ -10,12 +10,20 @@ query findCardInfo {
                                 id
                             }
                             }
-                            fieldValues(first: 10) {
+                            fieldValues(first: 20) {
                                 nodes {
                                     ... on ProjectV2ItemFieldSingleSelectValue {
                                         name
                                         field {
                                             ... on ProjectV2SingleSelectField {
+                                                name
+                                            }
+                                        }
+                                    }
+                                    ... on ProjectV2ItemFieldNumberValue {
+                                        number
+                                        field {
+                                            ... on ProjectV2Field {
                                                 name
                                             }
                                         }

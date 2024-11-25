@@ -1,4 +1,5 @@
 import graph_ql_interactions.graph_ql_functions as gql_queries
+from collections import Counter
 
 card_info_query = gql_queries.open_graph_ql_query_file("findCardInfo.txt")
 update_labels = gql_queries.open_graph_ql_query_file("UpdateItemLabel.txt")
@@ -48,6 +49,21 @@ def get_cards_with_field_values_in_sprint(org_name="", project_number="", sprint
                 pass
 
     return cards_in_sprint
+
+
+def get_number_of_cards_by_status(org_name="", project_number="", sprint=""):
+    cards = get_cards_with_field_values_in_sprint(org_name=org_name, project_number=project_number, sprint=sprint)
+    card_statuses = []
+    for card in cards:
+        for value in card:
+            try:
+                if value["field"]["name"] == "Status":
+                    card_statuses.append(value["name"])
+            except KeyError:
+                # Nothing to worry about this doesn't exist
+                pass
+    # Build the string for adding to the CSV file
+    return Counter(card_statuses)
 
 
 def get_card_ids_in_sprint(org_name="", project_number="", sprint=""):
