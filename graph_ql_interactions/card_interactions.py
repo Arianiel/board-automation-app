@@ -101,6 +101,28 @@ def get_card_list_snapshot_for_sprint(org_name="", project_number="", sprint="")
     return snapshot
 
 
+def get_planning_snapshot(org_name="", project_number="", sprint=""):
+    cards_in_project = get_cards_in_project(org_name=org_name, project_number=project_number)
+    snapshot = {
+        "high": [],
+        "medium": [],
+        "low": [],
+    }
+    for card in cards_in_project:
+        if card.sprint == sprint:
+            match card.priority:
+                case "High":
+                    snapshot["high"].append({"number": card.number, "repo": card.repo})
+                case "Medium":
+                    snapshot["medium"].append({"number": card.number, "repo": card.repo})
+                case "Low":
+                    snapshot["low"].append({"number": card.number, "repo": card.repo})
+                case _:
+                    # This is not a status I'm interested in, and probably shouldn't exist
+                    pass
+    return snapshot
+
+
 def get_number_of_cards_by_status(org_name="", project_number="", sprint=""):
     cards_in_project = get_cards_in_project(org_name=org_name, project_number=project_number)
     card_statuses = []
@@ -132,3 +154,4 @@ def remove_label(issue_id, label_id_to_remove):
 
 def get_repo_for_issue(issue_id):
     return gql_queries.run_query(card_repo_query.replace("<ISSUE>", issue_id))["data"]["node"]["repository"]["name"]
+

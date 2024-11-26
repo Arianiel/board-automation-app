@@ -13,6 +13,27 @@ import re
 pm_logger = logging.getLogger('board_automation')
 
 
+def build_html_table(info):
+    data = "<table><tr>"
+    for heading in info.keys():
+        data += "<th>" + heading + "</th>"
+    data += "</tr>"
+
+    lengths = {}
+    for item in info:
+        lengths[item] = len(info[item])
+    for i in range(max(lengths.values())):
+        data += "<tr>"
+        for item in info.keys():
+            try:
+                data += "<td>" + str(info[item][i]["number"]) + " (" + str(info[item][i]["repo"]) + ")</td>"
+            except IndexError:
+                data += "<td></td>"
+        data += "</tr>"
+    data += "</table>"
+    return data
+
+
 class AutomationInfo:
     def __init__(self):
         self.html_message = ""
@@ -150,24 +171,16 @@ class AutomationInfo:
 
     def get_sprint_columns_snapshot_html(self):
         info = cards.get_card_list_snapshot_for_sprint(self.org_name, self.project_number, self.current_sprint)
-        data = """<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title><!DOCTYPE html><html lang="en">
-        <head><meta charset="UTF-8"><title>Count and points</title></head><body><h1>The present listings</h1><table>"""
-        data += "<tr>"
-        for heading in info.keys():
-            data += "<th>" + heading + "</th>"
-        data += "</tr>"
+        data = """<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Issues in Columns</title></head>
+        <body><h1>The present listings</h1>"""
+        data += build_html_table(info)
+        data += "</body></html>"
+        return data
 
-        lengths = {}
-        for item in info:
-            lengths[item] = len(info[item])
-        for i in range(max(lengths.values())):
-            data += "<tr>"
-            for item in info.keys():
-                try:
-                    data += "<td>" + str(info[item][i]["number"]) + " (" + str(info[item][i]["repo"]) + ")</td>"
-                except IndexError:
-                    data += "<td></td>"
-            data += "</tr>"
-
-        data += "</table></body></html>"
+    def get_planning_priority_snapshot(self):
+        info = cards.get_planning_snapshot(self.org_name, self.project_number, self.current_sprint)
+        data = """<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Planning Priority</title></head>
+        <body><h1>The present listings</h1>"""
+        data += build_html_table(info)
+        data += "</body></html>"
         return data

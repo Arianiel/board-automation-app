@@ -16,6 +16,25 @@ considered a valid Program Increment as defined for the ISIS Computing Group.
 | Review       | Purple        | #5319E7 |
 | Done         | Blue          | #0052CC |
 
+### Sprints
+
+These should be created according to the timebox option you use, and need to be of 
+the format `yyyy_mm_dd` for the date which is the start of the sprint.
+The last sprint in a project should take the format `Next PI (yyyy_mm_dd)` which will 
+be the starting date of the next project as well as sprint.
+These are a single select field which are created as part of the project, called 
+`Sprint`.
+
+### Planning Priority
+
+There are 3 planning priorities, `High`, `Medium`, `Low`.
+These are a single select field which are created as part of the project, called
+`Planning Priority`.
+
+### Points
+
+A number field called points should also be created as part of the project.
+
 
 ## Repository
 ### Labels

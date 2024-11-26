@@ -30,6 +30,8 @@ class CardInfo:
                         self.status = value["name"]
                     case "Points":
                         self.points = value["number"]
+                    case "Planning Priority":
+                        self.priority = value["name"]
                     case _:
                         pass
             except KeyError:

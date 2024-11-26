@@ -296,6 +296,12 @@ class ColumnEntriesHandler(tornado.web.RequestHandler):
         # snapshot = working_information.get_cards_snapshot()
         self.write(current_project.get_sprint_columns_snapshot_html())
 
+class PlanningPrioritiesHandler(tornado.web.RequestHandler):
+    def get(self):
+        # snapshot = working_information.get_cards_snapshot()
+        self.write(current_project.get_planning_priority_snapshot())
+
+
 if __name__ == '__main__':
     # It can sometime be useful to define a local instrument list to add/override the instrument list do this here
     # E.g. to add local instrument local_inst_list = {"LOCALHOST": ("localhost", "MYPVPREFIX")}
@@ -315,6 +321,7 @@ if __name__ == '__main__':
             (r"/col_no_points", ColumnFrequencyHandler),
             (r"/col_entries", ColumnEntriesHandler),
             (r"/auto", AutomationHandler),
+            (r"/plan_priorities", PlanningPrioritiesHandler),
         ])
         http_server = tornado.httpserver.HTTPServer(application, ssl_options={
             "certfile": r"C:\Users\ibexbuilder\dataweb2_isis_rl_ac_uk.crt",

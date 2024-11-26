@@ -96,6 +96,12 @@ class ColumnEntriesHandler(tornado.web.RequestHandler):
         self.write(working_information.get_sprint_columns_snapshot_html())
 
 
+class PlanningPrioritiesHandler(tornado.web.RequestHandler):
+    def get(self):
+        # snapshot = working_information.get_cards_snapshot()
+        self.write(working_information.get_planning_priority_snapshot())
+
+
 class WebhookError(Exception):
     def __init__(self, status_code, detail):
         self.status_code = status_code
@@ -242,6 +248,7 @@ def make_app():
         (r"/sprint", SprintHandler),
         (r"/col_no_points", ColumnFrequencyHandler),
         (r"/col_entries", ColumnEntriesHandler),
+        (r"/plan_priorities", PlanningPrioritiesHandler),
     ])
 
 
