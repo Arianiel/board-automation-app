@@ -110,16 +110,19 @@ def get_planning_snapshot(org_name="", project_number="", sprint=""):
     }
     for card in cards_in_project:
         if card.sprint == sprint:
-            match card.priority:
-                case "High":
-                    snapshot["high"].append({"number": card.number, "repo": card.repo})
-                case "Medium":
-                    snapshot["medium"].append({"number": card.number, "repo": card.repo})
-                case "Low":
-                    snapshot["low"].append({"number": card.number, "repo": card.repo})
-                case _:
-                    # This is not a status I'm interested in, and probably shouldn't exist
-                    pass
+            try:
+                match card.priority:
+                    case "High":
+                        snapshot["high"].append({"number": card.number, "repo": card.repo})
+                    case "Medium":
+                        snapshot["medium"].append({"number": card.number, "repo": card.repo})
+                    case "Low":
+                        snapshot["low"].append({"number": card.number, "repo": card.repo})
+                    case _:
+                        # This is not a status I'm interested in, and probably shouldn't exist
+                        pass
+            except AttributeError:
+                pass
     return snapshot
 
 

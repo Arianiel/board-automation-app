@@ -1,7 +1,10 @@
 class CardInfo:
     def __init__(self, card):
         self.type = card["type"]
-        self.id = card["content"]["id"]
+        try:
+            self.id = card["content"]["id"]
+        except KeyError:
+            self.id = None
         self.labels = []
         match self.type:
             case "DRAFT_ISSUE":
@@ -16,6 +19,13 @@ class CardInfo:
                 except KeyError:
                     # Section is empty ignore it
                     pass
+            case "PULL_REQUEST":
+                # These are not handled yet
+                self.number = None
+                self.repo = None
+            case _:
+                self.number = None
+                self.repo = None
         self.name = str(self.number)
         field_values = card["fieldValues"]["nodes"]
         self.status = None

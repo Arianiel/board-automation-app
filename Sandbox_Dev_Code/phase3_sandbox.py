@@ -2,7 +2,7 @@
 from github_interactions import automation_information
 import graph_ql_interactions.card_interactions as cards
 
-current_project = automation_information.AutomationInfo()
+# current_project = automation_information.AutomationInfo()
 # print(current_project.current_sprint)
 # print(current_project.next_sprint)
 # print("ids")
@@ -21,4 +21,4 @@ current_project = automation_information.AutomationInfo()
 
 # print(cards.get_number_of_cards_by_status(org_name="Arianiel", project_number="1", sprint="2024_11_01"))
 
-# print(cards.get_cards_and_points_snapshot_for_sprint(org_name="Arianiel", project_number="1", sprint="2024_11_01"))
+print(cards.get_cards_and_points_snapshot_for_sprint(org_name="ISISComputingGroup", project_number="20", sprint="2024_10_31"))
