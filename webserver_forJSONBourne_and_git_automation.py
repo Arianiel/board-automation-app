@@ -246,7 +246,8 @@ def status_changed(info):
 def label_added(info):
     print("Label added: ", info["label"]["name"])
     current_issue = update_item_info.IssueToUpdate(info["issue"]["node_id"])
-    current_issue.set_project(current_project)
+    current_issue.set_project(current_project.available_program_increments[current_project.current_project],
+                              current_project.current_sprint, current_project.next_sprint)
     label_name = info["label"]["name"]
     match label_name:
         case "proposal":

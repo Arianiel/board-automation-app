@@ -6,7 +6,7 @@ card_info_query = gql_queries.open_graph_ql_query_file("findCardInfo.txt")
 update_labels = gql_queries.open_graph_ql_query_file("UpdateItemLabel.txt")
 remove_label_mutation = gql_queries.open_graph_ql_query_file("RemoveLabel.txt")
 card_repo_query = gql_queries.open_graph_ql_query_file("findIssueRepo.txt")
-
+set_sprint_mutation = gql_queries.open_graph_ql_query_file("UpdateSprintForItemInProject.txt")
 
 def get_cards_in_project(org_name="", project_number=""):
     # Note that there should always be at least one page so the pagination is added afterwards
@@ -158,3 +158,9 @@ def remove_label(issue_id, label_id_to_remove):
 def get_repo_for_issue(issue_id):
     return gql_queries.run_query(card_repo_query.replace("<ISSUE>", issue_id))["data"]["node"]["repository"]["name"]
 
+
+def set_sprint(item_id, sprint_field_id, sprint_to_use, project_id):
+    gql_queries.run_query(set_sprint_mutation.replace("<ITEM_ID>", item_id)
+                          .replace("<SPRINT_FIELD_ID>", sprint_field_id)
+                          .replace("<SPRINT_ID>", sprint_to_use)
+                          .replace("<PROJ_ID>", project_id))

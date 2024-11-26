@@ -70,6 +70,12 @@ class SprintHandler(tornado.web.RequestHandler):
                     misc_message=working_information.html_message)
 
 
+class MoveTicketsHandler(tornado.web.RequestHandler):
+    def post(self):
+        working_information.move_tickets_to_next_sprint()
+        self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "home.html"))
+
+
 class ColumnFrequencyHandler(tornado.web.RequestHandler):
     def get(self):
         snapshot = working_information.get_cards_snapshot()
@@ -148,6 +154,7 @@ class WebhookHandler(tornado.web.RequestHandler):
                             # Labels should already have been handled elsewhere
                             pass
                         case "Status":
+                            pm_logger.exception(request)
                             status_changed(request)
                         case _:
                             pm_logging("Nothing decided yet for: {}".
@@ -170,7 +177,7 @@ def status_changed(info):
     if info["projects_v2_item"]["content_type"] == "Issue":
         try:
             status_from = info["changes"]["field_value"]["from"]["name"]
-        except KeyError:
+        except (KeyError, TypeError):
             status_from = "Unknown"
         try:
             status_to = info["changes"]["field_value"]["to"]["name"]
@@ -217,7 +224,8 @@ def status_changed(info):
 def label_added(info):
     pm_logging("Label added: {}".format(info["label"]["name"]), "info")
     current_issue = update_item_info.IssueToUpdate(info["issue"]["node_id"])
-    current_issue.set_project(working_information)
+    current_issue.set_project(working_information.available_program_increments[working_information.current_project],
+                              working_information.current_sprint, working_information.next_sprint)
     label_name = info["label"]["name"]
     match label_name:
         case "proposal":
@@ -249,6 +257,7 @@ def make_app():
         (r"/col_no_points", ColumnFrequencyHandler),
         (r"/col_entries", ColumnEntriesHandler),
         (r"/plan_priorities", PlanningPrioritiesHandler),
+        (r"/move_open_tickets", MoveTicketsHandler),
     ])
 
 

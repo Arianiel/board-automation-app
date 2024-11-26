@@ -8,9 +8,13 @@ class IssueToUpdate:
         self.project_to_use = None
         self.item_id = None
         self.repo_name = None
+        self.current_sprint = None
+        self.next_sprint = None
 
-    def set_project(self, project):
+    def set_project(self, project, current_sprint, next_sprint):
         self.project_to_use = project
+        self.current_sprint = current_sprint
+        self.next_sprint = next_sprint
         set_proj_mutation = gql_queries.open_graph_ql_query_file("SetProject.txt")
 
         result = gql_queries.run_query(
@@ -18,11 +22,13 @@ class IssueToUpdate:
         self.item_id = result["data"]["addProjectV2ItemById"]["item"]["id"]
 
     def set_sprint(self, sprint_to_use):
-        set_sprint = gql_queries.open_graph_ql_query_file("UpdateSprintForItemInProject.txt")
-        gql_queries.run_query(set_sprint.replace("<ITEM_ID>", self.item_id)
-                                    .replace("<SPRINT_FIELD_ID>", self.project_to_use.sprint_field_id)
-                                    .replace("<SPRINT_ID>", sprint_to_use)
-                                    .replace("<PROJ_ID>", self.project_to_use.project_id))
+        cards.set_sprint(self.item_id, self.project_to_use.sprint_field_id, sprint_to_use,
+                         self.project_to_use.project_id)
+        # set_sprint = gql_queries.open_graph_ql_query_file("UpdateSprintForItemInProject.txt")
+        # gql_queries.run_query(set_sprint.replace("<ITEM_ID>", self.item_id)
+        #                             .replace("<SPRINT_FIELD_ID>", self.project_to_use.sprint_field_id)
+        #                             .replace("<SPRINT_ID>", sprint_to_use)
+        #                             .replace("<PROJ_ID>", self.project_to_use.project_id))
 
     def set_status(self, status_to_use):
         set_sprint = gql_queries.open_graph_ql_query_file("UpdateStatusForItemInProject.txt")
@@ -32,11 +38,11 @@ class IssueToUpdate:
                               .replace("<PROJ_ID>", self.project_to_use.project_id))
 
     def place_in_next_sprint(self):
-        self.set_sprint(self.project_to_use.sprint_ids[self.project_to_use.next_sprint])
+        self.set_sprint(self.project_to_use.sprint_ids[self.next_sprint])
         self.set_status(self.project_to_use.status_ids["Backlog"])
 
     def place_in_current_sprint(self):
-        self.set_sprint(self.project_to_use.sprint_ids[self.project_to_use.current_sprint])
+        self.set_sprint(self.project_to_use.sprint_ids[self.current_sprint])
 
     def get_repo(self):
         get_repo_query = gql_queries.open_graph_ql_query_file("findIssueRepo.txt").replace("<ISSUE>", self.issue_id)

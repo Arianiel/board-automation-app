@@ -184,3 +184,6 @@ class AutomationInfo:
         data += build_html_table(info)
         data += "</body></html>"
         return data
+
+    def move_tickets_to_next_sprint(self):
+        pass
