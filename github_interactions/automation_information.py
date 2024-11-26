@@ -92,9 +92,9 @@ class AutomationInfo:
         self.update_projects(self.set_today())
         self.set_current_and_next_sprint(self.set_today())
         self.current_burndown.change_sprint()
-        cards_to_refine = cards.get_card_ids_in_sprint(org_name=self.org_name,
-                                                       project_number=self.project_number,
-                                                       sprint=self.current_sprint)
+        cards_to_refine = cards.get_card_issue_ids_in_sprint(org_name=self.org_name,
+                                                             project_number=self.project_number,
+                                                             sprint=self.current_sprint)
         for card in cards_to_refine:
             cards.remove_label(card, repos.get_label_id(org_name=self.org_name,
                                                         repo_name=cards.get_repo_for_issue(card),

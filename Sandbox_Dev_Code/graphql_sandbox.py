@@ -494,7 +494,7 @@ current_project = automation_information.AutomationInfo()
 #cards_to_refine = cards.get_cards_with_field_values_in_sprint(org_name=current_project.org_name, project_number=current_project.project_number, sprint=current_project.current_sprint)
 #for card in cards_to_refine:
 #    print(card)
-cards_to_refine = cards.get_card_ids_in_sprint(org_name=current_project.org_name, project_number=current_project.project_number, sprint=current_project.current_sprint)
+cards_to_refine = cards.get_card_issue_ids_in_sprint(org_name=current_project.org_name, project_number=current_project.project_number, sprint=current_project.current_sprint)
 for card in cards_to_refine:
     #cards.remove_label(card, current_project.repos[cards.get_repo_for_issue(card)].labels["proposal"])
     #current_issue.remove_label(current_project.repos[current_issue.repo_name].labels["review"])

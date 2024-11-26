@@ -5,15 +5,24 @@ query findCardInfo {
                 items(first: 100, after: <AFTER>){
                     nodes {
                         ... on ProjectV2Item{
+                            type
                             content {
-                            ... on Issue {
-                                id
-                                labels (first: 20){
-                                    nodes {
+                                ... on Issue {
+                                    id
+                                    number
+                                    labels (first: 20){
+                                        nodes {
+                                            name
+                                        }
+                                    }
+                                    repository {
                                         name
                                     }
                                 }
-                            }
+                                ... on DraftIssue {
+                                    title
+                                    id
+                                }
                             }
                             fieldValues(first: 20) {
                                 nodes {
