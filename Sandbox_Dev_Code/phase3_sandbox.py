@@ -22,3 +22,28 @@ current_project = automation_information.AutomationInfo()
 # print(cards.get_number_of_cards_by_status(org_name="Arianiel", project_number="1", sprint="2024_11_01"))
 
 # print(cards.get_cards_and_points_snapshot_for_sprint(org_name="Arianiel", project_number="1", sprint="2024_11_01"))
+
+test = cards.get_card_list_snapshot_for_sprint(org_name="Arianiel", project_number="1", sprint="2024_11_01")
+
+data = "<table>\r\n"
+data += "\t<tr>\r\n"
+for heading in test.keys():
+    data += "\t\t<th>" + heading + "</th>\r\n"
+data += "\t</tr>\r\n"
+
+lengths = {}
+for item in test:
+    lengths[item] = len(test[item])
+print(lengths)
+for i in range(max(lengths.values())):
+    data += "\t<tr>\r\n"
+    for item in test.keys():
+        try:
+            print(test[item][i])
+            data += "\t\t<td>" + str(test[item][i]["number"]) + " (" + str(test[item][i]["repo"]) + ")</td>\r\n"
+        except IndexError:
+            data += "\t\t<td></td>\r\n"
+    data += "\t</tr>\r\n"
+
+data += "</table>"
+print(data)

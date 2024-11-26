@@ -291,6 +291,10 @@ class ColumnFrequencyHandler(tornado.web.RequestHandler):
                     done_points=snapshot["done"]["points"]
                     )
 
+class ColumnEntriesHandler(tornado.web.RequestHandler):
+    def get(self):
+        # snapshot = working_information.get_cards_snapshot()
+        self.write(current_project.get_sprint_columns_snapshot_html())
 
 if __name__ == '__main__':
     # It can sometime be useful to define a local instrument list to add/override the instrument list do this here
@@ -309,6 +313,7 @@ if __name__ == '__main__':
             (r"/webhook", WebhookHandler),
             (r"/sprint", SprintHandler),
             (r"/col_no_points", ColumnFrequencyHandler),
+            (r"/col_entries", ColumnEntriesHandler),
             (r"/auto", AutomationHandler),
         ])
         http_server = tornado.httpserver.HTTPServer(application, ssl_options={

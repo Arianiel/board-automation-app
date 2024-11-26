@@ -147,3 +147,27 @@ class AutomationInfo:
 
     def get_cards_snapshot(self):
         return cards.get_cards_and_points_snapshot_for_sprint(self.org_name, self.project_number, self.current_sprint)
+
+    def get_sprint_columns_snapshot_html(self):
+        info = cards.get_card_list_snapshot_for_sprint(self.org_name, self.project_number, self.current_sprint)
+        data = """<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title><!DOCTYPE html><html lang="en">
+        <head><meta charset="UTF-8"><title>Count and points</title></head><body><h1>The present listings</h1><table>"""
+        data += "<tr>"
+        for heading in info.keys():
+            data += "<th>" + heading + "</th>"
+        data += "</tr>"
+
+        lengths = {}
+        for item in info:
+            lengths[item] = len(info[item])
+        for i in range(max(lengths.values())):
+            data += "<tr>"
+            for item in info.keys():
+                try:
+                    data += "<td>" + str(info[item][i]["number"]) + " (" + str(info[item][i]["repo"]) + ")</td>"
+                except IndexError:
+                    data += "<td></td>"
+            data += "</tr>"
+
+        data += "</table></body></html>"
+        return data

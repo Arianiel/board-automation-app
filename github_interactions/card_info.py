@@ -6,7 +6,7 @@ class CardInfo:
         match self.type:
             case "DRAFT_ISSUE":
                 self.number = card["content"]["title"]
-                self.repo = "Draft"
+                self.repo = "draft"
             case "ISSUE":
                 self.number = card["content"]["number"]
                 self.repo = card["content"]["repository"]["name"]

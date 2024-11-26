@@ -132,8 +132,3 @@ def remove_label(issue_id, label_id_to_remove):
 
 def get_repo_for_issue(issue_id):
     return gql_queries.run_query(card_repo_query.replace("<ISSUE>", issue_id))["data"]["node"]["repository"]["name"]
-
-
-print(get_cards_and_points_snapshot_for_sprint(org_name="Arianiel", project_number="1", sprint="2024_11_01"))
-# get_cards_in_project(org_name="Arianiel", project_number="1")
-# print(get_card_list_snapshot_for_sprint(org_name="Arianiel", project_number="1", sprint="2024_11_01"))
