@@ -72,9 +72,22 @@ class SprintHandler(tornado.web.RequestHandler):
 
 class ColumnFrequencyHandler(tornado.web.RequestHandler):
     def get(self):
+        snapshot = working_information.get_cards_snapshot()
         self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "column_count_and_points.html"),
-                    current_sprint=working_information.current_sprint, next_sprint=working_information.next_sprint,
-                    misc_message=working_information.html_message)
+                    misc_message=working_information.html_message,
+                    ready_count=snapshot["ready"]["count"],
+                    ready_points=snapshot["ready"]["points"],
+                    rework_count=snapshot["rework"]["count"],
+                    rework_points=snapshot["rework"]["points"],
+                    in_progress_count=snapshot["in_progress"]["count"],
+                    in_progress_points=snapshot["in_progress"]["points"],
+                    impeded_count=snapshot["impeded"]["count"],
+                    impeded_points=snapshot["impeded"]["points"],
+                    review_count=snapshot["review"]["count"],
+                    review_points=snapshot["review"]["points"],
+                    done_count=snapshot["done"]["count"],
+                    done_points=snapshot["done"]["points"]
+                    )
 
 
 class WebhookError(Exception):

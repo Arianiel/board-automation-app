@@ -51,22 +51,16 @@ def get_cards_with_field_values_in_sprint(org_name="", project_number="", sprint
 
 def get_cards_and_points_snapshot_for_sprint(org_name="", project_number="", sprint=""):
     cards_in_project = get_cards_in_project(org_name=org_name, project_number=project_number)
-    # Get the cards in this sprint
-    cards_in_sprint = []
-    ready_count = 0
-    ready_points = 0
-    rework_count = 0
-    rework_points = 0
-    in_progress_count = 0
-    in_progress_points = 0
-    impeded_count = 0
-    impeded_points = 0
-    review_count = 0
-    review_points = 0
-    done_count = 0
-    done_points = 0
+    snapshot = {
+        "ready": {"count": 0, "points": 0},
+        "rework": {"count": 0, "points": 0},
+        "in_progress": {"count": 0, "points": 0},
+        "impeded": {"count": 0, "points": 0},
+        "review": {"count": 0, "points": 0},
+        "done": {"count": 0, "points": 0},
+    }
     for card in cards_in_project:
-        print(card)
+        # Get the labels on the card
         labels = []
         try:
             for label in card["content"]["labels"]["nodes"]:
@@ -74,57 +68,50 @@ def get_cards_and_points_snapshot_for_sprint(org_name="", project_number="", spr
         except KeyError:
             # Section is empty ignore it
             pass
-        # Split to a further iterable
+        # Get the sprint, status and points
         field_values = card["fieldValues"]["nodes"]
-        # Find the points
         card_points = 0
+        card_status = None
+        card_sprint = None
         for value in field_values:
             try:
-                if value["field"]["name"] == "Points":
-                    card_points = value["number"]
-                if value["field"]["name"] == "Status":
-                    card_status = value["name"]
+                match value["field"]["name"]:
+                    case "Sprint":
+                        card_sprint = value["name"]
+                    case "Points":
+                        card_points = value["number"]
+                    case "Status":
+                        card_status = value["name"]
+                    case _:
+                        pass
             except KeyError:
                 pass
-        print("Card points: ", card_points)
-        print("Card status: ", card_status)
-        for value in field_values:
-            try:
-                if value["field"]["name"] == "Sprint" and value["name"] == sprint:
-                    # Get rid of empty values
-                    cards_in_sprint.append([i for i in field_values if i])
+
+        if card_sprint == sprint:
+            match card_status:
+                case "Backlog":
+                    snapshot["ready"]["count"] += 1
+                    snapshot["ready"]["points"] += card_points
                     if "rework" in labels:
-                        rework_count = rework_count + 1
-                        rework_points = rework_points + card_points
-                    match card_status:
-                        case "Backlog":
-                            ready_count = ready_count + 1
-                            ready_points = ready_points + card_points
-                        case "In Progress_":
-                            in_progress_count = in_progress_count + 1
-                            in_progress_points = in_progress_points + card_points
-                        case "Impeded":
-                            impeded_count = impeded_count + 1
-                            impeded_points = impeded_points + card_points
-                        case "Review":
-                            review_count = review_count + 1
-                            review_points = review_points + card_points
-                        case "Done":
-                            done_count = done_count + 1
-                            done_points = done_points + card_points
-                        case _:
-                            print("Not matching ", card_status)
-            except KeyError:
-                # Section is empty ignore it
-                pass
-    print("Points, etc.")
-    print("Ready: number = ", ready_count, "; points = ", ready_points)
-    print("Rework: number = ", rework_count, "; points = ", rework_points)
-    print("In Progress: number = ", in_progress_count, "; points = ", in_progress_points)
-    print("Impeded: number = ", impeded_count, "; points = ", impeded_points)
-    print("Review: number = ", review_count, "; points = ", review_points)
-    print("Done: number = ", done_count, "; points = ", done_points)
-    return cards_in_sprint
+                        snapshot["rework"]["count"] += 1
+                        snapshot["rework"]["points"] += card_points
+                case "In Progress":
+                    snapshot["in_progress"]["count"] += 1
+                    snapshot["in_progress"]["points"] += card_points
+                case "Impeded":
+                    snapshot["impeded"]["count"] += 1
+                    snapshot["impeded"]["points"] += card_points
+                case "Review":
+                    snapshot["review"]["count"] += 1
+                    snapshot["review"]["points"] += card_points
+                case "Done":
+                    snapshot["done"]["count"] += 1
+                    snapshot["done"]["points"] += card_points
+                case _:
+                    # This is not a status I'm interested in, and probably shouldn't exist
+                    pass
+
+    return snapshot
 
 
 def get_number_of_cards_by_status(org_name="", project_number="", sprint=""):
@@ -173,4 +160,4 @@ def get_repo_for_issue(issue_id):
     return gql_queries.run_query(card_repo_query.replace("<ISSUE>", issue_id))["data"]["node"]["repository"]["name"]
 
 
-print(get_cards_and_points_snapshot_for_sprint(org_name="Arianiel", project_number="1", sprint="2024_11_01"))
+get_cards_and_points_snapshot_for_sprint(org_name="Arianiel", project_number="1", sprint="2024_11_01")

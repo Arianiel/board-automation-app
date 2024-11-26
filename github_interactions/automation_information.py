@@ -144,3 +144,6 @@ class AutomationInfo:
                         pm_logger.info("There is no start date for one of the PIs being looked at")
             else:
                 pm_logger.info("There is a PI with no sprints set")
+
+    def get_cards_snapshot(self):
+        return cards.get_cards_and_points_snapshot_for_sprint(self.org_name, self.project_number, self.current_sprint)
