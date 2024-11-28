@@ -9,8 +9,11 @@ def get_label_id(org_name="", repo_name="", label_name=""):
                                    replace("<ORG_NAME>", org_name).
                                    replace("<REPO>", repo_name).
                                    replace("<LABEL_NAME>", label_name))
-    print(result)
-    return result["data"]["repository"]["label"]["id"]
+    try:
+        label_id = result["data"]["repository"]["label"]["id"]
+    except TypeError:
+        label_id = "NONE_NONE"
+    return label_id
 
 
 def get_repo_labels(org_name="", repo_name=""):

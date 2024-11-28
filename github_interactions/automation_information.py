@@ -186,4 +186,8 @@ class AutomationInfo:
         return data
 
     def move_tickets_to_next_sprint(self):
-        pass
+        cards.update_sprint_for_all_open_cards(self.org_name, self.project_number, self.current_sprint,
+                                               self.next_sprint,
+
+                                               self.available_program_increments[self.current_project].sprint_field_id,
+                                               self.available_program_increments[self.current_project].id)

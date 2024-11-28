@@ -152,6 +152,10 @@ def add_label(issue_id, label_id_to_add):
 
 
 def remove_label(issue_id, label_id_to_remove):
+    if label_id_to_remove == "NONE_NONE":
+        print("NONE_NONE Found")
+        # This magic string should be removed, but not all repos on a board necessiraly have the labels being looked for, this is a default until those checks are in place
+        return
     gql_queries.run_query(remove_label_mutation.replace("<ISSUE>", issue_id).replace("<LABEL_ID>", label_id_to_remove))
 
 
@@ -164,3 +168,23 @@ def set_sprint(item_id, sprint_field_id, sprint_to_use, project_id):
                           .replace("<SPRINT_FIELD_ID>", sprint_field_id)
                           .replace("<SPRINT_ID>", sprint_to_use)
                           .replace("<PROJ_ID>", project_id))
+
+
+def update_sprint_for_all_open_cards(org_name, project_number, current_sprint, next_sprint, sprint_field_id,
+                                     project_id):
+    cards_in_project = get_cards_in_project(org_name=org_name, project_number=project_number)
+    for card in cards_in_project:
+        if card.sprint == current_sprint:
+            match card.status:
+                case "Backlog":
+                    if "rework" in card.labels:
+                        set_sprint(card.id, sprint_field_id, next_sprint, project_id)
+                case "In Progress":
+                    set_sprint(card.id, sprint_field_id, next_sprint, project_id)
+                case "Impeded":
+                    set_sprint(card.id, sprint_field_id, next_sprint, project_id)
+                case "Review":
+                    set_sprint(card.id, sprint_field_id, next_sprint, project_id)
+                case _:
+                    # This is not a status to update
+                    pass

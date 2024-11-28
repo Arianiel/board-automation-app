@@ -24,11 +24,6 @@ class IssueToUpdate:
     def set_sprint(self, sprint_to_use):
         cards.set_sprint(self.item_id, self.project_to_use.sprint_field_id, sprint_to_use,
                          self.project_to_use.project_id)
-        # set_sprint = gql_queries.open_graph_ql_query_file("UpdateSprintForItemInProject.txt")
-        # gql_queries.run_query(set_sprint.replace("<ITEM_ID>", self.item_id)
-        #                             .replace("<SPRINT_FIELD_ID>", self.project_to_use.sprint_field_id)
-        #                             .replace("<SPRINT_ID>", sprint_to_use)
-        #                             .replace("<PROJ_ID>", self.project_to_use.project_id))
 
     def set_status(self, status_to_use):
         set_sprint = gql_queries.open_graph_ql_query_file("UpdateStatusForItemInProject.txt")
