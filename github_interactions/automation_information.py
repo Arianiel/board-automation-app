@@ -48,20 +48,21 @@ class AutomationInfo:
         self.today_day = None
         self.today_month = None
         self.today_year = None
-        today = self.set_today()
+        self.set_today()
 
         self.available_program_increments = {}
         self.current_project = None
         self.next_project = None
-        self.update_projects(today)
-
-        self.project_number = self.available_program_increments[self.current_project].number
-        self.sprint_by_class = self.available_program_increments[self.current_project].sprint_by_class
+        self.project_number = None
+        self.sprint_by_class = None
+        self.sprint_starts = None
+        self.update_projects()
 
         # Get current and next sprint
         self.current_sprint = ""
         self.next_sprint = ""
-        self.set_current_and_next_sprint(today)
+        self.previous_sprint = ""
+        self.set_previous_current_and_next_sprint()
         self.current_burndown = burndown.Burndown(self.org_name, self.project_number, self.current_sprint,
                                                   self.next_sprint, self.sprint_by_class)
 
@@ -79,39 +80,44 @@ class AutomationInfo:
         self.today_month = today.strftime("%m")
         self.today_year = today.strftime("%Y")
         self.today = datetime.datetime(year=int(self.today_year), month=int(self.today_month), day=int(self.today_day))
-        return today
 
-    def set_current_and_next_sprint(self, today):
-        self.current_sprint = None
-        self.next_sprint = None
-        for sprint in self.sprint_by_class.keys():
-            if self.sprint_by_class[sprint] == today:
-                self.current_sprint = sprint
-            if self.sprint_by_class[sprint].sprint_start_date < today:
-                try:
-                    if self.sprint_by_class[self.current_sprint].sprint_start_date < \
-                            self.sprint_by_class[sprint].sprint_start_date:
-                        self.current_sprint = sprint
-                except KeyError:
-                    self.current_sprint = sprint
-            if self.sprint_by_class[sprint].sprint_start_date > today:
-                try:
-                    if (self.sprint_by_class[self.next_sprint].sprint_start_date >
-                            self.sprint_by_class[sprint].sprint_start_date):
-                        self.next_sprint = sprint
-                except KeyError:
-                    self.next_sprint = sprint
+    def set_previous_current_and_next_sprint(self):
+        # Find the current sprint
+        for i in range(len(self.sprint_starts)-1):
+            if self.sprint_starts[i] <= self.today < self.sprint_starts[i+1]:
+                current_sprint_index = i
+
+        try:
+            self.current_sprint = (self.sprint_by_class[self.sprint_starts[current_sprint_index].strftime("%Y_%m_%d")]
+                                   .sprint_name)
+        except KeyError:
+            self.current_sprint = self.available_program_increments[self.current_project].first_sprint
+
+        try:
+            self.next_sprint = (self.sprint_by_class[self.sprint_starts[current_sprint_index + 1].strftime("%Y_%m_%d")]
+                                .sprint_name)
+        except KeyError:
+            self.next_sprint = self.available_program_increments[self.current_project].last_sprint
+
+        try:
+            self.previous_sprint = (self.sprint_by_class[self.sprint_starts[current_sprint_index - 1].
+                                    strftime("%Y_%m_%d")].sprint_name)
+        except KeyError:
+            self.current_sprint = self.available_program_increments[self.current_project].first_sprint
+
         try:
             if self.sprint_by_class[self.next_sprint].in_next_pi:
-                if not (self.available_program_increments[self.next_project].start_date > today):
+                if not (self.available_program_increments[self.next_project].start_date > self.today):
                     self.html_message = "MAKE SURE THAT THE NEXT PI PROJECT IS CREATED!"
                     pm_logger.info("Next PI needed, and/or server restart needed")
         except KeyError:
             pm_logger.info("No sprints found")
 
     def update_sprints(self):
-        self.update_projects(self.set_today())
-        self.set_current_and_next_sprint(self.set_today())
+        self.set_today()
+        self.update_projects()
+        self.set_today()
+        self.set_previous_current_and_next_sprint()
         self.current_burndown.change_sprint()
         cards_to_refine = cards.get_card_issue_ids_in_sprint(org_name=self.org_name,
                                                              project_number=self.project_number,
@@ -121,7 +127,7 @@ class AutomationInfo:
                                                         repo_name=cards.get_repo_for_issue(card),
                                                         label_name="proposal"))
 
-    def update_projects(self, today):
+    def update_projects(self):
         # Find the V2 projects owned by the organization
         self.html_message = ""
         proj_list_query = gql_queries.open_graph_ql_query_file("findProjects.txt")
@@ -153,11 +159,11 @@ class AutomationInfo:
                     self.next_project = program_increment
                 else:
                     try:
-                        if self.available_program_increments[program_increment].start_date < today:
+                        if self.available_program_increments[program_increment].start_date < self.today:
                             if (self.available_program_increments[program_increment].start_date <
                                     self.available_program_increments[self.current_project].start_date):
                                 self.current_project = program_increment
-                        if self.available_program_increments[program_increment].start_date > today:
+                        if self.available_program_increments[program_increment].start_date > self.today:
                             if (self.available_program_increments[program_increment].start_date <
                                     self.available_program_increments[self.next_project].start_date):
                                 self.next_project = program_increment
@@ -165,6 +171,10 @@ class AutomationInfo:
                         pm_logger.info("There is no start date for one of the PIs being looked at")
             else:
                 pm_logger.info("There is a PI with no sprints set")
+
+        self.project_number = self.available_program_increments[self.current_project].number
+        self.sprint_by_class = self.available_program_increments[self.current_project].sprint_by_class
+        self.sprint_starts = self.available_program_increments[self.current_project].all_sprint_starts
 
     def get_cards_snapshot(self):
         return cards.get_cards_and_points_snapshot_for_sprint(self.org_name, self.project_number, self.current_sprint)
@@ -188,6 +198,5 @@ class AutomationInfo:
     def move_tickets_to_next_sprint(self):
         cards.update_sprint_for_all_open_cards(self.org_name, self.project_number, self.current_sprint,
                                                self.next_sprint,
-
                                                self.available_program_increments[self.current_project].sprint_field_id,
-                                               self.available_program_increments[self.current_project].id)
+                                               self.available_program_increments[self.current_project].project_id)

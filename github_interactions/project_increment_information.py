@@ -30,6 +30,7 @@ class ProjectIncrement:
         self.status_field_id = ""
         self.first_sprint = None
         self.last_sprint = None
+        self.all_sprint_starts = []
         self.get_sprints_and_statuses()
         self.PI_has_sprints = True
         try:
@@ -56,20 +57,17 @@ class ProjectIncrement:
                     for option in field["options"]:
                         self.sprint_ids[option["name"]] = option["id"]
                         self.sprint_by_class[option["name"]] = SprintInfo(option)
+                        self.all_sprint_starts.append(self.sprint_by_class[option["name"]].sprint_start_date)
                 case "Status":
                     self.status_field_id = field["id"]
                     for option in field["options"]:
                         self.status_ids[option["name"]] = option["id"]
-
-        # Get first and last sprint
-        for sprint in self.sprint_by_class.keys():
-            if self.first_sprint is None and self.last_sprint is None:
-                self.first_sprint = sprint
-                self.last_sprint = sprint
-            else:
-                if (self.sprint_by_class[sprint].sprint_start_date <
-                        self.sprint_by_class[self.first_sprint].sprint_start_date):
+        self.all_sprint_starts.sort()
+        if self.all_sprint_starts:
+            for sprint in self.sprint_by_class.keys():
+                if self.sprint_by_class[sprint].sprint_start_date == self.all_sprint_starts[0]:
                     self.first_sprint = sprint
-                elif (self.sprint_by_class[sprint].sprint_start_date >
-                        self.sprint_by_class[self.last_sprint].sprint_start_date):
+                elif self.sprint_by_class[sprint].sprint_start_date == self.all_sprint_starts[-1]:
                     self.last_sprint = sprint
+
+
