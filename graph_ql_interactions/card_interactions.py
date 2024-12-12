@@ -8,6 +8,7 @@ remove_label_mutation = gql_queries.open_graph_ql_query_file("RemoveLabel.txt")
 card_repo_query = gql_queries.open_graph_ql_query_file("findIssueRepo.txt")
 set_sprint_mutation = gql_queries.open_graph_ql_query_file("UpdateSprintForItemInProject.txt")
 
+
 def get_cards_in_project(org_name="", project_number=""):
     # Note that there should always be at least one page so the pagination is added afterwards
     result = gql_queries.run_query(card_info_query.
@@ -154,7 +155,8 @@ def add_label(issue_id, label_id_to_add):
 def remove_label(issue_id, label_id_to_remove):
     if label_id_to_remove == "NONE_NONE":
         print("NONE_NONE Found")
-        # This magic string should be removed, but not all repos on a board necessiraly have the labels being looked for, this is a default until those checks are in place
+        # This magic string should be removed, but not all repos on a board necessiraly have the labels being looked
+        # for, this is a default until those checks are in place
         return
     gql_queries.run_query(remove_label_mutation.replace("<ISSUE>", issue_id).replace("<LABEL_ID>", label_id_to_remove))
 
@@ -178,13 +180,13 @@ def update_sprint_for_all_open_cards(org_name, project_number, current_sprint, n
             match card.status:
                 case "Backlog":
                     if "rework" in card.labels:
-                        set_sprint(card.id, sprint_field_id, next_sprint, project_id)
+                        set_sprint(card.node_id, sprint_field_id, next_sprint, project_id)
                 case "In Progress":
-                    set_sprint(card.id, sprint_field_id, next_sprint, project_id)
+                    set_sprint(card.node_id, sprint_field_id, next_sprint, project_id)
                 case "Impeded":
-                    set_sprint(card.id, sprint_field_id, next_sprint, project_id)
+                    set_sprint(card.node_id, sprint_field_id, next_sprint, project_id)
                 case "Review":
-                    set_sprint(card.id, sprint_field_id, next_sprint, project_id)
+                    set_sprint(card.node_id, sprint_field_id, next_sprint, project_id)
                 case _:
                     # This is not a status to update
                     pass

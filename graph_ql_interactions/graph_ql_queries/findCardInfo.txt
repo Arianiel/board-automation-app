@@ -4,6 +4,7 @@ query findCardInfo {
             ... on ProjectV2 {
                 items(first: 100, after: <AFTER>){
                     nodes {
+                        id
                         ... on ProjectV2Item{
                             type
                             content {

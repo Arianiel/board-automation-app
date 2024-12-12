@@ -1,5 +1,6 @@
 class CardInfo:
     def __init__(self, card):
+        self.node_id = card["id"]
         self.type = card["type"]
         try:
             self.id = card["content"]["id"]

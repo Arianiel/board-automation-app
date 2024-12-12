@@ -56,6 +56,7 @@ class AutomationInfo:
         self.project_number = None
         self.sprint_by_class = None
         self.sprint_starts = None
+        self.pi_starts = []
         self.update_projects()
 
         # Get current and next sprint
@@ -147,30 +148,29 @@ class AutomationInfo:
                     self.available_program_increments[result_project["title"]] = (projects.ProjectIncrement(
                         project_id=result_project["id"], number=result_project["number"], title=result_project["title"],
                         org_name=self.org_name))
+                    self.pi_starts.append(self.available_program_increments[result_project["title"]].start_date)
+
+        self.pi_starts.sort()
 
         # Find the appropriate project for this PI
         # Set the values to the first entry in the dictionary as somewhere to start
         self.current_project = None
         self.next_project = None
-        for program_increment in self.available_program_increments.keys():
-            if self.available_program_increments[program_increment].PI_has_sprints:
-                if self.current_project is None and self.next_project is None:
-                    self.current_project = program_increment
-                    self.next_project = program_increment
-                else:
-                    try:
-                        if self.available_program_increments[program_increment].start_date < self.today:
-                            if (self.available_program_increments[program_increment].start_date <
-                                    self.available_program_increments[self.current_project].start_date):
-                                self.current_project = program_increment
-                        if self.available_program_increments[program_increment].start_date > self.today:
-                            if (self.available_program_increments[program_increment].start_date <
-                                    self.available_program_increments[self.next_project].start_date):
-                                self.next_project = program_increment
-                    except TypeError:
-                        pm_logger.info("There is no start date for one of the PIs being looked at")
-            else:
-                pm_logger.info("There is a PI with no sprints set")
+        # for program_increment in self.available_program_increments.keys():
+
+        for i in range(len(self.pi_starts) - 1):
+            if self.pi_starts[i] <= self.today < self.pi_starts[i + 1]:
+                current_pi_index = i
+
+        try:
+            self.current_project = self.pi_starts[current_pi_index].strftime("PI_%Y_%m")
+        except KeyError:
+            pm_logger.error("Unable to set current PI")
+
+        try:
+            self.current_project = self.pi_starts[current_pi_index+1].strftime("PI_%Y_%m")
+        except KeyError:
+            pm_logger.error("Unable to set next PI")
 
         self.project_number = self.available_program_increments[self.current_project].number
         self.sprint_by_class = self.available_program_increments[self.current_project].sprint_by_class
@@ -197,6 +197,6 @@ class AutomationInfo:
 
     def move_tickets_to_next_sprint(self):
         cards.update_sprint_for_all_open_cards(self.org_name, self.project_number, self.current_sprint,
-                                               self.next_sprint,
+                                               self.available_program_increments[self.current_project].sprint_ids[self.next_sprint],
                                                self.available_program_increments[self.current_project].sprint_field_id,
                                                self.available_program_increments[self.current_project].project_id)
