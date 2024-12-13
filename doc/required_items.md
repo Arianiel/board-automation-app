@@ -48,3 +48,13 @@ A number field called points should also be created as part of the project.
 | rework              | Light Red     | #E99695 |
 | proposal            | Deep Purple   | #5319E7 |
 | added during sprint | Golden Yellow | #FBCA04 |
+| 0                   | Golden Yellow | #FBCA04 |
+| 1                   | Golden Yellow | #FBCA04 |
+| 2                   | Golden Yellow | #FBCA04 |
+| 3                   | Golden Yellow | #FBCA04 |
+| 5                   | Golden Yellow | #FBCA04 |
+| 8                   | Golden Yellow | #FBCA04 |
+| 13                  | Golden Yellow | #FBCA04 |
+| 20                  | Golden Yellow | #FBCA04 |
+| 40                  | Golden Yellow | #FBCA04 |
+| ?                   | Golden Yellow | #FBCA04 |

@@ -59,13 +59,13 @@ query findProjects {
 """
 
 mutation = """
-mutation UpdateSprintForItemInProject {
+mutation {
     updateProjectV2ItemFieldValue(input: {
         projectId: "PVT_kwDOCn5jHs4AsF7j",
         itemId: "PVTI_lADOCn5jHs4AsF7jzgVb-9E",
-        fieldId: "PVTSSF_lADOCn5jHs4AsF7jzgjEqEM",
+        fieldId: "PVTF_lADOCn5jHs4AsF7jzgk5S8A",
         value: {
-            singleSelectOptionId: "cc350787"
+            number: 5
         }
     })
     {
@@ -139,7 +139,37 @@ query findProjectSprints
 }
 """
 
-print(gql_queries.run_query(query))
+query = """
+query findProjectSprints
+{
+    organization(login: "Arianiel"){
+        projectV2(number:6){
+            ... on ProjectV2 {
+                fields(first: 100) {
+                    nodes {
+                        ... on ProjectV2Field {
+                            name
+                            id
+                        }
+                        ... on ProjectV2SingleSelectField {
+                            name
+                            id
+                            options {
+                                name
+                                id
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+"""
+
+# Points field id = PVTF_lADOCn5jHs4AsF7jzgk5S8A
+
+# print(gql_queries.run_query(query)["data"]["organization"]["projectV2"]["fields"]["nodes"])
 print(gql_queries.run_query(mutation))
 
-print(cards.get_cards_in_project("Arianiel", "6"))
+# print(cards.get_cards_in_project("Arianiel", "6"))

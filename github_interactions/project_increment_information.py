@@ -28,6 +28,7 @@ class ProjectIncrement:
         self.status_ids = {}
         self.sprint_field_id = ""
         self.status_field_id = ""
+        self.points_field_id = ""
         self.first_sprint = None
         self.last_sprint = None
         self.all_sprint_starts = []
@@ -48,7 +49,6 @@ class ProjectIncrement:
         fields = gql_queries.run_query(
             sprint_list_id_query.replace("<PROJ_NUM>", str(self.number))
             .replace("<ORG_NAME>", self.org_name))["data"]["organization"]["projectV2"]["fields"]["nodes"]
-
         # Get sprint list
         for field in fields:
             match field["name"]:
@@ -62,6 +62,8 @@ class ProjectIncrement:
                     self.status_field_id = field["id"]
                     for option in field["options"]:
                         self.status_ids[option["name"]] = option["id"]
+                case "Points":
+                    self.points_field_id = field["id"]
         self.all_sprint_starts.sort()
         if self.all_sprint_starts:
             for sprint in self.sprint_by_class.keys():

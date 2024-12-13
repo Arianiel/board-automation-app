@@ -7,6 +7,7 @@ update_labels = gql_queries.open_graph_ql_query_file("UpdateItemLabel.txt")
 remove_label_mutation = gql_queries.open_graph_ql_query_file("RemoveLabel.txt")
 card_repo_query = gql_queries.open_graph_ql_query_file("findIssueRepo.txt")
 set_sprint_mutation = gql_queries.open_graph_ql_query_file("UpdateSprintForItemInProject.txt")
+set_points_mutation = gql_queries.open_graph_ql_query_file("UpdatePointsForItemInProject.txt")
 
 
 def get_cards_in_project(org_name="", project_number=""):
@@ -190,3 +191,14 @@ def update_sprint_for_all_open_cards(org_name, project_number, current_sprint, n
                 case _:
                     # This is not a status to update
                     pass
+
+
+def set_points(item_id, points_field_id, points, project_id):
+    print(set_points_mutation.replace("<ITEM_ID>", item_id)
+                          .replace("<POINTS_FIELD_ID>", points_field_id)
+                          .replace("<POINTS>", points)
+                          .replace("<PROJ_ID>", project_id))
+    gql_queries.run_query(set_points_mutation.replace("<ITEM_ID>", item_id)
+                          .replace("<POINTS_FIELD_ID>", points_field_id)
+                          .replace("<POINTS>", points)
+                          .replace("<PROJ_ID>", project_id))

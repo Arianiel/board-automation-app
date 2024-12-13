@@ -1,0 +1,15 @@
+mutation UpdatePointsForItemInProject {
+    updateProjectV2ItemFieldValue(input: {
+        projectId: "<PROJ_ID>",
+        itemId: "<ITEM_ID>",
+        fieldId: "<POINTS_FIELD_ID>",
+        value: {
+           number: <POINTS>
+        }
+    })
+    {
+        projectV2Item {
+            id
+        }
+    }
+}

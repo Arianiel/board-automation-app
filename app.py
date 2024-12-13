@@ -16,6 +16,7 @@ pm_handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
 pm_logger.setLevel(logging.INFO)
 pm_logger.addHandler(pm_handler)
 
+points_labels = ["0", "1", "2", "3", "5", "8", "13", "20", "40"]
 
 def pm_logging(message, message_level):
     if app_log_level == "developer":
@@ -227,25 +228,30 @@ def label_added(info):
     current_issue.set_project(working_information.available_program_increments[working_information.current_project],
                               working_information.current_sprint, working_information.next_sprint)
     label_name = info["label"]["name"]
-    match label_name:
-        case "proposal":
-            pm_logging("Proposed ticket being added to project in next sprint", "info")
-            current_issue.place_in_next_sprint()
-        case "added during sprint":
-            current_issue.place_in_current_sprint()
-        case "in progress":
-            current_issue.set_status(current_issue.project_to_use.status_ids["In Progress"])
-        case "impeded":
-            current_issue.set_status(current_issue.project_to_use.status_ids["Impeded"])
-        case "review":
-            current_issue.set_status(current_issue.project_to_use.status_ids["Review"])
-        case "rework":
-            current_issue.set_status(current_issue.project_to_use.status_ids["Backlog"])
-        case "0", "1", "2", "5", "8", "13", "20", "40":
-            pm_logging("Points label, need to apply this in time", "debug")
-        case _:
-            pass
-            # print("Nothing to be done with this label: ", label_name)
+    if label_name in points_labels:
+        # todo
+        pm_logging("Points label, need to apply this in time", "debug")
+        current_issue.set_points(label_name)
+    else:
+        match label_name:
+            case "proposal":
+                pm_logging("Proposed ticket being added to project in next sprint", "info")
+                current_issue.place_in_next_sprint()
+            case "added during sprint":
+                current_issue.place_in_current_sprint()
+            case "in progress":
+                current_issue.set_status(current_issue.project_to_use.status_ids["In Progress"])
+            case "impeded":
+                current_issue.set_status(current_issue.project_to_use.status_ids["Impeded"])
+            case "review":
+                current_issue.set_status(current_issue.project_to_use.status_ids["Review"])
+            case "rework":
+                current_issue.set_status(current_issue.project_to_use.status_ids["Backlog"])
+            case _:
+                # todo
+                print("The default case")
+                pass
+                # print("Nothing to be done with this label: ", label_name)
 
 
 def make_app():
