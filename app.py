@@ -18,6 +18,7 @@ pm_logger.addHandler(pm_handler)
 
 points_labels = ["0", "1", "2", "3", "5", "8", "13", "20", "40"]
 
+
 def pm_logging(message, message_level):
     if app_log_level == "developer":
         print(message)
@@ -229,7 +230,6 @@ def label_added(info):
                               working_information.current_sprint, working_information.next_sprint)
     label_name = info["label"]["name"]
     if label_name in points_labels:
-        # todo
         pm_logging("Points label, need to apply this in time", "debug")
         current_issue.set_points(label_name)
     else:
@@ -248,8 +248,6 @@ def label_added(info):
             case "rework":
                 current_issue.set_status(current_issue.project_to_use.status_ids["Backlog"])
             case _:
-                # todo
-                print("The default case")
                 pass
                 # print("Nothing to be done with this label: ", label_name)
 

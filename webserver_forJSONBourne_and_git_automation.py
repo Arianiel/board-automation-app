@@ -33,6 +33,7 @@ pm_handler = TimedRotatingFileHandler(pm_log_filepath, when='midnight', backupCo
 pm_handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
 pm_logger.setLevel(logging.INFO)
 pm_logger.addHandler(pm_handler)
+points_labels = ["0", "1", "2", "3", "5", "8", "13", "20", "40"]
 
 
 def pm_logging(message, message_level):
@@ -249,25 +250,27 @@ def label_added(info):
     current_issue.set_project(current_project.available_program_increments[current_project.current_project],
                               current_project.current_sprint, current_project.next_sprint)
     label_name = info["label"]["name"]
-    match label_name:
-        case "proposal":
-            print("Proposed ticket being added to project in next sprint")
-            current_issue.place_in_next_sprint()
-        case "added during sprint":
-            current_issue.place_in_current_sprint()
-        case "in progress":
-            current_issue.set_status(current_issue.project_to_use.status_ids["In Progress"])
-        case "impeded":
-            current_issue.set_status(current_issue.project_to_use.status_ids["Impeded"])
-        case "review":
-            current_issue.set_status(current_issue.project_to_use.status_ids["Review"])
-        case "rework":
-            current_issue.set_status(current_issue.project_to_use.status_ids["Backlog"])
-        case "0", "1", "2", "5", "8", "13", "20", "40":
-            print("Points label, need to apply this in time")
-        case _:
-            pass
-            # print("Nothing to be done with this label: ", label_name)
+    if label_name in points_labels:
+        pm_logging("Points label, need to apply this in time", "debug")
+        current_issue.set_points(label_name)
+    else:
+        match label_name:
+            case "proposal":
+                print("Proposed ticket being added to project in next sprint")
+                current_issue.place_in_next_sprint()
+            case "added during sprint":
+                current_issue.place_in_current_sprint()
+            case "in progress":
+                current_issue.set_status(current_issue.project_to_use.status_ids["In Progress"])
+            case "impeded":
+                current_issue.set_status(current_issue.project_to_use.status_ids["Impeded"])
+            case "review":
+                current_issue.set_status(current_issue.project_to_use.status_ids["Review"])
+            case "rework":
+                current_issue.set_status(current_issue.project_to_use.status_ids["Backlog"])
+            case _:
+                pass
+                # print("Nothing to be done with this label: ", label_name)
 
 class AutomationHandler(tornado.web.RequestHandler):
     def get(self):

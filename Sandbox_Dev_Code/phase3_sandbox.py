@@ -173,3 +173,8 @@ query findProjectSprints
 print(gql_queries.run_query(mutation))
 
 # print(cards.get_cards_in_project("Arianiel", "6"))
+
+# todo
+"""
+The inverse and apply a label for points when they are added to the project
+"""
