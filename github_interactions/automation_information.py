@@ -85,7 +85,7 @@ class AutomationInfo:
     def set_previous_current_and_next_sprint(self):
         # Find the current sprint
         for i in range(len(self.sprint_starts)-1):
-            if self.sprint_starts[i] <= self.today < self.sprint_starts[i+1]:
+            if self.sprint_starts[i] <= self.today <= self.sprint_starts[i+1]:
                 current_sprint_index = i
 
         try:
@@ -162,15 +162,12 @@ class AutomationInfo:
             if self.pi_starts[i] <= self.today < self.pi_starts[i + 1]:
                 current_pi_index = i
 
-        try:
-            self.current_project = self.pi_starts[current_pi_index].strftime("PI_%Y_%m")
-        except KeyError:
-            pm_logger.error("Unable to set current PI")
-
-        try:
-            self.current_project = self.pi_starts[current_pi_index+1].strftime("PI_%Y_%m")
-        except KeyError:
-            pm_logger.error("Unable to set next PI")
+        for PI_value in self.available_program_increments.keys():
+            print(f"{PI_value} starts on {self.available_program_increments[PI_value].start_date}")
+            if self.available_program_increments[PI_value].start_date == self.pi_starts[current_pi_index]:
+                self.current_project = PI_value
+            if self.available_program_increments[PI_value].start_date == self.pi_starts[current_pi_index+1]:
+                self.next_project = PI_value
 
         self.project_number = self.available_program_increments[self.current_project].number
         self.sprint_by_class = self.available_program_increments[self.current_project].sprint_by_class

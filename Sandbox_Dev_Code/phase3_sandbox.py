@@ -177,4 +177,6 @@ print(gql_queries.run_query(mutation))
 # todo
 """
 The inverse and apply a label for points when they are added to the project
+Something odd is going on with this, if editing the points value in the ticket it works, but doing so in the 
+"pop up" version on the app it is failing with a signature error but only for the points.
 """
