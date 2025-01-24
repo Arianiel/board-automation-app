@@ -1,7 +1,7 @@
 # Automation for ISIS Experiment Controls GitHub projects
 
 # Purpose
-There are a number of things related to project management of projects wihin GitHub which can be automated.
+There are a number of things related to project management of projects within GitHub which can be automated.
 
 This repository contains those specifically used by the Experiment Controls Group at ISIS Pulsed Neutron and Muon Source.
 
