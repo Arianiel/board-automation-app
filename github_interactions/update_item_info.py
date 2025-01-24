@@ -50,4 +50,5 @@ class IssueToUpdate:
         cards.remove_label(self.issue_id, label_id_to_remove)
 
     def set_points(self, points_label):
-        cards.set_points(self.item_id, self.project_to_use.points_field_id, points_label, self.project_to_use.project_id)
+        cards.set_points(self.item_id, self.project_to_use.points_field_id, points_label, 
+                         self.project_to_use.project_id)

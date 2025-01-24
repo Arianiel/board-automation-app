@@ -48,7 +48,9 @@ class Burndown:
             review = df["Review"].values[start_index:]
 
             for i in range(1, (end_date - start_date).days + 1):
-                dates = np.append(dates, [(last_day + timedelta(days=i))])
+                # TODO
+                # This needs testing, as the strftime is all about the pyright side of things
+                dates = np.append(dates, [(last_day + timedelta(days=i)).strftime("%Y-%m-%d")])
                 if i > last_line_index:
                     done = np.append(done, [done[-1]])
                     backlog = np.append(backlog, [backlog[-1]])

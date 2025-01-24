@@ -71,5 +71,3 @@ class ProjectIncrement:
                     self.first_sprint = sprint
                 elif self.sprint_by_class[sprint].sprint_start_date == self.all_sprint_starts[-1]:
                     self.last_sprint = sprint
-
-

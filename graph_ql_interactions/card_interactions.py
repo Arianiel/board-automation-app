@@ -1,5 +1,6 @@
-import graph_ql_interactions.graph_ql_functions as gql_queries
 from collections import Counter
+
+import graph_ql_interactions.graph_ql_functions as gql_queries
 from github_interactions import card_info
 
 card_info_query = gql_queries.open_graph_ql_query_file("findCardInfo.txt")
@@ -156,7 +157,7 @@ def add_label(issue_id, label_id_to_add):
 def remove_label(issue_id, label_id_to_remove):
     if label_id_to_remove == "NONE_NONE":
         print("NONE_NONE Found")
-        # This magic string should be removed, but not all repos on a board necessiraly have the labels being looked
+        # This magic string should be removed, but not all repos on a board necessarily have the labels being looked
         # for, this is a default until those checks are in place
         return
     gql_queries.run_query(remove_label_mutation.replace("<ISSUE>", issue_id).replace("<LABEL_ID>", label_id_to_remove))
@@ -195,9 +196,9 @@ def update_sprint_for_all_open_cards(org_name, project_number, current_sprint, n
 
 def set_points(item_id, points_field_id, points, project_id):
     print(set_points_mutation.replace("<ITEM_ID>", item_id)
-                          .replace("<POINTS_FIELD_ID>", points_field_id)
-                          .replace("<POINTS>", points)
-                          .replace("<PROJ_ID>", project_id))
+          .replace("<POINTS_FIELD_ID>", points_field_id)
+          .replace("<POINTS>", points)
+          .replace("<PROJ_ID>", project_id))
     gql_queries.run_query(set_points_mutation.replace("<ITEM_ID>", item_id)
                           .replace("<POINTS_FIELD_ID>", points_field_id)
                           .replace("<POINTS>", points)

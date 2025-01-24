@@ -3,7 +3,7 @@ import requests
 import configparser
 
 config = configparser.ConfigParser()
-config.read(os.path.join(os.path.dirname(__file__), "..", "config_info","config.ini"))
+config.read(os.path.join(os.path.dirname(__file__), "..", "config_info", "config.ini"))
 token = config["GITHUB.INTERACTION"]["token"]
 
 headers = {"Authorization": "token "+token, 'Content-Type': 'application/json'}
@@ -21,4 +21,3 @@ def run_query(query):  # A simple function to use requests.post to make the API 
         return request.json()
     else:
         raise Exception("Query failed to run by returning code of {}. {}".format(request.status_code, query))
-
