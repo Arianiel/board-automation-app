@@ -5,7 +5,7 @@ import datetime
 
 
 class ProjectIncrement:
-    def __init__(self, project_id=0, number=0, title="None", org_name=""):
+    def __init__(self, project_id: int = 0, number: int = 0, title: str = "None", org_name: str = ""):
         self.project_id = project_id
         self.number = number
         self.title = title

@@ -10,7 +10,8 @@ pm_logger = logging.getLogger('board_automation')
 
 
 class Burndown:
-    def __init__(self, org_name, project_number, current_sprint_name, next_sprint_name, sprints):
+    def __init__(self, org_name: str, project_number: str, current_sprint_name: str, next_sprint_name: str, 
+                 sprints: {}):
         self.fig = go.Figure()
         self.org_name = org_name
         self.project_number = project_number
@@ -133,7 +134,7 @@ class Burndown:
         with open(self.burndown_csv, "a") as f:
             f.write(entry)
 
-    def fill_csv_lines(self, today, last_day_inner, data):
+    def fill_csv_lines(self, today: datetime, last_day_inner: datetime, data: pd.DataFrame):
         for missing_day in range((today - last_day_inner).days - 1):
             with open(self.burndown_csv, "a") as f:
                 entry_list = [(last_day_inner + timedelta(days=(missing_day + 1))).strftime("%Y-%m-%d"), ",",

@@ -4,7 +4,7 @@ repo_label_id_query = gql_queries.open_graph_ql_query_file("findRepoLabelID.txt"
 repo_info_query = gql_queries.open_graph_ql_query_file("findRepoInfo.txt")
 
 
-def get_label_id(org_name="", repo_name="", label_name=""):
+def get_label_id(org_name: str = "", repo_name: str = "", label_name: str = ""):
     result = gql_queries.run_query(repo_label_id_query.
                                    replace("<ORG_NAME>", org_name).
                                    replace("<REPO>", repo_name).
@@ -16,7 +16,7 @@ def get_label_id(org_name="", repo_name="", label_name=""):
     return label_id
 
 
-def get_repo_labels(org_name="", repo_name=""):
+def get_repo_labels(org_name: str = "", repo_name: str = ""):
     labels = {}
     repos_query = gql_queries.open_graph_ql_query_file("findRepoInfo.txt")
     result = gql_queries.run_query(repos_query.replace("<ORG_NAME>", org_name).replace("<REPO>", repo_name))

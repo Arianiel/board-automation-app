@@ -1,9 +1,10 @@
 import graph_ql_interactions.graph_ql_functions as gql_queries
 import graph_ql_interactions.card_interactions as cards
+import github_interactions.project_increment_information as projects
 
 
 class IssueToUpdate:
-    def __init__(self, issue_id):
+    def __init__(self, issue_id: str):
         self.issue_id = issue_id
         self.project_to_use = None
         self.item_id = None
@@ -11,7 +12,7 @@ class IssueToUpdate:
         self.current_sprint = None
         self.next_sprint = None
 
-    def set_project(self, project, current_sprint, next_sprint):
+    def set_project(self, project: projects.ProjectIncrement, current_sprint: str, next_sprint: str):
         self.project_to_use = project
         self.current_sprint = current_sprint
         self.next_sprint = next_sprint
@@ -21,11 +22,11 @@ class IssueToUpdate:
             set_proj_mutation.replace("<ISSUE_ID>", self.issue_id).replace("<PROJ_ID>", self.project_to_use.project_id))
         self.item_id = result["data"]["addProjectV2ItemById"]["item"]["id"]
 
-    def set_sprint(self, sprint_to_use):
+    def set_sprint(self, sprint_to_use: str):
         cards.set_sprint(self.item_id, self.project_to_use.sprint_field_id, sprint_to_use,
                          self.project_to_use.project_id)
 
-    def set_status(self, status_to_use):
+    def set_status(self, status_to_use: str):
         set_sprint = gql_queries.open_graph_ql_query_file("UpdateStatusForItemInProject.txt")
         gql_queries.run_query(set_sprint.replace("<ITEM_ID>", self.item_id)
                               .replace("<STATUS_FIELD_ID>", self.project_to_use.status_field_id)
@@ -43,12 +44,12 @@ class IssueToUpdate:
         get_repo_query = gql_queries.open_graph_ql_query_file("findIssueRepo.txt").replace("<ISSUE>", self.issue_id)
         self.repo_name = gql_queries.run_query(get_repo_query)["data"]["node"]["repository"]["name"]
 
-    def add_label(self, label_id_to_add):
+    def add_label(self, label_id_to_add: str):
         cards.add_label(self.issue_id, label_id_to_add)
 
-    def remove_label(self, label_id_to_remove):
+    def remove_label(self, label_id_to_remove: str):
         cards.remove_label(self.issue_id, label_id_to_remove)
 
-    def set_points(self, points_label):
+    def set_points(self, points_label: str):
         cards.set_points(self.item_id, self.project_to_use.points_field_id, points_label, 
                          self.project_to_use.project_id)

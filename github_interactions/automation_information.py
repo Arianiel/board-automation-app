@@ -13,7 +13,7 @@ import re
 pm_logger = logging.getLogger('board_automation')
 
 
-def build_html_table(info):
+def build_html_table(info: {}):
     data = "<table><tr>"
     for heading in info.keys():
         data += "<th>" + heading + "</th>"
@@ -53,7 +53,7 @@ class AutomationInfo:
         self.available_program_increments = {}
         self.current_project = None
         self.next_project = None
-        self.project_number = None
+        self.project_number = ""
         self.sprint_by_class = None
         self.sprint_starts = None
         self.pi_starts = []
@@ -70,7 +70,7 @@ class AutomationInfo:
         # Initialise extra parameters needed
         self.repos = {}
 
-    def add_repo(self, repo_name):
+    def add_repo(self, repo_name: str):
         if repo_name not in self.repos.keys():
             self.repos[repo_name] = repo_info.RepoInfo(self.org_name, repo_name)
 

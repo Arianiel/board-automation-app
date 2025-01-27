@@ -19,7 +19,7 @@ pm_logger.addHandler(pm_handler)
 points_labels = ["0", "1", "2", "3", "5", "8", "13", "20", "40"]
 
 
-def pm_logging(message, message_level):
+def pm_logging(message: str, message_level: str) -> None:
     if app_log_level == "developer":
         print(message)
     match message_level:
