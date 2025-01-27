@@ -130,9 +130,6 @@ def verify_signature(payload_body, secret_token, signature_header):
         raise WebhookError(status_code=403, detail="x-hub-signature-256 header is missing!")
     hash_object = hmac.new(secret_token.encode('utf-8'), msg=payload_body, digestmod=hashlib.sha256)
     expected_signature = "sha256=" + hash_object.hexdigest()
-    # todo
-    print(signature_header)
-    print(expected_signature)
     if not hmac.compare_digest(expected_signature, signature_header):
         raise WebhookError(status_code=403, detail="Request signatures didn't match!")
 
@@ -142,8 +139,6 @@ class WebhookHandler(tornado.web.RequestHandler):
         try:
             verify_signature(self.request.body, secret, self.request.headers["X-Hub-Signature-256"])
         except WebhookError as e:
-            # todo
-            # print(self.request.body)
             pm_logging("Found a signature issue: {}".format(e.detail), "error")
             self.set_status(e.status_code)
             return
