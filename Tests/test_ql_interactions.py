@@ -1,9 +1,11 @@
 from unittest import TestCase
 import graph_ql_interactions.graph_ql_functions as ql
 import graph_ql_interactions.repo_interactions as ri
+import graph_ql_interactions.card_interactions as ci
 import json
 import requests_mock
 from unittest.mock import mock_open, patch
+from test_helpers import *
 
 # The URL to be mocked here is always the GitHub graphQL API
 url = 'https://api.github.com/graphql'
@@ -12,31 +14,21 @@ class TestRepoInteractions(TestCase):
     @requests_mock.mock()
     def test_get_label_id_good(self, m):
         value = "label_id"
-        test = {"data": {"repository": {"label": {"id": value}}}}
-        text = json.dumps(test)
-        
-        m.post(url, text=text, status_code=200)
+        m.post(url, text=build_response(QlCommand.findRepoLabelId, expected_label_id=value), status_code=200)
         self.assertEqual(ri.get_label_id("org_name", "repo_name", "label_name"), value)
 
     @requests_mock.mock()
     def test_get_label_id_bad(self, m):
-        value = "NONE_NONE"
-        test = "No Useful Data"
-        text = json.dumps(test)
-
-        m.post(url, text=text, status_code=200)
+        value = "NONE_NONE" # This is a magic value from the code
+        m.post(url, text=bad_return(), status_code=200)
         self.assertEqual(ri.get_label_id("org_name", "repo_name", "label_name"), value)
 
     @requests_mock.mock()
     def test_get_repo_labels(self, m):
         repo_name = "repo_name"
-        expected_labels = {"label_1": "label_1_id", "label_2": "label_2_id", "label_3": "label_3_id"}
-        labels_list = []
-        for entry in expected_labels.keys():
-            labels_list.append({"name": entry, "id": expected_labels[entry]})
-        test = {'data': {'repository': {'name': repo_name, 'id': repo_name, 'labels': {'nodes': labels_list}}}}
-        text = json.dumps(test)
-        m.post(url, text=text, status_code=200)
+        expected_labels = {"label_1": "label_1_id", "label_2": "label_2_id", "label_3": "label_3_id"}        
+        m.post(url, text=build_response(QlCommand.findRepoInfo, repo_name=repo_name, expected_labels=expected_labels), 
+               status_code=200)
         self.assertEqual(ri.get_repo_labels("org_name", repo_name), expected_labels)
         
 
@@ -65,10 +57,17 @@ class TestGraphQlFunctions(TestCase):
     
     
 class TestCardInteractions(TestCase):
-    def test_get_cards_in_project(self):
+    @requests_mock.mock()
+    def test_get_cards_in_project_single_page(self, m):
+        print(build_response(QlCommand.findCardInfo, number_of_issues=2))
+        m.post(url, text=build_response(QlCommand.findCardInfo, number_of_issues=2), status_code=200)
+        print(ci.get_cards_in_project("Org", "0"))
+    
+    def test_get_cards_in_project_double_page(self):
         # TODO
         # Figure out how to test this!
         pass
+        # TSimple test for multiple pages
 
     def test_get_cards_and_points_snapshot_for_sprint(self):
         # TODO
