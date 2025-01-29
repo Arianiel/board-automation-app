@@ -52,43 +52,33 @@ def fields_list(expected_fields: {}):
 def issue_entry(ident: int, labels: {}, fields: {}, repo_name: str):
     issue = {"id": f"node_{ident}", "type": "ISSUE", "content": {"id": f"issue_{ident}", 
                                                                  "number": ident, 
-                                                                 "labels": labels_list(labels), 
-                                                                 "repository": {"name": repo_name},
-                                                                 "fieldValues": fields_list(fields)}}
+                                                                 "labels": {"nodes": labels_list(labels)}, 
+                                                                 "repository": {"name": repo_name}},
+                                                                 "fieldValues": {"nodes": fields_list(fields)}}
     return issue
 
 def draft_issue_entry(ident: int, fields: {}):
     draft_issue = {"id": f"node_{ident}", "type": "DRAFT_ISSUE", "content": {"title": f"Draft issue {ident}", 
-                                                                             "id": f"draft_{ident}", 
-                                                                             "fieldValues": fields_list(fields)}}
+                                                                             "id": f"draft_{ident}"}, 
+                                                                             "fieldValues": {"nodes": fields_list(fields)}}
     return draft_issue
 
-def build_cards_simple(number_of_issues: int=1, number_of_drafts: int=1, only_1_page: bool=True, page_number: int=1,
-                     max_pages: int=1, labels=None, statuses=None, repo_name: str="repo_name"):
+def build_cards_simple(number_of_issues: int=1, number_of_drafts: int=1, labels=None, statuses=None, 
+                       repo_name: str="repo_name"):
     if statuses is None:
         statuses = {"status": "status_value"}
     if labels is None:
         labels = {"label_1": "label_1_id"}
     issues = []
-    for index in range(1, number_of_issues):
-        issues.append(issue_entry(index, labels, statuses, repo_name))
+    for index in range(0, number_of_issues):
+        issues.append(issue_entry(index + 1, labels, statuses, repo_name))
     for index in range(number_of_issues + 1, number_of_drafts):
-        issues.append(draft_issue_entry(index, statuses))
+        issues.append(draft_issue_entry(index + 1, statuses))
     
-    if only_1_page:
-        has_next = False
-        has_previous = False
-    else:
-        if page_number == max_pages:
-            has_next = False
-            has_previous = True
-        elif page_number == 1:
-            has_next = True
-            has_previous = False
-        else:
-            has_next = True
-            has_previous = True
-        
+    # The below should allow for extended testing for multiple pages, but this is not considered a necessary test at 
+    # this point
+    has_next = False
+    has_previous = False        
     page_info = {"endCursor": "EC", "startCursor": "NC", "hasNextPage": has_next, "hasPreviousPage": has_previous}
             
     cards_mock = {"data": {"organization": {"projectV2": {"items": {"nodes": issues, "pageInfo": page_info}}}}}

@@ -58,17 +58,11 @@ class TestGraphQlFunctions(TestCase):
     
 class TestCardInteractions(TestCase):
     @requests_mock.mock()
-    def test_get_cards_in_project_single_page(self, m):
-        print(build_response(QlCommand.findCardInfo, number_of_issues=2))
-        m.post(url, text=build_response(QlCommand.findCardInfo, number_of_issues=2), status_code=200)
-        print(ci.get_cards_in_project("Org", "0"))
+    def test_get_cards_in_project(self, m):
+        cards_to_create = 3
+        m.post(url, text=build_response(QlCommand.findCardInfo, number_of_issues=cards_to_create), status_code=200)
+        self.assertEqual(len(ci.get_cards_in_project("Org", "0")), cards_to_create)
     
-    def test_get_cards_in_project_double_page(self):
-        # TODO
-        # Figure out how to test this!
-        pass
-        # TSimple test for multiple pages
-
     def test_get_cards_and_points_snapshot_for_sprint(self):
         # TODO
         # Figure out how to test this!
