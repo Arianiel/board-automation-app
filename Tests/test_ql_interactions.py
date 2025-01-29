@@ -1,8 +1,8 @@
+from collections import OrderedDict
 from unittest import TestCase
 import graph_ql_interactions.graph_ql_functions as ql
 import graph_ql_interactions.repo_interactions as ri
 import graph_ql_interactions.card_interactions as ci
-import json
 import requests_mock
 from unittest.mock import mock_open, patch
 from test_helpers import *
@@ -75,15 +75,27 @@ class TestCardInteractions(TestCase):
             "done": {"count": 4, "points": 4},
         }
         sprint_name = "sprint"
-        m.post(url, text=build_response(QlCommand.findCardInfo, card_type="snapshot", 
+        m.post(url, text=build_response(QlCommand.findCardInfo, card_type="points_snapshot", 
                                         expected_snapshot=expected_snapshot, sprint_name=sprint_name))
         self.assertDictEqual(ci.get_cards_and_points_snapshot_for_sprint("org_name", "0", sprint_name), expected_snapshot)
-    
-    def test_get_card_list_snapshot_for_sprint(self):
-        # TODO
-        # Figure out how to test this!
-        pass
-    
+
+    @requests_mock.mock()
+    def test_get_card_list_snapshot_for_sprint(self, m):
+        expected_snapshot = {
+            "ready": [{"number": 1, "repo": "repo_1"}, {"number": 2, "repo": "repo_1"}, {"number": 1, "repo": "repo_2"},
+                      {"number": 2, "repo": "repo_2"}],
+            "rework": [{"number": 1, "repo": "repo_1"}],
+            "in_progress": [{"number": 3, "repo": "repo_1"}, {"number": 4, "repo": "repo_1"}],
+            "impeded": [{"number": 3, "repo": "repo_2"}],
+            "review": [{"number": 4, "repo": "repo_2"}, {"number": 5, "repo": "repo_1"}],
+            "done": [{"number": 5, "repo": "repo_2"}, {"number": 6, "repo": "repo_3"}],
+        }
+        sprint_name = "sprint"
+        m.post(url, text=build_response(QlCommand.findCardInfo, card_type="card_list_snapshot",
+                                        expected_snapshot=expected_snapshot, sprint_name=sprint_name))
+        self.assertDictEqual(ci.get_card_list_snapshot_for_sprint("org_name", "0", sprint_name),
+                             expected_snapshot)
+
     def test_get_planning_snapshot(self):
         # TODO
         # Figure out how to test this!

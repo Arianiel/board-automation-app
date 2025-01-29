@@ -79,13 +79,10 @@ def build_cards_simple(number_of_issues: int=1, number_of_drafts: int=1, labels=
         issues.append(issue_entry(index + 1, labels, statuses, repo_name))
     for index in range(number_of_issues + 1, number_of_drafts):
         issues.append(draft_issue_entry(index + 1, statuses))
-
-    # The below should allow for extended testing for multiple pages, but this is not considered a necessary test at
-    # this point
-    has_next = False
-    has_previous = False
+    return build_response_contents(issues)
+   
+def build_response_contents(issues: [], has_next: bool=False, has_previous: bool=False):
     page_info = {"endCursor": "EC", "startCursor": "NC", "hasNextPage": has_next, "hasPreviousPage": has_previous}
-
     cards_mock = {"data": {"organization": {"projectV2": {"items": {"nodes": issues, "pageInfo": page_info}}}}}
     return cards_mock
 
@@ -104,7 +101,7 @@ def snapshot_name_to_status_lookup(snapshot_name: str):
         case __:
             return ""
 
-def build_snapshot_cards(expected_snapshot: {}, sprint_name: str="sprint"):
+def build_points_snapshot_cards(expected_snapshot: {}, sprint_name: str= "sprint"):
     issues = []
     outer_index = 0
     for entry in expected_snapshot.keys():
@@ -118,10 +115,21 @@ def build_snapshot_cards(expected_snapshot: {}, sprint_name: str="sprint"):
             if entry == "rework":
                 labels["rework"] = "rework_label_id"
             issues.append(issue_entry(outer_index + index, labels, fields, "repo_name"))
-    page_info = {"endCursor": "EC", "startCursor": "NC", "hasNextPage": False, "hasPreviousPage": False}
-    cards_mock = {"data": {"organization": {"projectV2": {"items": {"nodes": issues, "pageInfo": page_info}}}}}
-    return cards_mock
+    return build_response_contents(issues)
 
+def build_card_list_snapshot(expected_snapshot: {}, sprint_name: str= "sprint"):
+    issues = []
+    for entry in expected_snapshot.keys():
+        if entry == "rework":
+            continue
+        for item in expected_snapshot[entry]:
+            fields = {"Points": 1.0, "Status": snapshot_name_to_status_lookup(entry), "Sprint": sprint_name}
+            labels = {entry: f"{entry}_label_id"}
+            if item in expected_snapshot["rework"]:
+                labels["rework"] = "rework_label_id"
+            issues.append(issue_entry(item["number"], labels, fields, item["repo"]))
+    return build_response_contents(issues)
+    
 def build_response(ql_command: QlCommand, **kwargs):
     match ql_command:
         case QlCommand.findRepoLabelId:
@@ -133,8 +141,10 @@ def build_response(ql_command: QlCommand, **kwargs):
             match kwargs["card_type"]:
                 case "simple":
                     response = build_cards_simple(kwargs["number_of_issues"], 0)
-                case "snapshot":
-                    response = build_snapshot_cards(kwargs["expected_snapshot"], kwargs["sprint_name"])
+                case "points_snapshot":
+                    response = build_points_snapshot_cards(kwargs["expected_snapshot"], kwargs["sprint_name"])
+                case "card_list_snapshot":
+                    response = build_card_list_snapshot(kwargs["expected_snapshot"], kwargs["sprint_name"])
                 case __:
                     response = ""
         case __:
