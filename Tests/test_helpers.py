@@ -1,6 +1,9 @@
 import json
 from enum import Enum, auto
 
+from pandas.core.computation.ops import isnumeric
+
+
 class QlCommand(Enum):
     findCardInfo = auto()
     findIssueRepo = auto()
@@ -15,7 +18,6 @@ class QlCommand(Enum):
     UpdatePointsForItemInProject = auto()
     UpdateSprintForItemInProject = auto()
     UpdateStatusForItemInProject = auto()
-
 
 def bad_return():
     """
@@ -46,24 +48,27 @@ def fields_list(expected_fields: {}):
     """
     fields = []
     for entry in expected_fields.keys():
-        fields.append({'name': entry, 'field': {'name': expected_fields[entry]}})
+        if isnumeric(type(expected_fields[entry])):
+            fields.append({'number': expected_fields[entry], 'field': {'name': entry}})
+        else:
+            fields.append({'name': expected_fields[entry], 'field': {'name': entry}})
     return fields
 
 def issue_entry(ident: int, labels: {}, fields: {}, repo_name: str):
-    issue = {"id": f"node_{ident}", "type": "ISSUE", "content": {"id": f"issue_{ident}", 
-                                                                 "number": ident, 
-                                                                 "labels": {"nodes": labels_list(labels)}, 
+    issue = {"id": f"node_{ident}", "type": "ISSUE", "content": {"id": f"issue_{ident}",
+                                                                 "number": ident,
+                                                                 "labels": {"nodes": labels_list(labels)},
                                                                  "repository": {"name": repo_name}},
                                                                  "fieldValues": {"nodes": fields_list(fields)}}
     return issue
 
 def draft_issue_entry(ident: int, fields: {}):
-    draft_issue = {"id": f"node_{ident}", "type": "DRAFT_ISSUE", "content": {"title": f"Draft issue {ident}", 
-                                                                             "id": f"draft_{ident}"}, 
+    draft_issue = {"id": f"node_{ident}", "type": "DRAFT_ISSUE", "content": {"title": f"Draft issue {ident}",
+                                                                             "id": f"draft_{ident}"},
                                                                              "fieldValues": {"nodes": fields_list(fields)}}
     return draft_issue
 
-def build_cards_simple(number_of_issues: int=1, number_of_drafts: int=1, labels=None, statuses=None, 
+def build_cards_simple(number_of_issues: int=1, number_of_drafts: int=1, labels=None, statuses=None,
                        repo_name: str="repo_name"):
     if statuses is None:
         statuses = {"status": "status_value"}
@@ -74,13 +79,46 @@ def build_cards_simple(number_of_issues: int=1, number_of_drafts: int=1, labels=
         issues.append(issue_entry(index + 1, labels, statuses, repo_name))
     for index in range(number_of_issues + 1, number_of_drafts):
         issues.append(draft_issue_entry(index + 1, statuses))
-    
-    # The below should allow for extended testing for multiple pages, but this is not considered a necessary test at 
+
+    # The below should allow for extended testing for multiple pages, but this is not considered a necessary test at
     # this point
     has_next = False
-    has_previous = False        
+    has_previous = False
     page_info = {"endCursor": "EC", "startCursor": "NC", "hasNextPage": has_next, "hasPreviousPage": has_previous}
-            
+
+    cards_mock = {"data": {"organization": {"projectV2": {"items": {"nodes": issues, "pageInfo": page_info}}}}}
+    return cards_mock
+
+def snapshot_name_to_status_lookup(snapshot_name: str):
+    match snapshot_name:
+        case "ready" | "rework":
+            return "Backlog"
+        case "in_progress":
+            return "In Progress"
+        case "impeded":
+            return "Impeded"
+        case "review":
+            return "Review"
+        case "done":
+            return "Done"
+        case __:
+            return ""
+
+def build_snapshot_cards(expected_snapshot: {}, sprint_name: str="sprint"):
+    issues = []
+    outer_index = 0
+    for entry in expected_snapshot.keys():
+        outer_index += 10
+        target = expected_snapshot[entry]["count"]
+        if entry == "ready":
+            target = expected_snapshot[entry]["count"] - expected_snapshot["rework"]["count"]
+        for index in range(0, target):
+            fields = {"Points": 1.0, "Status": snapshot_name_to_status_lookup(entry), "Sprint": sprint_name}
+            labels = {entry: f"{entry}_label_id"}
+            if entry == "rework":
+                labels["rework"] = "rework_label_id"
+            issues.append(issue_entry(outer_index + index, labels, fields, "repo_name"))
+    page_info = {"endCursor": "EC", "startCursor": "NC", "hasNextPage": False, "hasPreviousPage": False}
     cards_mock = {"data": {"organization": {"projectV2": {"items": {"nodes": issues, "pageInfo": page_info}}}}}
     return cards_mock
 
@@ -92,7 +130,13 @@ def build_response(ql_command: QlCommand, **kwargs):
             response = {'data': {'repository': {'name': kwargs["repo_name"], 'id': kwargs["repo_name"],
                                     'labels': {'nodes': labels_list(kwargs["expected_labels"])}}}}
         case QlCommand.findCardInfo:
-            response = build_cards_simple(kwargs["number_of_issues"], 0, True)
+            match kwargs["card_type"]:
+                case "simple":
+                    response = build_cards_simple(kwargs["number_of_issues"], 0)
+                case "snapshot":
+                    response = build_snapshot_cards(kwargs["expected_snapshot"], kwargs["sprint_name"])
+                case __:
+                    response = ""
         case __:
             response = ""
     return json.dumps(response)

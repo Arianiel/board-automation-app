@@ -231,3 +231,36 @@
 # 
 
 
+expected_snapshot = {
+            "ready": {"count": 3, "points": 3},
+            "rework": {"count": 1, "points": 1},
+            "in_progress": {"count": 2, "points": 2},
+            "impeded": {"count": 1, "points": 1},
+            "review": {"count": 3, "points": 3},
+            "done": {"count": 4, "points": 4},
+        }
+
+def snapshot_name_to_status_lookup(snapshot_name: str):
+    match snapshot_name:
+        case "ready" | "rework":
+            return "Backlog"
+        case "in_progress":
+            return "In Progress"
+        case "impeded":
+            return "Impeded"
+        case "review":
+            return "Review"
+        case "done":
+            return "Done"
+        case __:
+            return ""
+    
+
+for entry in expected_snapshot.keys():
+    for something in range(0,expected_snapshot[entry]["count"]):
+        statuses = {"points": "1", "status": snapshot_name_to_status_lookup(entry)}
+        if entry == "rework":
+            labels = {"rework": "rework_label_id"}
+        
+test = 3.0
+print(test)

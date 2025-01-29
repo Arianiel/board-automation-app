@@ -60,13 +60,24 @@ class TestCardInteractions(TestCase):
     @requests_mock.mock()
     def test_get_cards_in_project(self, m):
         cards_to_create = 3
-        m.post(url, text=build_response(QlCommand.findCardInfo, number_of_issues=cards_to_create), status_code=200)
+        m.post(url, text=build_response(QlCommand.findCardInfo, card_type="simple", number_of_issues=cards_to_create), 
+               status_code=200)
         self.assertEqual(len(ci.get_cards_in_project("Org", "0")), cards_to_create)
-    
-    def test_get_cards_and_points_snapshot_for_sprint(self):
-        # TODO
-        # Figure out how to test this!
-        pass
+
+    @requests_mock.mock()
+    def test_get_cards_and_points_snapshot_for_sprint(self, m):
+        expected_snapshot = {
+            "ready": {"count": 3, "points": 3},
+            "rework": {"count": 1, "points": 1},
+            "in_progress": {"count": 2, "points": 2},
+            "impeded": {"count": 1, "points": 1},
+            "review": {"count": 3, "points": 3},
+            "done": {"count": 4, "points": 4},
+        }
+        sprint_name = "sprint"
+        m.post(url, text=build_response(QlCommand.findCardInfo, card_type="snapshot", 
+                                        expected_snapshot=expected_snapshot, sprint_name=sprint_name))
+        self.assertDictEqual(ci.get_cards_and_points_snapshot_for_sprint("org_name", "0", sprint_name), expected_snapshot)
     
     def test_get_card_list_snapshot_for_sprint(self):
         # TODO
