@@ -101,6 +101,17 @@ def snapshot_name_to_status_lookup(snapshot_name: str):
         case __:
             return ""
 
+def priority_lookup(snapshot_name: str):
+    match snapshot_name:
+        case "high":
+            return "High"
+        case "medium":
+            return "Medium"
+        case "low":
+            return "Low"
+        case __:
+            return ""
+
 def build_points_snapshot_cards(expected_snapshot: {}, sprint_name: str= "sprint"):
     issues = []
     outer_index = 0
@@ -123,11 +134,19 @@ def build_card_list_snapshot(expected_snapshot: {}, sprint_name: str= "sprint"):
         if entry == "rework":
             continue
         for item in expected_snapshot[entry]:
-            fields = {"Points": 1.0, "Status": snapshot_name_to_status_lookup(entry), "Sprint": sprint_name}
+            fields = {"Status": snapshot_name_to_status_lookup(entry), "Sprint": sprint_name}
             labels = {entry: f"{entry}_label_id"}
             if item in expected_snapshot["rework"]:
                 labels["rework"] = "rework_label_id"
             issues.append(issue_entry(item["number"], labels, fields, item["repo"]))
+    return build_response_contents(issues)
+
+def build_planning_list_snapshot(expected_snapshot: {}, sprint_name: str= "sprint"):
+    issues = []
+    for entry in expected_snapshot.keys():
+        for item in expected_snapshot[entry]:
+            fields = {"Planning Priority": priority_lookup(entry), "Sprint": sprint_name}
+            issues.append(issue_entry(item["number"], {}, fields, item["repo"]))
     return build_response_contents(issues)
     
 def build_response(ql_command: QlCommand, **kwargs):
@@ -145,6 +164,8 @@ def build_response(ql_command: QlCommand, **kwargs):
                     response = build_points_snapshot_cards(kwargs["expected_snapshot"], kwargs["sprint_name"])
                 case "card_list_snapshot":
                     response = build_card_list_snapshot(kwargs["expected_snapshot"], kwargs["sprint_name"])
+                case "card_list_planning":
+                    response = build_planning_list_snapshot(kwargs["expected_snapshot"], kwargs["sprint_name"])
                 case __:
                     response = ""
         case __:

@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from unittest import TestCase
 import graph_ql_interactions.graph_ql_functions as ql
 import graph_ql_interactions.repo_interactions as ri
@@ -96,10 +95,19 @@ class TestCardInteractions(TestCase):
         self.assertDictEqual(ci.get_card_list_snapshot_for_sprint("org_name", "0", sprint_name),
                              expected_snapshot)
 
-    def test_get_planning_snapshot(self):
-        # TODO
-        # Figure out how to test this!
-        pass
+    @requests_mock.mock()
+    def test_get_planning_snapshot(self, m):
+        expected_snapshot = {
+            "high": [{"number": 1, "repo": "repo_1"}, {"number": 2, "repo": "repo_1"}, {"number": 1, "repo": "repo_2"},
+                      {"number": 2, "repo": "repo_2"}],
+            "medium": [{"number": 3, "repo": "repo_1"}, {"number": 4, "repo": "repo_1"}],
+            "low": [{"number": 3, "repo": "repo_2"}],
+        }
+        sprint_name = "sprint"
+        m.post(url, text=build_response(QlCommand.findCardInfo, card_type="card_list_planning",
+                                        expected_snapshot=expected_snapshot, sprint_name=sprint_name))
+        self.assertDictEqual(ci.get_planning_snapshot("org_name", "0", sprint_name),
+                             expected_snapshot)
     
     def test_get_number_of_cards_by_status(self):
         # TODO
