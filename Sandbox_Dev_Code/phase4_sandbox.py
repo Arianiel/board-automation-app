@@ -275,3 +275,17 @@
 #         "done": [{5, "repo_2"}, {6, "repo_3"}],
 #     }
 # 
+
+from collections import Counter
+
+import graph_ql_interactions.graph_ql_functions as gql_queries
+from github_interactions import card_info
+
+card_info_query = gql_queries.open_graph_ql_query_file("findCardInfo.txt")
+update_labels = gql_queries.open_graph_ql_query_file("UpdateItemLabel.txt")
+remove_label_mutation = gql_queries.open_graph_ql_query_file("RemoveLabel.txt")
+card_repo_query = gql_queries.open_graph_ql_query_file("findIssueRepo.txt")
+set_sprint_mutation = gql_queries.open_graph_ql_query_file("UpdateSprintForItemInProject.txt")
+set_points_mutation = gql_queries.open_graph_ql_query_file("UpdatePointsForItemInProject.txt")
+
+print(gql_queries.run_query(update_labels.replace("<ISSUE>", "1").replace("<LABEL_ID>", "a")))

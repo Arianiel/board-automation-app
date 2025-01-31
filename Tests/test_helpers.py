@@ -168,6 +168,8 @@ def build_response(ql_command: QlCommand, **kwargs):
                     response = build_planning_list_snapshot(kwargs["expected_snapshot"], kwargs["sprint_name"])
                 case __:
                     response = ""
+        case QlCommand.findIssueRepo:
+            response = {"data": {"node": {"repository": {"name": kwargs["repo_name"]}}}}
         case __:
             response = ""
     return json.dumps(response)

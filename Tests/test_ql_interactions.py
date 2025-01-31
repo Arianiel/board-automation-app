@@ -151,33 +151,10 @@ class TestCardInteractions(TestCase):
         m.post(url, text=build_response(QlCommand.findCardInfo, card_type="card_list_snapshot",
                                         expected_snapshot=expected_snapshot, sprint_name=sprint_name))
         self.assertEqual(ci.get_card_issue_ids_in_sprint("org_name", "0", sprint_name), expected_issues)
-    
-    def test_add_label(self):
-        # TODO
-        # Figure out how to test this!
-        pass
-    
-    def test_remove_label(self):
-        # TODO
-        # Figure out how to test this!
-        pass
-    
-    def test_get_repo_for_issue(self):
-        # TODO
-        # Figure out how to test this!
-        pass
-    
-    def test_set_sprint(self):
-        # TODO
-        # Figure out how to test this!
-        pass
-    
-    def test_update_sprint_for_all_open_cards(self):
-        # TODO
-        # Figure out how to test this!
-        pass
-    
-    def test_set_points(self):
-        # TODO
-        # Figure out how to test this!
-        pass
+
+    @requests_mock.mock()
+    def test_get_repo_for_issue(self, m):
+        repo = "repo_name"
+        m.post(url, text=build_response(QlCommand.findIssueRepo, repo_name=repo))
+        self.assertEqual(ci.get_repo_for_issue("something"), repo)
+        
