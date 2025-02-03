@@ -54,6 +54,18 @@ def fields_list(expected_fields: {}):
             fields.append({'name': expected_fields[entry], 'field': {'name': entry}})
     return fields
 
+def field_options(expected_options: {}):
+    """
+    Formats a list of options to the correct examples for use via response_mock for the GitHub graphQL API
+    :param expected_options: a dictionary of {"option_name_1": "option_id_1", "option_name_2": "option_id_2", etc.}
+    :return: a list of dictionaries of the format [{"name": "option_name_1", "id": "option_id_1"},
+                                                   {"name": "option_name_2", "id": "option_id_=2"}, etc.]
+    """
+    options = []
+    for entry in expected_options.keys():
+        options.append({"name": entry, "id": expected_options[entry]})
+    return options
+
 def issue_entry(ident: int, labels: {}, fields: {}, repo_name: str):
     issue = {"id": f"node_{ident}", "type": "ISSUE", "content": {"id": f"issue_{ident}",
                                                                  "number": ident,
@@ -67,6 +79,11 @@ def draft_issue_entry(ident: int, fields: {}):
                                                                              "id": f"draft_{ident}"},
                                                                              "fieldValues": {"nodes": fields_list(fields)}}
     return draft_issue
+
+def pull_request_entry(ident: int, fields: {}):
+    pull_request = {"id": f"node_{ident}", "type": "PULL_REQUEST", "content": {"title": f"Pull request {ident}"},
+                                                                             "fieldValues": {"nodes": fields_list(fields)}}
+    return pull_request
 
 def build_cards_simple(number_of_issues: int=1, number_of_drafts: int=1, labels=None, statuses=None,
                        repo_name: str="repo_name"):
@@ -148,6 +165,13 @@ def build_planning_list_snapshot(expected_snapshot: {}, sprint_name: str= "sprin
             fields = {"Planning Priority": priority_lookup(entry), "Sprint": sprint_name}
             issues.append(issue_entry(item["number"], {}, fields, item["repo"]))
     return build_response_contents(issues)
+
+def build_pi_statuses(status_field_id: str, statuses: {}, sprint_field_id: str, sprints: {}, points_field_id: str):
+    return {'data': {'organization': {'projectV2': {'fields': {'nodes': [{'name': 'Status','id': status_field_id,
+                                                                              'options': field_options(statuses)},
+                                                                             {'name': 'Sprint','id': sprint_field_id,
+                                                                              'options': field_options(sprints)},
+                                                                             {'name': 'Points', 'id': points_field_id}]}}}}}
     
 def build_response(ql_command: QlCommand, **kwargs):
     match ql_command:
@@ -170,7 +194,24 @@ def build_response(ql_command: QlCommand, **kwargs):
                     response = ""
         case QlCommand.findIssueRepo:
             response = {"data": {"node": {"repository": {"name": kwargs["repo_name"]}}}}
+        case QlCommand.findProjectSprints:
+            response = build_pi_statuses(kwargs["status_field_id"], kwargs["statuses"], kwargs["sprint_field_id"], 
+                                         kwargs["sprints"], kwargs["points_field_id"])
         case __:
             response = ""
     return json.dumps(response)
 
+class PiDefaultResponseValues:
+    def __init__(self):
+        self.sprint_field_id = "sprint_field_id"
+        self.status_field_id = "statis_field_id"
+        self.points_field_id = "points_field_id"
+        self.sprints = {'2020_01_01': 'sprint_1', 'Next PI (2020_04_04)': 'sprint_2', '2020_02_02': 'sprint_3',
+                   '2020_03_03': 'sprint_4'}
+        self.first_sprint = "2020_01_01"
+        self.last_sprint = "Next PI (2020_04_04)"
+        self.statuses = {'status 1': 'status_1', 'status 2': 'status_2', 'status 3': 'status_3'}
+        self.response = build_response(QlCommand.findProjectSprints, status_field_id=self.status_field_id, 
+                                        statuses=self.statuses, sprint_field_id=self.sprint_field_id, 
+                                        sprints=self.sprints, points_field_id=self.points_field_id)
+        

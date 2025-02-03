@@ -288,4 +288,14 @@ card_repo_query = gql_queries.open_graph_ql_query_file("findIssueRepo.txt")
 set_sprint_mutation = gql_queries.open_graph_ql_query_file("UpdateSprintForItemInProject.txt")
 set_points_mutation = gql_queries.open_graph_ql_query_file("UpdatePointsForItemInProject.txt")
 
-print(gql_queries.run_query(update_labels.replace("<ISSUE>", "1").replace("<LABEL_ID>", "a")))
+
+sprint_list_id_query = gql_queries.open_graph_ql_query_file("findProjectSprints.txt")
+
+response = gql_queries.run_query(
+    sprint_list_id_query.replace("<PROJ_NUM>", "6")
+    .replace("<ORG_NAME>", "Arianiel"))
+
+print(response)
+
+fields = response["data"]["organization"]["projectV2"]["fields"]["nodes"]
+print(fields)
