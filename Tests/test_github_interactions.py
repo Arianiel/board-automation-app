@@ -1,3 +1,4 @@
+import datetime
 import json
 from unittest import TestCase
 
@@ -8,6 +9,7 @@ from Tests.test_helpers import issue_entry, pull_request_entry, draft_issue_entr
 from github_interactions.card_info import CardInfo
 from github_interactions.project_increment_information import ProjectIncrement
 from github_interactions.repo_information import RepoInfo
+from github_interactions.sprint_information import SprintInfo
 
 url = 'https://api.github.com/graphql'
 
@@ -215,9 +217,49 @@ class TestRepoInfo(TestCase):
         self.assertEqual(test_class.name, repo_name)
         self.assertEqual(test_class.labels, expected_labels)
 
-
 class TestSprintInfo(TestCase):
-    # TODO
-    # Figure out how to test this!
-    pass
+    # Test 1 - Sprint of format Next PI (2020_04_04)
+    def test_sprint_in_next_pi(self):
+        sprint_name = "Next PI (2021_01_01)"
+        sprint_id = "sprint_id"
+        sprint = {"name": sprint_name, "id": sprint_id}
+        test_class = SprintInfo(sprint)
+        self.assertEqual(test_class.sprint_name, "2021_01_01")
+        self.assertTrue(test_class.in_next_pi)
+        self.assertEqual(test_class.sprint_year, "2021")
+        self.assertEqual(test_class.sprint_month, "01")
+        self.assertEqual(test_class.sprint_day, "01")
+        self.assertEqual(test_class.sprint_id, sprint_id)
+        self.assertEqual(test_class.sprint_start_date, datetime.datetime(2021,1,1,0,0))
+        self.assertEqual(str(test_class), str(datetime.datetime(2021,1,1,0,0)))
 
+
+    # Test 2 - Standard sprint 2020_01_01
+    def test_standard_sprint_name(self):
+        sprint_name = "2021_02_02"
+        sprint_id = "sprint_id"
+        sprint = {"name": sprint_name, "id": sprint_id}
+        test_class = SprintInfo(sprint)
+        self.assertEqual(test_class.sprint_name, sprint_name)
+        self.assertFalse(test_class.in_next_pi)
+        self.assertEqual(test_class.sprint_year, "2021")
+        self.assertEqual(test_class.sprint_month, "02")
+        self.assertEqual(test_class.sprint_day, "02")
+        self.assertEqual(test_class.sprint_id, sprint_id)
+        self.assertEqual(test_class.sprint_start_date, datetime.datetime(2021,2,2,0,0))
+        self.assertEqual(str(test_class), str(datetime.datetime(2021,2,2,0,0)))
+
+    # Test 3 - Not a date
+    def test_incorrect_name(self):
+        sprint_name = "Not a sprint"
+        sprint_id = "sprint_id"
+        sprint = {"name": sprint_name, "id": sprint_id}
+        test_class = SprintInfo(sprint)
+        self.assertEqual(test_class.sprint_name, sprint_name)
+        self.assertFalse(test_class.in_next_pi)
+        self.assertEqual(test_class.sprint_year, "Not ")
+        self.assertEqual(test_class.sprint_month, " s")
+        self.assertEqual(test_class.sprint_day, "rint")
+        self.assertEqual(test_class.sprint_id, sprint_id)
+        self.assertEqual(test_class.sprint_start_date, datetime.datetime(2020,1,1,0,0))
+        self.assertEqual(str(test_class), str(datetime.datetime(2020,1,1,0,0)))
