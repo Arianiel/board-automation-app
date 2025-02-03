@@ -7,6 +7,7 @@ from Tests.test_helpers import issue_entry, pull_request_entry, draft_issue_entr
     QlCommand, PiDefaultResponseValues
 from github_interactions.card_info import CardInfo
 from github_interactions.project_increment_information import ProjectIncrement
+from github_interactions.repo_information import RepoInfo
 
 url = 'https://api.github.com/graphql'
 
@@ -133,7 +134,6 @@ class TestCardInfo(TestCase):
         self.assertEqual(class_response.repo, None)
         self.assertEqual(class_response.name, "None")
     
-
 class TestProjectIncrement(TestCase):
     # Test 1: There's an X in the title
     @requests_mock.mock()
@@ -205,9 +205,16 @@ class TestProjectIncrement(TestCase):
         self.assertEqual(test_class.last_sprint, default_pi.last_sprint)        
     
 class TestRepoInfo(TestCase):
-    # TODO
-    # Figure out how to test this!
-    pass
+    @requests_mock.mock()
+    def test_repo_info(self,m):
+        repo_name = "repo_name"
+        expected_labels = {"label_1": "label_1_id", "label_2": "label_2_id", "label_3": "label_3_id"}
+        m.post(url, text=build_response(QlCommand.findRepoInfo, repo_name=repo_name, expected_labels=expected_labels),
+               status_code=200)
+        test_class = RepoInfo("Org", repo_name)
+        self.assertEqual(test_class.name, repo_name)
+        self.assertEqual(test_class.labels, expected_labels)
+
 
 class TestSprintInfo(TestCase):
     # TODO
