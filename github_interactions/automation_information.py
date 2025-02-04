@@ -58,6 +58,7 @@ class AutomationInfo:
         self.sprint_starts = None
         self.pi_starts = []
         self.update_projects()
+        
 
         # Get current and next sprint
         self.current_sprint = ""
@@ -84,10 +85,16 @@ class AutomationInfo:
 
     def set_previous_current_and_next_sprint(self):
         # Find the current sprint
+        current_sprint_index = None
+        
         for i in range(len(self.sprint_starts)-1):
             if self.sprint_starts[i] <= self.today <= self.sprint_starts[i+1]:
                 current_sprint_index = i
-
+        
+        if current_sprint_index is None:
+            pm_logger.info("No sprints found")
+            return
+        
         try:
             self.current_sprint = (self.sprint_by_class[self.sprint_starts[current_sprint_index].strftime("%Y_%m_%d")]
                                    .sprint_name)
