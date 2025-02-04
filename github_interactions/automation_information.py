@@ -158,16 +158,24 @@ class AutomationInfo:
                     self.pi_starts.append(self.available_program_increments[result_project["title"]].start_date)
 
         self.pi_starts.sort()
+        
+        #TODO
+        print("In the method")
+        print(self.available_program_increments)
+        print(self.pi_starts)
 
         # Find the appropriate project for this PI
-        # Set the values to the first entry in the dictionary as somewhere to start
         self.current_project = None
         self.next_project = None
-        # for program_increment in self.available_program_increments.keys():
-
+        
+        current_pi_index = None
+        
         for i in range(len(self.pi_starts) - 1):
             if self.pi_starts[i] <= self.today < self.pi_starts[i + 1]:
                 current_pi_index = i
+                
+        if current_pi_index is None:
+            return 
 
         for PI_value in self.available_program_increments.keys():
             print(f"{PI_value} starts on {self.available_program_increments[PI_value].start_date}")

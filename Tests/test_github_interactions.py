@@ -1,4 +1,5 @@
 import datetime
+import json
 from unittest import TestCase
 from unittest.mock import patch, PropertyMock
 
@@ -96,35 +97,40 @@ class TestAutomationInfo(TestCase):
             self.assertEqual(try_class.next_sprint, next_sprint.strftime("%Y_%m_%d"))
             self.assertEqual(try_class.previous_sprint, previous_sprint.strftime("%Y_%m_%d"))
     
-    def test_update_sprints(self):
-        # TODO
-        # Figure out how to test this!
-        pass
+    # Skipping the test below as there is nothing specific to test
+    # def test_update_sprints(self):
+
+    @requests_mock.mock()
+    @patch('github_interactions.automation_information.AutomationInfo.set_previous_current_and_next_sprint')
+    def test_update_projects(self, m, mock_set_prev_next):
+        m.post(url, text="Something", status_code=200)
+        with patch('github_interactions.automation_information.AutomationInfo.update_projects'):
+            try_class = AutomationInfo()
+        mock_set_prev_next.assert_called()
+        projects = [
+            {"title": "PI_2025_02", "id": "project_id", "number": 0, "template": False, "closed": False},
+            {"title": "Something Different"}
+        ]
+        test_response = {"data": {"organization": {"projectsV2": {"nodes": projects}}}}
+        m.post(url, text=json.dumps(test_response), status_code=200)
+        with patch('github_interactions.project_increment_information.ProjectIncrement'):
+            try_class.update_projects()
+            print("After the method")
+            print(try_class.available_program_increments)
+            print(try_class.pi_starts)
     
-    def test_update_projects(self):
-        # TODO
-        # Figure out how to test this!
-        pass
-    
-    def test_get_cards_snapshot(self):
-        # TODO
-        # Figure out how to test this!
-        pass
-    
-    def test_get_sprint_columns_snapshot_html(self):
-        # TODO
-        # Figure out how to test this!
-        pass
-    
-    def test_get_planning_priority_snapshot(self):
-        # TODO
-        # Figure out how to test this!
-        pass
-    
-    def test_move_tickets_to_next_sprint(self):
-        # TODO
-        # Figure out how to test this!
-        pass
+    # Skipping the test below as it is simply calling something else that is already tested
+    # def test_get_cards_snapshot(self):
+
+    # Skipping the test below as it is simply calling something else that is already tested
+    # def test_get_sprint_columns_snapshot_html(self):
+
+    # Skipping the test below as it is simply calling something else that is already tested
+    # def test_get_planning_priority_snapshot(self):
+
+    # Skipping the test below as it is simply calling something else that is already tested
+    # def test_move_tickets_to_next_sprint(self):
+
     
 class TestCardInfo(TestCase):
     # Test 1: Empty dict -> error
