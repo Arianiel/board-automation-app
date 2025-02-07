@@ -1,7 +1,7 @@
 import datetime
 import json
 from unittest import TestCase
-from unittest.mock import patch, PropertyMock
+from unittest.mock import patch, PropertyMock, Mock, MagicMock
 
 import requests_mock
 
@@ -100,24 +100,59 @@ class TestAutomationInfo(TestCase):
     # Skipping the test below as there is nothing specific to test
     # def test_update_sprints(self):
 
+    
+
     @requests_mock.mock()
     @patch('github_interactions.automation_information.AutomationInfo.set_previous_current_and_next_sprint')
     def test_update_projects(self, m, mock_set_prev_next):
+        # This class to mock the project increment will generate suitable and predictable data using the information passed when called
+        class MockPI:
+            def __init__(self, project_id: int = 0, number: int = 0, title: str = "None", org_name: str = ""):
+                self.number = number
+                self.title = title
+                self.org = org_name
+                self.project_id = project_id
+                self.sprint_by_class = None
+                self.start_date = datetime.datetime(year=int(self.title[3:7]), month=int(self.title[8:]),
+                                                      day=1)
+                self.all_sprint_starts = None
+        
+        # Create an instance with very little information and no calls to things which call the api
         m.post(url, text="Something", status_code=200)
         with patch('github_interactions.automation_information.AutomationInfo.update_projects'):
             try_class = AutomationInfo()
         mock_set_prev_next.assert_called()
+        
+        # Mock out Project Increment and the response for the organisations projects
         projects = [
-            {"title": "PI_2025_02", "id": "project_id", "number": 0, "template": False, "closed": False},
+            {"title": "PI_2025_02", "id": "project_id_2", "number": 2, "template": False, "closed": False},
+            {"title": "PI_2025_06", "id": "project_id_6", "number": 6, "template": False, "closed": False},
+            {"title": "PI_2025_08", "id": "project_id_8", "number": 8, "template": False, "closed": False},
             {"title": "Something Different"}
         ]
         test_response = {"data": {"organization": {"projectsV2": {"nodes": projects}}}}
+        today_to_use = datetime.datetime(year=2025, month=4, day=20)
         m.post(url, text=json.dumps(test_response), status_code=200)
-        with patch('github_interactions.project_increment_information.ProjectIncrement'):
+
+        with (patch("github_interactions.project_increment_information.ProjectIncrement", new=MockPI), 
+              patch.object(try_class, 'today', today_to_use)):
             try_class.update_projects()
-            print("After the method")
+            
+            # Assertions to add - may need new calls to update_projects!
+            # Available PIs as expected
+            # Available Starts as expected
+            # Current Sprint is correct
+            # Start month, in between months
+            # Next Sprint is correct
+            # Start month, in between months
+            # Today from before any PIs have started
+            # Project Number matches current project
+            print("^^^^^^^^^^^^^^^^^")
             print(try_class.available_program_increments)
+            for thing in try_class.available_program_increments:
+                print(try_class.available_program_increments[thing].start_date)
             print(try_class.pi_starts)
+            print(try_class.current_project)
     
     # Skipping the test below as it is simply calling something else that is already tested
     # def test_get_cards_snapshot(self):

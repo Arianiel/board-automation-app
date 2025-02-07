@@ -159,11 +159,6 @@ class AutomationInfo:
 
         self.pi_starts.sort()
         
-        #TODO
-        print("In the method")
-        print(self.available_program_increments)
-        print(self.pi_starts)
-
         # Find the appropriate project for this PI
         self.current_project = None
         self.next_project = None
@@ -178,7 +173,7 @@ class AutomationInfo:
             return 
 
         for PI_value in self.available_program_increments.keys():
-            print(f"{PI_value} starts on {self.available_program_increments[PI_value].start_date}")
+            # print(f"{PI_value} starts on {self.available_program_increments[PI_value].start_date}")
             if self.available_program_increments[PI_value].start_date == self.pi_starts[current_pi_index]:
                 self.current_project = PI_value
             if self.available_program_increments[PI_value].start_date == self.pi_starts[current_pi_index+1]:

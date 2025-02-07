@@ -280,63 +280,170 @@
 #
 # import graph_ql_interactions.graph_ql_functions as gql_queries
 # from github_interactions import card_info
+# #
+# # card_info_query = gql_queries.open_graph_ql_query_file("findCardInfo.txt")
+# # update_labels = gql_queries.open_graph_ql_query_file("UpdateItemLabel.txt")
+# # remove_label_mutation = gql_queries.open_graph_ql_query_file("RemoveLabel.txt")
+# # card_repo_query = gql_queries.open_graph_ql_query_file("findIssueRepo.txt")
+# # set_sprint_mutation = gql_queries.open_graph_ql_query_file("UpdateSprintForItemInProject.txt")
+# # set_points_mutation = gql_queries.open_graph_ql_query_file("UpdatePointsForItemInProject.txt")
+# #
+# #
+# # sprint_list_id_query = gql_queries.open_graph_ql_query_file("findProjectSprints.txt")
+# #
+# # response = gql_queries.run_query(
+# #     sprint_list_id_query.replace("<PROJ_NUM>", "6")
+# #     .replace("<ORG_NAME>", "Arianiel"))
+# #
+# # print(response)
+# #
+# # fields = response["data"]["organization"]["projectV2"]["fields"]["nodes"]
+# # print(fields)
 #
-# card_info_query = gql_queries.open_graph_ql_query_file("findCardInfo.txt")
-# update_labels = gql_queries.open_graph_ql_query_file("UpdateItemLabel.txt")
-# remove_label_mutation = gql_queries.open_graph_ql_query_file("RemoveLabel.txt")
-# card_repo_query = gql_queries.open_graph_ql_query_file("findIssueRepo.txt")
-# set_sprint_mutation = gql_queries.open_graph_ql_query_file("UpdateSprintForItemInProject.txt")
-# set_points_mutation = gql_queries.open_graph_ql_query_file("UpdatePointsForItemInProject.txt")
+# import unittest
+# import unittest.mock
+# from unittest import TestCase
 #
 #
-# sprint_list_id_query = gql_queries.open_graph_ql_query_file("findProjectSprints.txt")
+# class Test:
+#     def __init__(self):
+#         self.value = 1
+#         self.increment_value = 1
+#         self.text = "Some text"
 #
-# response = gql_queries.run_query(
-#     sprint_list_id_query.replace("<PROJ_NUM>", "6")
-#     .replace("<ORG_NAME>", "Arianiel"))
+#     def update_value(self):
+#         self.value += self.increment_value
 #
-# print(response)
+# from unittest.mock import patch, PropertyMock
 #
-# fields = response["data"]["organization"]["projectV2"]["fields"]["nodes"]
-# print(fields)
-
+# class MyClass:
+#     def __init__(self):
+#         self.attr = [1, 2, 3]
+#
+# test = MyClass()
+# with patch.object(test, "attr", new_callable=PropertyMock, return_value = [4, 5, 6]):
+#
+#   print(test.attr) # prints [4, 5, 6]
+#
+# print(test.attr) # prints [1, 2, 3]
+#
+# class MiscTest(TestCase):
+#     # def test(self):
+#     #     f = Test()
+#     #     with patch.object(f, 'text', 3):
+#     #         self.assertEqual(f.text, 3)
+#     #     with patch.object(f, 'increment_value', 2):
+#     #         print(f.value)
+#     #         print(f.update_value())
+#     #         print(f.value)
+#     #     print("Outside the with")
+#     #     print(f.value)
+#     #     print(f.update_value())
+#     #     print(f.value)
+#     #
 import unittest
-import unittest.mock
-from unittest import TestCase
+from unittest.mock import MagicMock, PropertyMock, Mock, patch
 
 
-class Test:
+# from datetime import datetime
+# from unittest.mock import Mock
+#
+# # Save a couple of test days
+# wednesday = datetime(year=2025, month=1, day=1)
+# sunday = datetime(year=2025, month=1, day=5)
+#
+# # Mock datetime to control today's date
+# datetime = Mock()
+#
+# def is_weekday():
+#     today = datetime.today()
+#     # Python's datetime library treats Monday as 0 and Sunday as 6
+#     return 0 <= today.weekday() < 5
+#
+# # Mock .today() to return Wednesday
+# datetime.today.return_value = wednesday
+# # Test Wednesday is a weekday
+# assert is_weekday()
+#
+# # Mock .today() to return Sunday
+# datetime.today.return_value = sunday
+# # Test Sunday is not a weekday
+# assert not is_weekday()
+
+
+# m = MagicMock()
+# no_attribute = PropertyMock(side_effect=AttributeError)
+# type(m).my_property = no_attribute
+# print(m.my_property)
+
+# class Foo:
+#     def __init__(self):
+#         self.something = "Something"
+# #
+# #     def method(self):
+# #         print("It's a method")
+# #
+# # def some_function():
+# #     instance = Foo()
+# #     return instance.method()
+# #
+# # with unittest.mock.patch('module.Foo') as mock:
+# #     instance = mock.return_value
+# #     instance.method.return_value = 'the result'
+# #     result = some_function()
+# #     assert result == 'the result'
+
+class CalledClass:
+    def __init__(self, name):
+        self.name = name
+        print(f"Init called, I am known as {self.name}")
+
+class CallingClass:
     def __init__(self):
-        self.value = 1
-        self.increment_value = 1
-        self.text = "Some text"
+        self.known_as = CalledClass("Initia")
 
-    def update_value(self):
-        self.value += self.increment_value
+    def update_known_as(self):
+        self.known_as = CalledClass("Updated")
 
-from unittest.mock import patch, PropertyMock
+test = CallingClass()
+#print(test.known_as.name)
+#print(test.known_as)
+test.update_known_as()
+#print(test.known_as.name)
+#print(test.known_as)
 
-class MyClass:
-    def __init__(self):
-        self.attr = [1, 2, 3]
+attempt = MagicMock()
+attempt_name = "Turtle"
+attempt.__getattr__("name").side_effect = attempt_name
 
-test = MyClass()
-with patch.object(test, "attr", new_callable=PropertyMock, return_value = [4, 5, 6]):
+print("*************************")
 
-  print(test.attr) # prints [4, 5, 6]
+class MockCalled:
+    def __init__(self, name):
+        print("%%%%%%%%%%%%%%%%%")
+        print(name)
+        self.name = "Mock"
+        
 
-print(test.attr) # prints [1, 2, 3]
+with unittest.mock.patch("__main__.CalledClass", new=MockCalled):
+    # MockCalled.side_effect = "Here?"
+    test.update_known_as()
+    print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
+    print(test.known_as.name)
+    # print(test.known_as)
 
-class MiscTest(TestCase):
-    def test(self):
-        f = Test()
-        with patch.object(f, 'text', 3):
-            self.assertEqual(f.text, 3)
-        with patch.object(f, 'increment_value', 2):
-            print(f.value)
-            print(f.update_value())
-            print(f.value)
-        print("Outside the with")
-        print(f.value)
-        print(f.update_value())
-        print(f.value)
+
+
+print("£££££££££££££££££££££££")
+
+m = MagicMock()
+d = {'key_1': 'value'}
+m.__getitem__.side_effect = d.__getitem__
+
+# dict behaviour
+print(m['key_1']) # => 'value'
+# print(m['key_2']) # => raise KeyError
+# 
+# # mock behaviour
+# m.foo(42)
+# m.foo.assert_called_once_with(43) # => raise AssertionError
