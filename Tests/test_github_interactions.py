@@ -124,36 +124,65 @@ class TestAutomationInfo(TestCase):
         mock_set_prev_next.assert_called()
         
         # Mock out Project Increment and the response for the organisations projects
-        projects = [
-            {"title": "PI_2025_02", "id": "project_id_2", "number": 2, "template": False, "closed": False},
-            {"title": "PI_2025_06", "id": "project_id_6", "number": 6, "template": False, "closed": False},
-            {"title": "PI_2025_08", "id": "project_id_8", "number": 8, "template": False, "closed": False},
-            {"title": "Something Different"}
+        test_year = 2025
+        pi_months = [2,4,6]
+        extra_projects = 1
+        
+        project_increments = []
+        projects = []
+        expected_start_dates = []
+
+        for month in pi_months:
+            project_increments.append(f"PI_{test_year}_{month:02d}")
+            projects.append({"title": f"PI_{test_year}_{month:02d}", "id": f"project_id_{month}", "number": month, "template": False,
+                             "closed": False})
+            expected_start_dates.append(datetime.datetime(year=test_year, month=month, day=1))
+        for ident in range(0, extra_projects):
+            projects.append({"title": f"Extra one number {ident}"})
+
+        expected_start_dates.sort()
+
+        test_values_for_current_next = [
+            {"test_month": 1, "proj_number": 0, "next_proj": 0},
+            {"test_month": 2, "proj_number": 2, "next_proj": 4},
+            {"test_month": 3, "proj_number": 2, "next_proj": 4},
+            {"test_month": 4, "proj_number": 4, "next_proj": 6},
+            {"test_month": 5, "proj_number": 4, "next_proj": 6},
         ]
+        
         test_response = {"data": {"organization": {"projectsV2": {"nodes": projects}}}}
-        today_to_use = datetime.datetime(year=2025, month=4, day=20)
         m.post(url, text=json.dumps(test_response), status_code=200)
 
-        with (patch("github_interactions.project_increment_information.ProjectIncrement", new=MockPI), 
-              patch.object(try_class, 'today', today_to_use)):
-            try_class.update_projects()
-            
-            # Assertions to add - may need new calls to update_projects!
-            # Available PIs as expected
-            # Available Starts as expected
-            # Current Sprint is correct
-            # Start month, in between months
-            # Next Sprint is correct
-            # Start month, in between months
-            # Today from before any PIs have started
-            # Project Number matches current project
-            print("^^^^^^^^^^^^^^^^^")
-            print(try_class.available_program_increments)
-            for thing in try_class.available_program_increments:
-                print(try_class.available_program_increments[thing].start_date)
-            print(try_class.pi_starts)
-            print(try_class.current_project)
-    
+        for test_values in test_values_for_current_next:
+            with (patch("github_interactions.project_increment_information.ProjectIncrement", new=MockPI), 
+                  patch.object(try_class, 'today', datetime.datetime(year=test_year, month=test_values["test_month"], day=1))):
+                try_class.update_projects()
+                
+                # Assertions to add - may need new calls to update_projects!
+                # Available PIs as expected
+                self.assertEqual(list(try_class.available_program_increments.keys()), project_increments)
+                
+                # Available Starts as expected
+                self.assertEqual(try_class.pi_starts, expected_start_dates)
+                
+                if test_values["proj_number"] == 0:
+                    expected_proj_number = ""
+                    expected_project = None
+                else:
+                    expected_proj_number = test_values["proj_number"]
+                    expected_project = f"PI_2025_{test_values['proj_number']:02d}"
+                    
+                if test_values['next_proj'] == 0:
+                    expected_next_proj_number = None
+                else:
+                    expected_next_proj_number = f"PI_2025_{test_values['next_proj']:02d}"
+                
+                # Current, Next, and Project Number are all correct
+                self.assertEqual(try_class.project_number, expected_proj_number)
+                self.assertEqual(try_class.current_project, expected_project)
+                self.assertEqual(try_class.next_project, expected_next_proj_number)
+                
+                    
     # Skipping the test below as it is simply calling something else that is already tested
     # def test_get_cards_snapshot(self):
 
