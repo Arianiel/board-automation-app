@@ -4,6 +4,7 @@ from unittest.mock import mock_open, patch
 import requests_mock
 from datetime import datetime
 import pandas as pd
+import pandas.testing as pd_testing
 
 
 from Tests.test_helpers import snapshot_name_to_status_lookup, build_response, QlCommand
@@ -86,19 +87,17 @@ class TestBurndown(TestCase):
                                   sprints=sprints)
         print("Test class was created ***************************************")
         today = datetime.strptime(datetime(year=2025, month=1, day=3).strftime("%Y-%m-%d"), "%Y-%m-%d")
-        data = [[today, 1, 2, 3, 4, 5]]
+        data = [["2025-01-01", 4, 5, 7, 6, 2], ["2025-01-02",2,4,7,7,8]]
         df = pd.DataFrame(data, columns=["Date", "Backlog", "In Progress", "Impeded", "Review", "Done"])
         file_content = """Date,Backlog,In Progress,Impeded,Review,Done\n2025-01-01,4,5,7,6,2\n2025-01-02,2,4,7,7,8"""
         open_mock = mock_open(read_data=file_content)
         # File not found error
-        with (patch.object(test_class, "burndown_csv", ""), patch("builtins.open", open_mock), 
-              patch("burndown_interactions.burndown.Burndown.add_csv_titles"), 
-              patch("burndown_interactions.burndown.Burndown.add_new_csv_line"), 
+        with (patch.object(test_class, "burndown_csv", ""), patch("builtins.open", open_mock),
+              patch("burndown_interactions.burndown.Burndown.add_csv_titles"),
+              patch("burndown_interactions.burndown.Burndown.add_new_csv_line"),
               patch("burndown_interactions.burndown.Burndown.update_display")):
-            print(test_class.get_data_frame())
-            # self.assertRaises(FileNotFoundError, test_class.get_data_frame())
-            # self.assertEqual(test_class.get_data_frame(), "")
-            
+            pd_testing.assert_frame_equal(test_class.get_data_frame(), df)
+
 
     def test_change_sprint(self):
         test_class = Burndown(org_name="", project_number="", current_sprint_name="", next_sprint_name="", sprints={})
