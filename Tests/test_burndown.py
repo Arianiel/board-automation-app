@@ -3,7 +3,8 @@ from unittest.mock import mock_open, patch
 
 import requests_mock
 from datetime import datetime
-from collections import Counter
+import pandas as pd
+
 
 from Tests.test_helpers import snapshot_name_to_status_lookup, build_response, QlCommand
 from burndown_interactions.burndown import Burndown
@@ -12,7 +13,7 @@ from burndown_interactions.burndown import Burndown
 class TestBurndown(TestCase):
     # Not writing the test below as this is a figure generation inbuilt to an imported library
     # def test_burndown_display(self):
-        
+
     def test_update_display(self):
         # TODO
         # Figure out how to test this!
@@ -46,9 +47,25 @@ class TestBurndown(TestCase):
         open_mock.return_value.write.assert_called_once_with("".join(alternative))
 
     def test_fill_csv_lines(self):
-        # TODO
-        # Figure out how to test this!
-        pass
+        # No missing days
+        test_class = Burndown(org_name="", project_number="", current_sprint_name="", next_sprint_name="", sprints={})
+        #fill_csv_lines(today: datetime, last_day_inner: datetime, data: pd.DataFrame)
+        test_year = 2025
+        test_month = 2
+        today_to_use = datetime(year=test_year, month=test_month, day=3)
+        last_entry_day_to_use = datetime(year=test_year, month=test_month, day=1)
+        data = [[last_entry_day_to_use, 1, 2, 3, 4, 5]]
+        df = pd.DataFrame(data, columns=["Date", "Backlog", "In Progress", "Impeded", "Review", "Done"])
+        entry_list = [(datetime(year=test_year, month=test_month, day=2)).strftime("%Y-%m-%d"), ",",
+                      str(df["Backlog"]), ",", str(df["In Progress"]), ",",
+                      str(df["Impeded"]), ",", str(df["Review"]), ",",
+                      str(df["Done"]), "\n"]
+        entry = "".join(entry_list)
+        open_mock = mock_open()
+        with patch("builtins.open", open_mock, create=True):
+            test_class.fill_csv_lines(today_to_use, last_entry_day_to_use, df)
+        open_mock.assert_called_with(test_class.burndown_csv, "a")
+        open_mock.return_value.write.assert_called_with(entry)
 
     def test_add_csv_titles(self):
         test_class = Burndown(org_name="", project_number="", current_sprint_name="", next_sprint_name="", sprints={})
