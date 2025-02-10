@@ -1,4 +1,7 @@
 from unittest import TestCase
+from unittest.mock import mock_open, patch
+
+from burndown_interactions.burndown import Burndown
 
 
 class TestBurndown(TestCase):
@@ -23,9 +26,13 @@ class TestBurndown(TestCase):
         pass
 
     def test_add_csv_titles(self):
-        # TODO
-        # Figure out how to test this!
-        pass
+        # Good place to start and mock out the file writing
+        test_class = Burndown(org_name="", project_number="", current_sprint_name="", next_sprint_name="", sprints={})
+        open_mock = mock_open()
+        with patch("builtins.open", open_mock, create=True):
+            test_class.add_csv_titles()
+        open_mock.assert_called_with(test_class.burndown_csv, "w")
+        open_mock.return_value.write.assert_called_once_with(test_class.csv_headings)
 
     def test_get_data_frame(self):
         # TODO

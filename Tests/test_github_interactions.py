@@ -100,8 +100,6 @@ class TestAutomationInfo(TestCase):
     # Skipping the test below as there is nothing specific to test
     # def test_update_sprints(self):
 
-    
-
     @requests_mock.mock()
     @patch('github_interactions.automation_information.AutomationInfo.set_previous_current_and_next_sprint')
     def test_update_projects(self, m, mock_set_prev_next):
