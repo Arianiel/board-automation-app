@@ -6,8 +6,7 @@ from datetime import datetime
 import pandas as pd
 import pandas.testing as pd_testing
 
-
-from Tests.test_helpers import snapshot_name_to_status_lookup, build_response, QlCommand
+from Tests.test_helpers import build_response, QlCommand
 from burndown_interactions.burndown import Burndown
 from github_interactions.sprint_information import SprintInfo
 
@@ -16,10 +15,8 @@ class TestBurndown(TestCase):
     # Not writing the test below as this is a figure generation inbuilt to an imported library
     # def test_burndown_display(self):
 
-    def test_update_display(self):
-        # TODO
-        # Figure out how to test this!
-        pass
+    # Given the complexity of building a figure, at present this will not be tested explicitly
+    # def test_update_display(self):
 
     @requests_mock.mock()
     def test_add_new_csv_line(self, m):
@@ -85,13 +82,10 @@ class TestBurndown(TestCase):
         with patch("burndown_interactions.burndown.Burndown.update_display"):
             test_class = Burndown(org_name="", project_number="", current_sprint_name="2025_01_01", next_sprint_name="2025_02_01",
                                   sprints=sprints)
-        print("Test class was created ***************************************")
-        today = datetime.strptime(datetime(year=2025, month=1, day=3).strftime("%Y-%m-%d"), "%Y-%m-%d")
         data = [["2025-01-01", 4, 5, 7, 6, 2], ["2025-01-02",2,4,7,7,8]]
         df = pd.DataFrame(data, columns=["Date", "Backlog", "In Progress", "Impeded", "Review", "Done"])
         file_content = """Date,Backlog,In Progress,Impeded,Review,Done\n2025-01-01,4,5,7,6,2\n2025-01-02,2,4,7,7,8"""
         open_mock = mock_open(read_data=file_content)
-        # File not found error
         with (patch.object(test_class, "burndown_csv", ""), patch("builtins.open", open_mock),
               patch("burndown_interactions.burndown.Burndown.add_csv_titles"),
               patch("burndown_interactions.burndown.Burndown.add_new_csv_line"),
