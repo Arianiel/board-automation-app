@@ -265,6 +265,22 @@ class TestCardInfo(TestCase):
         self.assertEqual(class_response.repo, None)
         self.assertEqual(class_response.name, "None")
 
+    # Test 6: Multiple points labels
+    def test_number_of_points_labels(self):
+        card_ident = 6
+        repo_name = "Repo"
+        expected_labels = {"1": "label_1_id", "2": "label_2_id"}
+        sprint = "Sprint"
+        status = "Status"
+        points = 2
+        priority = "Medium"
+        provided_fields = {"Points": points, "Planning Priority": priority, "Status": status, "Sprint": sprint}
+        class_response = CardInfo(
+            issue_entry(ident=card_ident, labels=expected_labels, fields=provided_fields, repo_name=repo_name))
+        self.assertEqual(class_response.problem_identified, True)
+        self.assertEqual(class_response.problem_text, f"Multiple Points labels found for issue {card_ident} in {repo_name}")
+
+
 class TestProjectIncrement(TestCase):
     # Test 1: There's an X in the title
     @requests_mock.mock()

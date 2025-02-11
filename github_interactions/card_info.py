@@ -47,6 +47,16 @@ class CardInfo:
                         pass
             except KeyError:
                 pass
+        self.problem_identified = False
+        self.problem_text = ""
+        points_label_count = 0
+        for label in self.labels:
+            if label.isdigit():
+                points_label_count += 1
+        if points_label_count > 1:
+            self.problem_identified = True
+            self.problem_text = f"Multiple Points labels found for issue {self.number} in {self.repo}"
+
 
     def __str__(self):
         return self.name
