@@ -280,6 +280,53 @@ class TestCardInfo(TestCase):
         self.assertEqual(class_response.problem_identified, True)
         self.assertEqual(class_response.problem_text, f"Multiple Points labels found for issue {card_ident} in {repo_name}")
 
+    # Test 7: No points labels
+    def test_no_points_labels(self):
+        card_ident = 7
+        repo_name = "Repo"
+        expected_labels = {"label_1": "label_1_id", "label_2": "label_2_id"}
+        sprint = "Sprint"
+        status = "Status"
+        points = 2
+        priority = "Medium"
+        provided_fields = {"Points": points, "Planning Priority": priority, "Status": status, "Sprint": sprint}
+        class_response = CardInfo(
+            issue_entry(ident=card_ident, labels=expected_labels, fields=provided_fields, repo_name=repo_name))
+        self.assertEqual(class_response.problem_identified, True)
+        self.assertEqual(class_response.problem_text,
+                         f"No Points labels found for issue {card_ident} in {repo_name}")
+
+    # Test 8: No points labels
+    @patch('configparser.ConfigParser.__getitem__', return_value={"no_points_labels": "no_points_labels_allowed", "zero_points_labels": "zero_points_labels_allowed"})
+    def test_no_points_labels_permitted(self, config_parser):
+        card_ident = 8
+        repo_name = "Repo"
+        expected_labels = {"label_1": "label_1_id", "label_2": "label_2_id", "no_points_labels_allowed": "no_points_labels_allowed"}
+        sprint = "Sprint"
+        status = "Status"
+        points = 0
+        priority = "Medium"
+        provided_fields = {"Points": points, "Planning Priority": priority, "Status": status, "Sprint": sprint}
+        class_response = CardInfo(
+            issue_entry(ident=card_ident, labels=expected_labels, fields=provided_fields, repo_name=repo_name))
+        self.assertEqual(class_response.problem_identified, False)
+
+    # Test 8: No points labels
+    @patch('configparser.ConfigParser.__getitem__', return_value={"no_points_labels": "no_points_labels_allowed", "zero_points_labels": "zero_points_labels_allowed"})
+    def test_zero_points_labels_permitted(self, config_parser):
+        card_ident = 8
+        repo_name = "Repo"
+        expected_labels = {"0": "0_point_label_id", "label_2": "label_2_id", "zero_points_labels_allowed": "zero_points_labels_allowed"}
+        sprint = "Sprint"
+        status = "Status"
+        points = 0
+        priority = "Medium"
+        provided_fields = {"Points": points, "Planning Priority": priority, "Status": status, "Sprint": sprint}
+        class_response = CardInfo(
+            issue_entry(ident=card_ident, labels=expected_labels, fields=provided_fields, repo_name=repo_name))
+        self.assertEqual(class_response.problem_identified, False)
+
+
 
 class TestProjectIncrement(TestCase):
     # Test 1: There's an X in the title
