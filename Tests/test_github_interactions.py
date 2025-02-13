@@ -278,7 +278,7 @@ class TestCardInfo(TestCase):
         class_response = CardInfo(
             issue_entry(ident=card_ident, labels=expected_labels, fields=provided_fields, repo_name=repo_name))
         self.assertEqual(class_response.problem_identified, True)
-        self.assertEqual(class_response.problem_text, f"Multiple Points labels found for issue {card_ident} in {repo_name}")
+        self.assertEqual(class_response.problem_text, [f"Multiple Points labels found for issue {card_ident} in {repo_name}"])
 
     # Test 7: No points labels
     def test_no_points_labels(self):
@@ -294,7 +294,7 @@ class TestCardInfo(TestCase):
             issue_entry(ident=card_ident, labels=expected_labels, fields=provided_fields, repo_name=repo_name))
         self.assertEqual(class_response.problem_identified, True)
         self.assertEqual(class_response.problem_text,
-                         f"No Points labels found for issue {card_ident} in {repo_name}")
+                         [f"No Points labels found for issue {card_ident} in {repo_name}"])
 
     # Test 8: No points labels
     @patch('configparser.ConfigParser.__getitem__', return_value={"no_points_labels": "no_points_labels_allowed", "zero_points_labels": "zero_points_labels_allowed"})
@@ -312,6 +312,7 @@ class TestCardInfo(TestCase):
         self.assertEqual(class_response.problem_identified, False)
 
     # Test 8: No points labels
+    # Note Config Parser is a patch, so is not used directly but is needed in the called section
     @patch('configparser.ConfigParser.__getitem__', return_value={"no_points_labels": "no_points_labels_allowed", "zero_points_labels": "zero_points_labels_allowed"})
     def test_zero_points_labels_permitted(self, config_parser):
         card_ident = 8
@@ -325,8 +326,25 @@ class TestCardInfo(TestCase):
         class_response = CardInfo(
             issue_entry(ident=card_ident, labels=expected_labels, fields=provided_fields, repo_name=repo_name))
         self.assertEqual(class_response.problem_identified, False)
-
-
+        
+    # Test 9: Check Freshness, ticket should error on the status value
+    # Note Config Parser is a patch, so is not used directly but is needed in the called section
+    @patch('configparser.ConfigParser.__getitem__', return_value={"comment_errors": "Comment: 28", 
+                                                                  "status_warnings": "Status Warn: 7", 
+                                                                  "status_errors": "Status Error: 28"})
+    @patch('github_interactions.card_info.CardInfo.verify_pointing_correct')
+    def test_stale_status_error(self, pointing, config_parser):
+        card_ident = 9
+        repo_name = "Repo"
+        expected_labels = {"Status Error": "Status Error ID"}
+        sprint = "Sprint"
+        status = "Status Error"
+        points = 0
+        priority = "Medium"
+        provided_fields = {"Points": points, "Planning Priority": priority, "Status": status, "Sprint": sprint}
+        class_response = CardInfo(
+            issue_entry(ident=card_ident, labels=expected_labels, fields=provided_fields, repo_name=repo_name))
+        class_response.check_if_stale()
 
 class TestProjectIncrement(TestCase):
     # Test 1: There's an X in the title

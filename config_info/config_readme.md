@@ -28,7 +28,48 @@ This section covers the interaction with GitHub for graphQL.
 This section is the values to use for linking the web server to the web
 
 ### host
-This is the IP address to use as the host for this website, this will likely map to a web address elsewhere
+This is the IP address to use as the host for this website, this will likely map to a web address 
+elsewhere
 
 ### port
 This is the port that is open to the web on the computer it is installed on
+
+## SETTINGS Section
+
+### log_level
+This is a value to decide how much information should be included in the log.<br>
+All errors will be logged, no matter this value.<br>
+If this is set to `developer` all messages are logged, and printed to stdout as well.<br>
+If it is set to `all` then informational and debug messages will also be logged.
+If it is set to `debug`, or to `info` then only the messages with that same value will be logged 
+alongside the errors.
+
+## BOARD.CHECKS Section
+
+### zero_points_labels
+It is usual for tickets in sprint boards to require points to gauge both the complexity and effort 
+involved. This should be a comma separated list of labels which can be applied to tickets that
+would mean they can have a 0 point label. An example entry could be: `Zero Points Allowed, 0 Allowed`
+
+### no_points_labels
+It is usual for tickets in sprint boards to require points to gauge both the complexity and effort 
+involved. This should be a comma separated list of labels which can be applied to tickets that
+would mean they can have no point labels applied. An example entry could be:
+`No Points Necessary, Duplicate, Wontfix`
+
+## STALE.SETTINGS
+
+### comment_errors
+This is a list of statuses in use in the project, and a number which indicates the number of 
+days since a comment was added after which it can be considered stale. These should be of the
+following format: `Status: n, Status: n`
+
+### status_warnings
+This is a list of statuses in use in the project, and a number which indicates the number of 
+days since the status was set after which it can be considered  to be turning stale. These should 
+be of the following format: `Status: n, Status: n`
+
+### status_errors
+This is a list of statuses in use in the project, and a number which indicates the number of 
+days since the status was set after which it can be considered stale. These should be of the
+following format: `Status: n, Status: n`
