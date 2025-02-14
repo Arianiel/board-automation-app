@@ -1,5 +1,8 @@
 import configparser
 import os
+from datetime import datetime
+
+import graph_ql_interactions.card_interactions as cards
 
 config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), "..", "config_info", "config.ini"))
@@ -107,9 +110,16 @@ class CardInfo:
         # Based on self.status and intersections with the settings returned do the stale checks
         problem_text = None
         if self.status in comment_errors.keys():
-            print("This would be a comment error check")
+            self.check_if_last_comment_stale(comment_errors[self.status])
         elif self.status in status_errors.keys():
             print("This would be a status error check.")
         elif self.status in status_warnings.keys():
             print("This would be a status warning check.")
         pass
+    
+    def check_if_last_comment_stale(self, duration):
+        last_comment = datetime.strptime(cards.get_when_last_commented_created_on_issue(self.id), "%Y-%m-%dT%H:%M:%SZ")
+        today = datetime.today()
+        if (today - last_comment).days >= int(duration):
+            self.problem_identified = True
+            self.problem_text.append(f"Issue {self.number} in {self.status} last had a comment added more than 28 days ago.")

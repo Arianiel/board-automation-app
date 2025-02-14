@@ -66,8 +66,8 @@ def field_options(expected_options: {}):
         options.append({"name": entry, "id": expected_options[entry]})
     return options
 
-def issue_entry(ident: int, labels: {}, fields: {}, repo_name: str):
-    issue = {"id": f"node_{ident}", "type": "ISSUE", "content": {"id": f"issue_{ident}",
+def issue_entry(ident: int, content_id: str, labels: {}, fields: {}, repo_name: str):
+    issue = {"id": f"node_{ident}", "type": "ISSUE", "content": {"id": content_id,
                                                                  "number": ident,
                                                                  "labels": {"nodes": labels_list(labels)},
                                                                  "repository": {"name": repo_name}},
@@ -93,7 +93,7 @@ def build_cards_simple(number_of_issues: int=1, number_of_drafts: int=1, labels=
         labels = {"label_1": "label_1_id"}
     issues = []
     for index in range(0, number_of_issues):
-        issues.append(issue_entry(index + 1, labels, statuses, repo_name))
+        issues.append(issue_entry(index + 1, f"issue_{index + 1}", labels, statuses, repo_name))
     for index in range(number_of_issues + 1, number_of_drafts):
         issues.append(draft_issue_entry(index + 1, statuses))
     return build_response_contents(issues)
@@ -142,7 +142,7 @@ def build_points_snapshot_cards(expected_snapshot: {}, sprint_name: str= "sprint
             labels = {entry: f"{entry}_label_id"}
             if entry == "rework":
                 labels["rework"] = "rework_label_id"
-            issues.append(issue_entry(outer_index + index, labels, fields, "repo_name"))
+            issues.append(issue_entry(outer_index + index, f"issue_{outer_index + index}", labels, fields, "repo_name"))
     return build_response_contents(issues)
 
 def build_card_list_snapshot(expected_snapshot: {}, sprint_name: str= "sprint"):
@@ -155,7 +155,7 @@ def build_card_list_snapshot(expected_snapshot: {}, sprint_name: str= "sprint"):
             labels = {entry: f"{entry}_label_id"}
             if item in expected_snapshot["rework"]:
                 labels["rework"] = "rework_label_id"
-            issues.append(issue_entry(item["number"], labels, fields, item["repo"]))
+            issues.append(issue_entry(item["number"], f"issue_{item["number"]}", labels, fields, item["repo"]))
     return build_response_contents(issues)
 
 def build_planning_list_snapshot(expected_snapshot: {}, sprint_name: str= "sprint"):
@@ -163,7 +163,7 @@ def build_planning_list_snapshot(expected_snapshot: {}, sprint_name: str= "sprin
     for entry in expected_snapshot.keys():
         for item in expected_snapshot[entry]:
             fields = {"Planning Priority": priority_lookup(entry), "Sprint": sprint_name}
-            issues.append(issue_entry(item["number"], {}, fields, item["repo"]))
+            issues.append(issue_entry(item["number"], f"issue_{item["number"]}", {}, fields, item["repo"]))
     return build_response_contents(issues)
 
 def build_pi_statuses(status_field_id: str, statuses: {}, sprint_field_id: str, sprints: {}, points_field_id: str):

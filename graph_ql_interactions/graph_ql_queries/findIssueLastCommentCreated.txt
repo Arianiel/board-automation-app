@@ -1,0 +1,13 @@
+query findIssueRepo {
+  node(id: "<ISSUE>") {
+    ... on Issue {
+      number
+      id
+      comments (last: 1){
+        nodes {
+          createdAt
+        }
+      }
+    }
+  }
+}

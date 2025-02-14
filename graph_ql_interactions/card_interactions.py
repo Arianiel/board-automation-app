@@ -9,6 +9,7 @@ remove_label_mutation = gql_queries.open_graph_ql_query_file("RemoveLabel.txt")
 card_repo_query = gql_queries.open_graph_ql_query_file("findIssueRepo.txt")
 set_sprint_mutation = gql_queries.open_graph_ql_query_file("UpdateSprintForItemInProject.txt")
 set_points_mutation = gql_queries.open_graph_ql_query_file("UpdatePointsForItemInProject.txt")
+get_last_comment_datetime = gql_queries.open_graph_ql_query_file("findIssueLastCommentCreated.txt")
 
 
 def get_cards_in_project(org_name: str = "", project_number: str = ""):
@@ -17,6 +18,8 @@ def get_cards_in_project(org_name: str = "", project_number: str = ""):
                                    replace("<ORG_NAME>", org_name).
                                    replace("<PROJ_NUM>", str(project_number)).
                                    replace("<AFTER>", "null"))
+    # TODO
+    print(result)
     has_next_page = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["hasNextPage"]
     cards_in_project = []
     for node in result["data"]["organization"]["projectV2"]["items"]["nodes"]:
@@ -165,6 +168,14 @@ def remove_label(issue_id: str, label_id_to_remove: str):
 
 def get_repo_for_issue(issue_id: str):
     return gql_queries.run_query(card_repo_query.replace("<ISSUE>", issue_id))["data"]["node"]["repository"]["name"]
+
+
+def get_when_last_commented_created_on_issue(issue_id: str):
+    try:
+        last_comment_datetime = gql_queries.run_query(get_last_comment_datetime.replace("<ISSUE>", issue_id))["data"]["node"]["comments"]["nodes"][0]["createdAt"]
+    except TypeError:
+        last_comment_datetime = "today"
+    return last_comment_datetime
 
 
 def set_sprint(item_id: str, sprint_field_id: str, sprint_to_use: str, project_id: str):

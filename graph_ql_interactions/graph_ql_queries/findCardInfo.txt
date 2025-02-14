@@ -11,7 +11,7 @@ query findCardInfo {
                                 ... on Issue {
                                     id
                                     number
-                                    labels (first: 20){
+                                    labels (first: 50){
                                         nodes {
                                             name
                                         }
