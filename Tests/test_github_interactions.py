@@ -334,7 +334,7 @@ class TestCardInfo(TestCase):
                                                                   "status_warnings": "Status Warn: 7", 
                                                                   "status_errors": "Status Error: 28"})
     @patch('github_interactions.card_info.CardInfo.verify_pointing_correct')
-    def test_stale_status_error(self, m, pointing, config_parser):
+    def test_stale_comment_error(self, m, pointing, config_parser):
         card_ident = 10
         content_id = f"issue_{card_ident}"
         repo_name = "Repo"
@@ -361,7 +361,29 @@ class TestCardInfo(TestCase):
         class_response.check_if_stale()
         self.assertEqual(class_response.problem_identified, True)
         self.assertTrue(f"Issue {card_ident} in {status} last had a comment added more than 28 days ago." in class_response.problem_text)
-        
+    
+    # Test 11: Check Freshness by label added date
+    def test_stale_label_error(self):
+        card_ident = 11
+        content_id = f"issue_{card_ident}"
+        repo_name = "Repo"
+        expected_labels = {"Status Error": "Status Error ID"}
+        sprint = "Sprint"
+        status = "Comment"
+        points = 0
+        priority = "Medium"
+        label = "Old"
+        provided_fields = {"Points": points, "Planning Priority": priority, "Status": status,
+                           "Sprint": sprint}
+        class_response = CardInfo(
+            issue_entry(ident=card_ident, content_id=content_id, labels=expected_labels,
+                        fields=provided_fields, repo_name=repo_name))
+        class_response.check_if_stale()
+        self.assertEqual(class_response.problem_identified, True)
+        self.assertTrue(
+            f"Issue {card_ident} had {label} added more than 28 days ago." in class_response.problem_text)
+        # TODO
+        # The tests here need to be for no issues, in warning, and in error
 
 class TestProjectIncrement(TestCase):
     # Test 1: There's an X in the title
