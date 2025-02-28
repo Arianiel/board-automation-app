@@ -450,7 +450,12 @@
 
 
 from graph_ql_interactions.card_interactions import *
+#print(get_cards_in_project("Arianiel", "6"))
 
-print(get_cards_in_project("Arianiel", "6"))
+#print(get_when_last_commented_created_on_issue("I_kwDOMZjARM6cd1rv"))
 
-print(get_when_last_commented_created_on_issue("I_kwDOMZjARM6cd1rv"))
+import graph_ql_interactions.graph_ql_functions as gql_queries
+query = gql_queries.open_graph_ql_query_file("findIssueLabelsAdded.txt")
+last_comment_datetime = gql_queries.run_query(query.replace("<ISSUE>", "I_kwDOMZjARM6cd1rv"))
+print(last_comment_datetime)
+
