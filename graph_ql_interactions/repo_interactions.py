@@ -5,10 +5,11 @@ repo_info_query = gql_queries.open_graph_ql_query_file("findRepoInfo.txt")
 
 
 def get_label_id(org_name: str = "", repo_name: str = "", label_name: str = ""):
-    result = gql_queries.run_query(repo_label_id_query.
-                                   replace("<ORG_NAME>", org_name).
-                                   replace("<REPO>", repo_name).
-                                   replace("<LABEL_NAME>", label_name))
+    result = gql_queries.run_query(
+        repo_label_id_query.replace("<ORG_NAME>", org_name)
+        .replace("<REPO>", repo_name)
+        .replace("<LABEL_NAME>", label_name)
+    )
     try:
         label_id = result["data"]["repository"]["label"]["id"]
     except TypeError:
@@ -19,7 +20,9 @@ def get_label_id(org_name: str = "", repo_name: str = "", label_name: str = ""):
 def get_repo_labels(org_name: str = "", repo_name: str = ""):
     labels = {}
     repos_query = gql_queries.open_graph_ql_query_file("findRepoInfo.txt")
-    result = gql_queries.run_query(repos_query.replace("<ORG_NAME>", org_name).replace("<REPO>", repo_name))
+    result = gql_queries.run_query(
+        repos_query.replace("<ORG_NAME>", org_name).replace("<REPO>", repo_name)
+    )
     for entry in result["data"]["repository"]["labels"]["nodes"]:
         labels[entry["name"]] = entry["id"]
     return labels

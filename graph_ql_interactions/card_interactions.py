@@ -14,10 +14,11 @@ get_last_comment_datetime = gql_queries.open_graph_ql_query_file("findIssueLastC
 
 def get_cards_in_project(org_name: str = "", project_number: str = ""):
     # Note that there should always be at least one page so the pagination is added afterwards
-    result = gql_queries.run_query(card_info_query.
-                                   replace("<ORG_NAME>", org_name).
-                                   replace("<PROJ_NUM>", str(project_number)).
-                                   replace("<AFTER>", "null"))
+    result = gql_queries.run_query(
+        card_info_query.replace("<ORG_NAME>", org_name)
+        .replace("<PROJ_NUM>", str(project_number))
+        .replace("<AFTER>", "null")
+    )
     # TODO
     print(result)
     has_next_page = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["hasNextPage"]
@@ -27,18 +28,23 @@ def get_cards_in_project(org_name: str = "", project_number: str = ""):
     # Add items from any further pages
     while has_next_page:
         end_cursor = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["endCursor"]
-        result = gql_queries.run_query(card_info_query.
-                                       replace("<ORG_NAME>", org_name).
-                                       replace("<PROJ_NUM>", str(project_number)).
-                                       replace("<AFTER>", "\"" + end_cursor + "\""))
-        has_next_page = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["hasNextPage"]
+        result = gql_queries.run_query(
+            card_info_query.replace("<ORG_NAME>", org_name)
+            .replace("<PROJ_NUM>", str(project_number))
+            .replace("<AFTER>", '"' + end_cursor + '"')
+        )
+        has_next_page = result["data"]["organization"]["projectV2"]["items"]["pageInfo"][
+            "hasNextPage"
+        ]
         for node in result["data"]["organization"]["projectV2"]["items"]["nodes"]:
             cards_in_project.append(card_info.CardInfo(node))
 
     return cards_in_project
 
 
-def get_cards_and_points_snapshot_for_sprint(org_name: str = "", project_number: str = "", sprint: str = ""):
+def get_cards_and_points_snapshot_for_sprint(
+    org_name: str = "", project_number: str = "", sprint: str = ""
+):
     cards_in_project = get_cards_in_project(org_name=org_name, project_number=project_number)
     snapshot = {
         "ready": {"count": 0, "points": 0},
@@ -76,7 +82,9 @@ def get_cards_and_points_snapshot_for_sprint(org_name: str = "", project_number:
     return snapshot
 
 
-def get_card_list_snapshot_for_sprint(org_name: str = "", project_number: str = "", sprint: str = ""):
+def get_card_list_snapshot_for_sprint(
+    org_name: str = "", project_number: str = "", sprint: str = ""
+):
     cards_in_project = get_cards_in_project(org_name=org_name, project_number=project_number)
     snapshot = {
         "ready": [],
@@ -154,39 +162,55 @@ def get_card_issue_ids_in_sprint(org_name: str = "", project_number: str = "", s
 
 
 def add_label(issue_id: str, label_id_to_add: str):
-    gql_queries.run_query(update_labels.replace("<ISSUE>", issue_id).replace("<LABEL_ID>", label_id_to_add))
+    gql_queries.run_query(
+        update_labels.replace("<ISSUE>", issue_id).replace("<LABEL_ID>", label_id_to_add)
+    )
 
 
 def remove_label(issue_id: str, label_id_to_remove: str):
     if label_id_to_remove == "NONE_NONE":
         print("NONE_NONE Found")
-        # This magic string should be removed, but not all repos on a board necessarily have the labels being looked
-        # for, this is a default until those checks are in place
+        # This magic string should be removed, but not all repos on a board necessarily
+        # have the labels being looked for, this is a default until those checks are in place
         return
-    gql_queries.run_query(remove_label_mutation.replace("<ISSUE>", issue_id).replace("<LABEL_ID>", label_id_to_remove))
+    gql_queries.run_query(
+        remove_label_mutation.replace("<ISSUE>", issue_id).replace("<LABEL_ID>", label_id_to_remove)
+    )
 
 
 def get_repo_for_issue(issue_id: str):
-    return gql_queries.run_query(card_repo_query.replace("<ISSUE>", issue_id))["data"]["node"]["repository"]["name"]
+    return gql_queries.run_query(card_repo_query.replace("<ISSUE>", issue_id))["data"]["node"][
+        "repository"
+    ]["name"]
 
 
 def get_when_last_commented_created_on_issue(issue_id: str):
     try:
-        last_comment_datetime = gql_queries.run_query(get_last_comment_datetime.replace("<ISSUE>", issue_id))["data"]["node"]["comments"]["nodes"][0]["createdAt"]
+        last_comment_datetime = gql_queries.run_query(
+            get_last_comment_datetime.replace("<ISSUE>", issue_id)
+        )["data"]["node"]["comments"]["nodes"][0]["createdAt"]
     except TypeError:
         last_comment_datetime = "today"
     return last_comment_datetime
 
 
 def set_sprint(item_id: str, sprint_field_id: str, sprint_to_use: str, project_id: str):
-    gql_queries.run_query(set_sprint_mutation.replace("<ITEM_ID>", item_id)
-                          .replace("<SPRINT_FIELD_ID>", sprint_field_id)
-                          .replace("<SPRINT_ID>", sprint_to_use)
-                          .replace("<PROJ_ID>", project_id))
+    gql_queries.run_query(
+        set_sprint_mutation.replace("<ITEM_ID>", item_id)
+        .replace("<SPRINT_FIELD_ID>", sprint_field_id)
+        .replace("<SPRINT_ID>", sprint_to_use)
+        .replace("<PROJ_ID>", project_id)
+    )
 
 
-def update_sprint_for_all_open_cards(org_name: str, project_number: str, current_sprint: str, next_sprint: str, 
-                                     sprint_field_id: str, project_id: str):
+def update_sprint_for_all_open_cards(
+    org_name: str,
+    project_number: str,
+    current_sprint: str,
+    next_sprint: str,
+    sprint_field_id: str,
+    project_id: str,
+):
     cards_in_project = get_cards_in_project(org_name=org_name, project_number=project_number)
     for card in cards_in_project:
         if card.sprint == current_sprint:
@@ -206,11 +230,15 @@ def update_sprint_for_all_open_cards(org_name: str, project_number: str, current
 
 
 def set_points(item_id: str, points_field_id: str, points: str, project_id: str):
-    print(set_points_mutation.replace("<ITEM_ID>", item_id)
-          .replace("<POINTS_FIELD_ID>", points_field_id)
-          .replace("<POINTS>", points)
-          .replace("<PROJ_ID>", project_id))
-    gql_queries.run_query(set_points_mutation.replace("<ITEM_ID>", item_id)
-                          .replace("<POINTS_FIELD_ID>", points_field_id)
-                          .replace("<POINTS>", points)
-                          .replace("<PROJ_ID>", project_id))
+    print(
+        set_points_mutation.replace("<ITEM_ID>", item_id)
+        .replace("<POINTS_FIELD_ID>", points_field_id)
+        .replace("<POINTS>", points)
+        .replace("<PROJ_ID>", project_id)
+    )
+    gql_queries.run_query(
+        set_points_mutation.replace("<ITEM_ID>", item_id)
+        .replace("<POINTS_FIELD_ID>", points_field_id)
+        .replace("<POINTS>", points)
+        .replace("<PROJ_ID>", project_id)
+    )
