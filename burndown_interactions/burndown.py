@@ -1,11 +1,13 @@
-import os
+from datetime import datetime, timedelta
 import logging
+import os
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+
 import graph_ql_interactions.card_interactions as cards
 
-from datetime import datetime, timedelta
 
 pm_logger = logging.getLogger("board_automation")
 
