@@ -160,9 +160,7 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
-/Sandbox_Dev_Code/token
 /config_info/config.ini
-/Sandbox_Dev_Code/burndown-points.html
 /burndown_interactions/burndown-points.csv
 /log/.
-/Sandbox_Dev_Code/
+/sandbox.py
