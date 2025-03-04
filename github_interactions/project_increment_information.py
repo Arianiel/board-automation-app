@@ -5,7 +5,9 @@ import datetime
 
 
 class ProjectIncrement:
-    def __init__(self, project_id: int = 0, number: int = 0, title: str = "None", org_name: str = ""):
+    def __init__(
+        self, project_id: int = 0, number: int = 0, title: str = "None", org_name: str = ""
+    ):
         self.project_id = project_id
         self.number = number
         self.title = title
@@ -17,8 +19,8 @@ class ProjectIncrement:
         else:
             try:
                 offset = re.compile("\d\d\d\d_\d\d").search(title).span()[0]
-                self.year = title[offset:offset + 4]
-                self.month = title[offset + 5:offset + 7]
+                self.year = title[offset : offset + 4]
+                self.month = title[offset + 5 : offset + 7]
             except AttributeError:
                 self.title = title + " is not a Program Increment"
                 self.year = "2000"
@@ -47,8 +49,10 @@ class ProjectIncrement:
         sprint_list_id_query = gql_queries.open_graph_ql_query_file("findProjectSprints.txt")
 
         fields = gql_queries.run_query(
-            sprint_list_id_query.replace("<PROJ_NUM>", str(self.number))
-            .replace("<ORG_NAME>", self.org_name))["data"]["organization"]["projectV2"]["fields"]["nodes"]
+            sprint_list_id_query.replace("<PROJ_NUM>", str(self.number)).replace(
+                "<ORG_NAME>", self.org_name
+            )
+        )["data"]["organization"]["projectV2"]["fields"]["nodes"]
         # Get sprint list
         for field in fields:
             match field["name"]:
@@ -57,7 +61,9 @@ class ProjectIncrement:
                     for option in field["options"]:
                         self.sprint_ids[option["name"]] = option["id"]
                         self.sprint_by_class[option["name"]] = SprintInfo(option)
-                        self.all_sprint_starts.append(self.sprint_by_class[option["name"]].sprint_start_date)
+                        self.all_sprint_starts.append(
+                            self.sprint_by_class[option["name"]].sprint_start_date
+                        )
                 case "Status":
                     self.status_field_id = field["id"]
                     for option in field["options"]:
