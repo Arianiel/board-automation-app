@@ -1,16 +1,16 @@
-import graph_ql_interactions.graph_ql_functions as gql_queries
-import graph_ql_interactions.card_interactions as cards
-import graph_ql_interactions.repo_interactions as repos
-import github_interactions.repo_information as repo_info
-import github_interactions.project_increment_information as projects
 import datetime
 import configparser
 import os
 from burndown_interactions import burndown
 import logging
 import re
+import graph_ql_interactions.graph_ql_functions as gql_queries
+import graph_ql_interactions.card_interactions as cards
+import graph_ql_interactions.repo_interactions as repos
+import github_interactions.repo_information as repo_info
+import github_interactions.project_increment_information as projects
 
-pm_logger = logging.getLogger('board_automation')
+pm_logger = logging.getLogger("board_automation")
 
 
 def build_html_table(info: {}):
@@ -26,7 +26,13 @@ def build_html_table(info: {}):
         data += "<tr>"
         for item in info.keys():
             try:
-                data += "<td>" + str(info[item][i]["number"]) + " (" + str(info[item][i]["repo"]) + ")</td>"
+                data += (
+                    "<td>"
+                    + str(info[item][i]["number"])
+                    + " ("
+                    + str(info[item][i]["repo"])
+                    + ")</td>"
+                )
             except IndexError:
                 data += "<td></td>"
         data += "</tr>"
@@ -58,15 +64,19 @@ class AutomationInfo:
         self.sprint_starts = None
         self.pi_starts = []
         self.update_projects()
-        
 
         # Get current and next sprint
         self.current_sprint = ""
         self.next_sprint = ""
         self.previous_sprint = ""
         self.set_previous_current_and_next_sprint()
-        self.current_burndown = burndown.Burndown(self.org_name, self.project_number, self.current_sprint,
-                                                  self.next_sprint, self.sprint_by_class)
+        self.current_burndown = burndown.Burndown(
+            self.org_name,
+            self.project_number,
+            self.current_sprint,
+            self.next_sprint,
+            self.sprint_by_class,
+        )
 
         # Initialise extra parameters needed
         self.repos = {}
@@ -81,41 +91,52 @@ class AutomationInfo:
         self.today_day = today.strftime("%d")
         self.today_month = today.strftime("%m")
         self.today_year = today.strftime("%Y")
-        self.today = datetime.datetime(year=int(self.today_year), month=int(self.today_month), day=int(self.today_day))
+        self.today = datetime.datetime(
+            year=int(self.today_year), month=int(self.today_month), day=int(self.today_day)
+        )
 
     def set_previous_current_and_next_sprint(self):
         # Find the current sprint
         current_sprint_index = None
-        
-        for i in range(len(self.sprint_starts)-1):
-            if self.sprint_starts[i] <= self.today <= self.sprint_starts[i+1]:
+
+        for i in range(len(self.sprint_starts) - 1):
+            if self.sprint_starts[i] <= self.today <= self.sprint_starts[i + 1]:
                 current_sprint_index = i
-        
+
         if current_sprint_index is None:
             pm_logger.info("No sprints found")
             return
-        
-        try:
-            self.current_sprint = (self.sprint_by_class[self.sprint_starts[current_sprint_index].strftime("%Y_%m_%d")]
-                                   .sprint_name)
-        except KeyError:
-            self.current_sprint = self.available_program_increments[self.current_project].first_sprint
 
         try:
-            self.next_sprint = (self.sprint_by_class[self.sprint_starts[current_sprint_index + 1].strftime("%Y_%m_%d")]
-                                .sprint_name)
+            self.current_sprint = self.sprint_by_class[
+                self.sprint_starts[current_sprint_index].strftime("%Y_%m_%d")
+            ].sprint_name
+        except KeyError:
+            self.current_sprint = self.available_program_increments[
+                self.current_project
+            ].first_sprint
+
+        try:
+            self.next_sprint = self.sprint_by_class[
+                self.sprint_starts[current_sprint_index + 1].strftime("%Y_%m_%d")
+            ].sprint_name
         except KeyError:
             self.next_sprint = self.available_program_increments[self.current_project].last_sprint
 
         try:
-            self.previous_sprint = (self.sprint_by_class[self.sprint_starts[current_sprint_index - 1].
-                                    strftime("%Y_%m_%d")].sprint_name)
+            self.previous_sprint = self.sprint_by_class[
+                self.sprint_starts[current_sprint_index - 1].strftime("%Y_%m_%d")
+            ].sprint_name
         except KeyError:
-            self.current_sprint = self.available_program_increments[self.current_project].first_sprint
+            self.current_sprint = self.available_program_increments[
+                self.current_project
+            ].first_sprint
 
         try:
             if self.sprint_by_class[self.next_sprint].in_next_pi:
-                if not (self.available_program_increments[self.next_project].start_date > self.today):
+                if not (
+                    self.available_program_increments[self.next_project].start_date > self.today
+                ):
                     self.html_message = "MAKE SURE THAT THE NEXT PI PROJECT IS CREATED!"
                     pm_logger.info("Next PI needed, and/or server restart needed")
         except KeyError:
@@ -127,21 +148,26 @@ class AutomationInfo:
         self.set_today()
         self.set_previous_current_and_next_sprint()
         self.current_burndown.change_sprint()
-        cards_to_refine = cards.get_card_issue_ids_in_sprint(org_name=self.org_name,
-                                                             project_number=self.project_number,
-                                                             sprint=self.current_sprint)
+        cards_to_refine = cards.get_card_issue_ids_in_sprint(
+            org_name=self.org_name, project_number=self.project_number, sprint=self.current_sprint
+        )
         for card in cards_to_refine:
-            cards.remove_label(card, repos.get_label_id(org_name=self.org_name,
-                                                        repo_name=cards.get_repo_for_issue(card),
-                                                        label_name="proposal"))
+            cards.remove_label(
+                card,
+                repos.get_label_id(
+                    org_name=self.org_name,
+                    repo_name=cards.get_repo_for_issue(card),
+                    label_name="proposal",
+                ),
+            )
 
     def update_projects(self):
         # Find the V2 projects owned by the organization
         self.html_message = ""
         proj_list_query = gql_queries.open_graph_ql_query_file("findProjects.txt")
-        result_projects = \
-            gql_queries.run_query(proj_list_query.replace("<ORG_NAME>", self.org_name))["data"]["organization"][
-                "projectsV2"]["nodes"]
+        result_projects = gql_queries.run_query(
+            proj_list_query.replace("<ORG_NAME>", self.org_name)
+        )["data"]["organization"]["projectsV2"]["nodes"]
 
         # Filter out a dictionary of the PIs
         for result_project in result_projects:
@@ -152,59 +178,82 @@ class AutomationInfo:
                 is_pi = -1
             if is_pi >= 0 and not result_project["template"] and not result_project["closed"]:
                 if result_project["title"] not in self.available_program_increments.keys():
-                    self.available_program_increments[result_project["title"]] = (projects.ProjectIncrement(
-                        project_id=result_project["id"], number=result_project["number"], title=result_project["title"],
-                        org_name=self.org_name))
-                    self.pi_starts.append(self.available_program_increments[result_project["title"]].start_date)
+                    self.available_program_increments[result_project["title"]] = (
+                        projects.ProjectIncrement(
+                            project_id=result_project["id"],
+                            number=result_project["number"],
+                            title=result_project["title"],
+                            org_name=self.org_name,
+                        )
+                    )
+                    self.pi_starts.append(
+                        self.available_program_increments[result_project["title"]].start_date
+                    )
 
         self.pi_starts.sort()
-        
+
         # Find the appropriate project for this PI
         self.current_project = None
         self.next_project = None
-        
+
         current_pi_index = None
-        
+
         for i in range(len(self.pi_starts) - 1):
             if self.pi_starts[i] <= self.today < self.pi_starts[i + 1]:
                 current_pi_index = i
-                
-        if current_pi_index is None:
-            return 
 
-        for PI_value in self.available_program_increments.keys():
-            # print(f"{PI_value} starts on {self.available_program_increments[PI_value].start_date}")
-            if self.available_program_increments[PI_value].start_date == self.pi_starts[current_pi_index]:
-                self.current_project = PI_value
-            if self.available_program_increments[PI_value].start_date == self.pi_starts[current_pi_index+1]:
-                self.next_project = PI_value
+        if current_pi_index is None:
+            return
+
+        for pi_value in self.available_program_increments.keys():
+            if (
+                self.available_program_increments[pi_value].start_date
+                == self.pi_starts[current_pi_index]
+            ):
+                self.current_project = pi_value
+            if (
+                self.available_program_increments[pi_value].start_date
+                == self.pi_starts[current_pi_index + 1]
+            ):
+                self.next_project = pi_value
 
         self.project_number = self.available_program_increments[self.current_project].number
-        self.sprint_by_class = self.available_program_increments[self.current_project].sprint_by_class
-        self.sprint_starts = self.available_program_increments[self.current_project].all_sprint_starts
+        self.sprint_by_class = self.available_program_increments[
+            self.current_project
+        ].sprint_by_class
+        self.sprint_starts = self.available_program_increments[
+            self.current_project
+        ].all_sprint_starts
 
     def get_cards_snapshot(self):
-        return cards.get_cards_and_points_snapshot_for_sprint(self.org_name, self.project_number, self.current_sprint)
+        return cards.get_cards_and_points_snapshot_for_sprint(
+            self.org_name, self.project_number, self.current_sprint
+        )
 
     def get_sprint_columns_snapshot_html(self):
-        info = cards.get_card_list_snapshot_for_sprint(self.org_name, self.project_number, self.current_sprint)
-        data = """<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Issues in Columns</title></head>
-        <body><h1>The present listings</h1>"""
+        info = cards.get_card_list_snapshot_for_sprint(
+            self.org_name, self.project_number, self.current_sprint
+        )
+        data = """<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Issues in 
+        Columns</title></head><body><h1>The present listings</h1>"""
         data += build_html_table(info)
         data += "</body></html>"
         return data
 
     def get_planning_priority_snapshot(self):
         info = cards.get_planning_snapshot(self.org_name, self.project_number, self.current_sprint)
-        data = """<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Planning Priority</title></head>
-        <body><h1>The present listings</h1>"""
+        data = """<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>
+        Planning Priority</title></head><body><h1>The present listings</h1>"""
         data += build_html_table(info)
         data += "</body></html>"
         return data
 
     def move_tickets_to_next_sprint(self):
-        cards.update_sprint_for_all_open_cards(self.org_name, self.project_number, self.current_sprint,
-                                               self.available_program_increments[self.current_project]
-                                               .sprint_ids[self.next_sprint],
-                                               self.available_program_increments[self.current_project].sprint_field_id,
-                                               self.available_program_increments[self.current_project].project_id)
+        cards.update_sprint_for_all_open_cards(
+            self.org_name,
+            self.project_number,
+            self.current_sprint,
+            self.available_program_increments[self.current_project].sprint_ids[self.next_sprint],
+            self.available_program_increments[self.current_project].sprint_field_id,
+            self.available_program_increments[self.current_project].project_id,
+        )
