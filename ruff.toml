@@ -40,11 +40,11 @@ indent-width = 4
 extend-select = [
     "N",  # pep8-naming
     # "D",  # pydocstyle (can use this later but for now causes too many errors)
-    # "I",  # isort (for imports)
+    # "I",  # isort (for imports - will undertake as a separate task in board-automation)
     "E501",  # Line too long ({width} > {limit})
     "E",
     "F",
-    # "ANN",
+    # "ANN", # Issues relating to them being removed and that having no effect
 ]
 ignore = [
     "D406",  # Section name should end with a newline ("{name}")
@@ -54,7 +54,7 @@ ignore = [
     "ANN102",  # ignore this until its removed in future versions
 ]
 [lint.per-file-ignores]
-"{**/tests/**,/tests/**,**/*tests.py,tests/**,*tests.py,*test.py,**/*test.py,common_tests/**,test_*.py}" = [
+"{**/tests/**,/tests/**,**/*tests.py,tests/**,*tests.py,*test.py,**/*test.py,common_tests/**,test_*.py,**sandbox**}" = [
     "N802",
     "D100",
     "D101",
