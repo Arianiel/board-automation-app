@@ -6,7 +6,7 @@ from datetime import datetime
 import pandas as pd
 import pandas.testing as pd_testing
 
-from Tests.test_helpers import build_response, QlCommand
+from tests.test_helpers import build_response, QlCommand
 from burndown_interactions.burndown import Burndown
 from github_interactions.sprint_information import SprintInfo
 
