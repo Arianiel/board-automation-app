@@ -1,17 +1,24 @@
-import graph_ql_interactions.card_interactions as cards
-import plotly.graph_objects as go
-from datetime import datetime, timedelta
-import numpy as np
-import pandas as pd
 import os
 import logging
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+import graph_ql_interactions.card_interactions as cards
 
-pm_logger = logging.getLogger('board_automation')
+from datetime import datetime, timedelta
+
+pm_logger = logging.getLogger("board_automation")
 
 
 class Burndown:
-    def __init__(self, org_name: str, project_number: str, current_sprint_name: str, next_sprint_name: str, 
-                 sprints: {}):
+    def __init__(
+        self,
+        org_name: str,
+        project_number: str,
+        current_sprint_name: str,
+        next_sprint_name: str,
+        sprints: {},
+    ):
         self.fig = go.Figure()
         self.org_name = org_name
         self.project_number = project_number
@@ -49,8 +56,6 @@ class Burndown:
             review = df["Review"].values[start_index:]
 
             for i in range(1, (end_date - start_date).days + 1):
-                # TODO
-                # This needs testing, as the strftime is all about the pyright side of things
                 dates = np.append(dates, [(last_day + timedelta(days=i)).strftime("%Y-%m-%d")])
                 if i > last_line_index:
                     done = np.append(done, [done[-1]])
@@ -110,9 +115,8 @@ class Burndown:
                     title="Sprint Tracking",
                     legend=dict(
                         traceorder="reversed",
-                    )
-                )
-
+                    ),
+                ),
             )
 
             fig.update_layout(showlegend=True)
@@ -123,13 +127,26 @@ class Burndown:
 
     def add_new_csv_line(self):
         # Build the string for adding to the CSV file
-        card_frequency = cards.get_number_of_cards_by_status(org_name=self.org_name,
-                                                             project_number=self.project_number,
-                                                             sprint=self.current_sprint_name)
+        card_frequency = cards.get_number_of_cards_by_status(
+            org_name=self.org_name,
+            project_number=self.project_number,
+            sprint=self.current_sprint_name,
+        )
         today = datetime.today().strftime("%Y-%m-%d")
-        entry_list = [today, ",", str(card_frequency["Backlog"]), ",", str(card_frequency["In Progress"]), ",",
-                      str(card_frequency["Impeded"]), ",", str(card_frequency["Review"]), ",",
-                      str(card_frequency["Done"]), "\n"]
+        entry_list = [
+            today,
+            ",",
+            str(card_frequency["Backlog"]),
+            ",",
+            str(card_frequency["In Progress"]),
+            ",",
+            str(card_frequency["Impeded"]),
+            ",",
+            str(card_frequency["Review"]),
+            ",",
+            str(card_frequency["Done"]),
+            "\n",
+        ]
         entry = "".join(entry_list)
         with open(self.burndown_csv, "a") as f:
             f.write(entry)
@@ -137,10 +154,20 @@ class Burndown:
     def fill_csv_lines(self, today: datetime, last_day_inner: datetime, data: pd.DataFrame):
         for missing_day in range((today - last_day_inner).days - 1):
             with open(self.burndown_csv, "a") as f:
-                entry_list = [(last_day_inner + timedelta(days=(missing_day + 1))).strftime("%Y-%m-%d"), ",",
-                              str(data["Backlog"]), ",", str(data["In Progress"]), ",",
-                              str(data["Impeded"]), ",", str(data["Review"]), ",",
-                              str(data["Done"]), "\n"]
+                entry_list = [
+                    (last_day_inner + timedelta(days=(missing_day + 1))).strftime("%Y-%m-%d"),
+                    ",",
+                    str(data["Backlog"]),
+                    ",",
+                    str(data["In Progress"]),
+                    ",",
+                    str(data["Impeded"]),
+                    ",",
+                    str(data["Review"]),
+                    ",",
+                    str(data["Done"]),
+                    "\n",
+                ]
                 entry = "".join(entry_list)
                 f.write(entry)
 
@@ -170,8 +197,11 @@ class Burndown:
             self.add_new_csv_line()
             return pd.read_csv(self.burndown_csv)
 
-        if not (self.sprints[self.current_sprint_name].sprint_start_date < last_day <
-                self.sprints[self.next_sprint_name].sprint_start_date):
+        if not (
+            self.sprints[self.current_sprint_name].sprint_start_date
+            < last_day
+            < self.sprints[self.next_sprint_name].sprint_start_date
+        ):
             pm_logger.exception("Burndown CSV overwritten due to out of date information")
             self.add_csv_titles()
             self.add_new_csv_line()
@@ -184,5 +214,6 @@ class Burndown:
         return pd.read_csv(self.burndown_csv)
 
     def change_sprint(self):
-        # As the titles assume a non-existent file this will overwrite the file contents with just the titles
+        # As the titles assume a non-existent file this will overwrite the file contents with
+        # just the titles
         self.add_csv_titles()
