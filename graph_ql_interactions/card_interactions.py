@@ -10,6 +10,7 @@ card_repo_query = gql_queries.open_graph_ql_query_file("findIssueRepo.txt")
 set_sprint_mutation = gql_queries.open_graph_ql_query_file("UpdateSprintForItemInProject.txt")
 set_points_mutation = gql_queries.open_graph_ql_query_file("UpdatePointsForItemInProject.txt")
 get_last_comment_datetime = gql_queries.open_graph_ql_query_file("findIssueLastCommentCreated.txt")
+get_issue_labels_added = gql_queries.open_graph_ql_query_file("findIssueLabelsAdded.txt")
 
 
 def get_cards_in_project(org_name: str = "", project_number: str = ""):
@@ -19,8 +20,6 @@ def get_cards_in_project(org_name: str = "", project_number: str = ""):
         .replace("<PROJ_NUM>", str(project_number))
         .replace("<AFTER>", "null")
     )
-    # TODO
-    print(result)
     has_next_page = result["data"]["organization"]["projectV2"]["items"]["pageInfo"]["hasNextPage"]
     cards_in_project = []
     for node in result["data"]["organization"]["projectV2"]["items"]["nodes"]:
@@ -192,6 +191,23 @@ def get_when_last_commented_created_on_issue(issue_id: str):
     except TypeError:
         last_comment_datetime = "today"
     return last_comment_datetime
+
+
+def get_when_labels_were_added_to_issue(issue_id: str):
+    response = gql_queries.run_query(get_issue_labels_added.replace("<ISSUE>", issue_id))
+    # TODO
+    print(response)
+    labels = response["data"]["node"]["labels"]["nodes"]
+    labels_timeline = response["data"]["node"]["timelineItems"]["edges"]
+    labels_timeline.reverse()
+    label_added = {}
+    for label in labels:
+        for timeline_item in labels_timeline:
+            timeline_label_name = timeline_item["node"]["label"]["name"]
+            if timeline_label_name == label["name"]:
+                label_added[label["name"]] = timeline_item["node"]["createdAt"]
+                break
+    return label_added
 
 
 def set_sprint(item_id: str, sprint_field_id: str, sprint_to_use: str, project_id: str):

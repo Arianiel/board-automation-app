@@ -115,6 +115,8 @@ class CardInfo:
             # A Key Error here will mean no stale settings, so nothing to test
             return
         # Based on self.status and intersections with the settings returned do the stale checks
+        # TODO
+        # Incorporate the label additions for staleness
         if self.status in comment_errors.keys():
             self.check_if_last_comment_stale(comment_errors[self.status])
         elif self.status in status_errors.keys():

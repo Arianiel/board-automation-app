@@ -12,6 +12,8 @@ class QlCommand(Enum):
     find_project_sprints = auto()
     find_repo_info = auto()
     find_repo_label_id = auto()
+    find_last_comment = auto()
+    find_labels_added = auto()
     remove_label = auto()
     set_project = auto()
     update_item_label = auto()
@@ -245,6 +247,17 @@ def build_pi_statuses(
     }
 
 
+def build_label_dates(expected_label_dates: {}):
+    labels = []
+    for entry in expected_label_dates:
+        labels.append({"name": entry})
+    edges = []
+    for label in expected_label_dates:
+        edges.append({"node": {"createdAt": expected_label_dates[label], "label": {"name": label}}})
+    test = {"data": {"node": {"labels": {"nodes": labels}, "timelineItems": {"edges": edges}}}}
+    return test
+
+
 def build_response(ql_command: QlCommand, **kwargs):
     match ql_command:
         case QlCommand.find_repo_label_id:
@@ -287,6 +300,12 @@ def build_response(ql_command: QlCommand, **kwargs):
                 kwargs["sprints"],
                 kwargs["points_field_id"],
             )
+        case QlCommand.find_last_comment:
+            response = {
+                "data": {"node": {"comments": {"nodes": [{"createdAt": kwargs["created_at"]}]}}}
+            }
+        case QlCommand.find_labels_added:
+            response = build_label_dates(kwargs["expected_label_dates"])
         case __:
             response = ""
     return json.dumps(response)

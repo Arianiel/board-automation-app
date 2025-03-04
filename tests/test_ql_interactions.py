@@ -232,3 +232,18 @@ class TestCardInteractions(TestCase):
         repo = "repo_name"
         m.post(url, text=build_response(QlCommand.find_issue_repo, repo_name=repo))
         self.assertEqual(ci.get_repo_for_issue("something"), repo)
+
+    @requests_mock.mock()
+    def test_get_when_last_commented_created_on_issue(self, m):
+        created = "2025-02-14T15:15:59Z"
+        m.post(url, text=build_response(QlCommand.find_last_comment, created_at=created))
+        self.assertEqual(ci.get_when_last_commented_created_on_issue("something"), created)
+
+    @requests_mock.mock()
+    def test_get_when_labels_were_added_to_issue(self, m):
+        expected_labels = {"label_1": "2025-01-20T12:15:34Z", "label_2": "2025-02-14T15:15:59Z"}
+        m.post(
+            url,
+            text=build_response(QlCommand.find_labels_added, expected_label_dates=expected_labels),
+        )
+        self.assertEqual(ci.get_when_labels_were_added_to_issue("something"), expected_labels)
