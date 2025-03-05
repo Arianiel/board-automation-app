@@ -195,8 +195,6 @@ def get_when_last_commented_created_on_issue(issue_id: str):
 
 def get_when_labels_were_added_to_issue(issue_id: str):
     response = gql_queries.run_query(get_issue_labels_added.replace("<ISSUE>", issue_id))
-    # TODO
-    print(response)
     labels = response["data"]["node"]["labels"]["nodes"]
     labels_timeline = response["data"]["node"]["timelineItems"]["edges"]
     labels_timeline.reverse()

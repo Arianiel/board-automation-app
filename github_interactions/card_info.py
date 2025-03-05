@@ -87,15 +87,21 @@ class CardInfo:
                 zero_point_label = True
         if points_label_count > 1:
             self.problem_identified = True
-            problem_text = f"Multiple Points labels found for issue {self.number} in {self.repo}"
+            problem_text = (
+                f"ERROR: Multiple Points labels found for issue {self.number} in {self.repo}"
+            )
         elif zero_point_label:
             if not list(set(self.labels) & set(self.allowed_zero_points)):
                 self.problem_identified = True
-                problem_text = f"Zero-point label found for issue {self.number} in {self.repo}"
+                problem_text = (
+                    f"ERROR: Zero-point label found for issue {self.number} in {self.repo}"
+                )
         elif points_label_count == 0:
             if not list(set(self.labels) & set(self.allowed_no_points)):
                 self.problem_identified = True
-                problem_text = f"No Points labels found for issue {self.number} in {self.repo}"
+                problem_text = (
+                    f"ERROR: No Points labels found for issue {self.number} in {self.repo}"
+                )
         if problem_text:
             self.problem_text.append(problem_text)
 
@@ -116,23 +122,47 @@ class CardInfo:
             return
         # Based on self.status and intersections with the settings returned do the stale checks
         # TODO
-        # Incorporate the label additions for staleness
+        # Incorporate the status setting date for staleness
         if self.status in comment_errors.keys():
             self.check_if_last_comment_stale(comment_errors[self.status])
-        elif self.status in status_errors.keys():
-            print("This would be a status or label error check.")
-        elif self.status in status_warnings.keys():
-            print("This would be a status warning check.")
-        pass
+        elif self.status in status_errors.keys() or self.status in status_warnings.keys():
+            print("This will need a status check adding.")
+            self.check_if_label_status_stale(
+                status_warnings,
+                status_errors,
+            )
 
     def check_if_last_comment_stale(self, duration):
         last_comment = datetime.strptime(
             cards.get_when_last_commented_created_on_issue(self.id), "%Y-%m-%dT%H:%M:%SZ"
         )
-        today = datetime.today()
-        if (today - last_comment).days >= int(duration):
+        today_to_compare = datetime.today()
+        if (today_to_compare - last_comment).days >= int(duration):
             self.problem_identified = True
             self.problem_text.append(
-                f"Issue {self.number} in {self.status} last had a comment added more than "
-                f"28 days ago."
+                f"ERROR: Issue {self.number} in {self.status} last had a comment added 28 days "
+                f"or more ago."
             )
+
+    def check_if_label_status_stale(self, warning_list, error_list):
+        labels = cards.get_when_labels_were_added_to_issue(self.id)
+        today_for_labels = datetime.today()
+        for label in labels:
+            label_in_place_since = (
+                today_for_labels - datetime.strptime(labels[label], "%Y-%m-%dT%H:%M:%SZ")
+            ).days
+            if label in error_list:
+                if label_in_place_since >= int(error_list[label]):
+                    self.problem_identified = True
+                    self.problem_text.append(
+                        f"ERROR: Issue {self.number} had {label} label added more than "
+                        f"{int(error_list[label])} days ago."
+                    )
+                    return
+                if label_in_place_since >= int(warning_list[label]):
+                    self.problem_identified = True
+                    self.problem_text.append(
+                        f"WARNING: Issue {self.number} had {label} label added"
+                        f" more than {int(warning_list[label])} days ago."
+                    )
+                    return

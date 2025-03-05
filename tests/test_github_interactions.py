@@ -370,7 +370,7 @@ class TestCardInfo(TestCase):
         self.assertEqual(class_response.problem_identified, True)
         self.assertEqual(
             class_response.problem_text,
-            [f"Multiple Points labels found for issue {card_ident} in {repo_name}"],
+            [f"ERROR: Multiple Points labels found for issue {card_ident} in {repo_name}"],
         )
 
     # Test 7: No points labels
@@ -400,7 +400,7 @@ class TestCardInfo(TestCase):
         self.assertEqual(class_response.problem_identified, True)
         self.assertEqual(
             class_response.problem_text,
-            [f"No Points labels found for issue {card_ident} in {repo_name}"],
+            [f"ERROR: No Points labels found for issue {card_ident} in {repo_name}"],
         )
 
     # Test 8: No points labels
@@ -485,8 +485,8 @@ class TestCardInfo(TestCase):
         "configparser.ConfigParser.__getitem__",
         return_value={
             "comment_errors": "Comment: 28",
-            "status_warnings": "Status Warn: 7",
-            "status_errors": "Status Error: 28",
+            "status_warnings": "Status Check: 7",
+            "status_errors": "Status Check: 28",
         },
     )
     @patch("github_interactions.card_info.CardInfo.verify_pointing_correct")
@@ -516,6 +516,7 @@ class TestCardInfo(TestCase):
         )
         today = datetime.datetime.today()
         recent_comment_date = today - datetime.timedelta(days=5)
+        turning_comment_date = today - datetime.timedelta(days=28)
         old_comment_date = today - datetime.timedelta(days=50)
         date_format = "%Y-%m-%dT%H:%M:%SZ"
         m.post(
@@ -529,13 +530,21 @@ class TestCardInfo(TestCase):
         m.post(
             url,
             text=build_response(
+                QlCommand.find_last_comment, created_at=turning_comment_date.strftime(date_format)
+            ),
+        )
+        class_response.check_if_stale()
+        self.assertEqual(class_response.problem_identified, True)
+        m.post(
+            url,
+            text=build_response(
                 QlCommand.find_last_comment, created_at=old_comment_date.strftime(date_format)
             ),
         )
         class_response.check_if_stale()
         self.assertEqual(class_response.problem_identified, True)
         self.assertTrue(
-            f"Issue {card_ident} in {status} last had a comment added more than 28 days ago."
+            f"ERROR: Issue {card_ident} in {status} last had a comment added 28 days or more ago."
             in class_response.problem_text
         )
 
@@ -546,21 +555,24 @@ class TestCardInfo(TestCase):
         "configparser.ConfigParser.__getitem__",
         return_value={
             "comment_errors": "Comment: 28",
-            "status_warnings": "Status Warn: 7",
-            "status_errors": "Status Error: 28",
+            "status_warnings": "Status Check: 7",
+            "status_errors": "Status Check: 28",
         },
     )
     @patch("github_interactions.card_info.CardInfo.verify_pointing_correct")
-    def test_stale_label_error(self):
+    @patch("github_interactions.card_info.CardInfo.check_if_last_comment_stale")
+    def test_stale_label_error(self, m, comment, pointing, config_parser):
         card_ident = 11
+        status_warning_at = 7
+        status_error_at = 28
         content_id = f"issue_{card_ident}"
         repo_name = "Repo"
         expected_labels = {"Status Error": "Status Error ID"}
         sprint = "Sprint"
-        status = "Comment"
+        status = "Status Check"
         points = 0
         priority = "Medium"
-        label = "Old"
+        label = "Status Check"
         provided_fields = {
             "Points": points,
             "Planning Priority": priority,
@@ -576,16 +588,46 @@ class TestCardInfo(TestCase):
                 repo_name=repo_name,
             )
         )
-        expected_labels = {"label_1": "2025-01-20T12:15:34Z", "label_2": "2025-02-14T15:15:59Z"}
+        expected_labels = {}
+        today = datetime.datetime.today()
+        stale_warning = today - datetime.timedelta(days=status_warning_at)
+        stale_error = today - datetime.timedelta(days=status_error_at)
+        date_format = "%Y-%m-%dT%H:%M:%SZ"
 
+        # Check One - no issues
+        expected_labels["Status Check"] = today.strftime(date_format)
+        m.post(
+            url,
+            text=build_response(QlCommand.find_labels_added, expected_label_dates=expected_labels),
+        )
+        class_response.check_if_stale()
+        self.assertEqual(class_response.problem_identified, False)
+
+        # Check Two - Warning
+        expected_labels["Status Check"] = stale_warning.strftime(date_format)
+        m.post(
+            url,
+            text=build_response(QlCommand.find_labels_added, expected_label_dates=expected_labels),
+        )
         class_response.check_if_stale()
         self.assertEqual(class_response.problem_identified, True)
         self.assertTrue(
-            f"Issue {card_ident} had {label} added more than 28 days ago."
+            f"WARNING: Issue {card_ident} had {label} label added more than {status_warning_at} days ago."
             in class_response.problem_text
         )
-        # TODO
-        # The tests here need to be for no issues, in warning, and in error
+
+        # Check Three - Error
+        expected_labels["Status Check"] = stale_error.strftime(date_format)
+        m.post(
+            url,
+            text=build_response(QlCommand.find_labels_added, expected_label_dates=expected_labels),
+        )
+        class_response.check_if_stale()
+        self.assertEqual(class_response.problem_identified, True)
+        self.assertTrue(
+            f"ERROR: Issue {card_ident} had {label} label added more than {status_error_at} days ago."
+            in class_response.problem_text
+        )
 
 
 class TestProjectIncrement(TestCase):
