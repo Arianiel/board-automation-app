@@ -44,7 +44,7 @@ extend-select = [
     "E501",  # Line too long ({width} > {limit})
     "E",
     "F",
-    # "ANN", # Issues relating to them being removed and that having no effect
+    # "ANN", # Issues relating to them being ignored and that having no effect
 ]
 ignore = [
     "D406",  # Section name should end with a newline ("{name}")

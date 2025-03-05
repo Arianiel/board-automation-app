@@ -518,30 +518,20 @@ class TestCardInfo(TestCase):
         recent_comment_date = today - datetime.timedelta(days=5)
         old_comment_date = today - datetime.timedelta(days=50)
         date_format = "%Y-%m-%dT%H:%M:%SZ"
-        expected = {
-            "data": {
-                "node": {
-                    "number": card_ident,
-                    "id": content_id,
-                    "comments": {
-                        "nodes": [{"createdAt": recent_comment_date.strftime(date_format)}]
-                    },
-                }
-            }
-        }
-        m.post(url, text=json.dumps(expected))
+        m.post(
+            url,
+            text=build_response(
+                QlCommand.find_last_comment, created_at=recent_comment_date.strftime(date_format)
+            ),
+        )
         class_response.check_if_stale()
         self.assertEqual(class_response.problem_identified, False)
-        expected = {
-            "data": {
-                "node": {
-                    "number": card_ident,
-                    "id": content_id,
-                    "comments": {"nodes": [{"createdAt": old_comment_date.strftime(date_format)}]},
-                }
-            }
-        }
-        m.post(url, text=json.dumps(expected))
+        m.post(
+            url,
+            text=build_response(
+                QlCommand.find_last_comment, created_at=old_comment_date.strftime(date_format)
+            ),
+        )
         class_response.check_if_stale()
         self.assertEqual(class_response.problem_identified, True)
         self.assertTrue(
@@ -550,6 +540,17 @@ class TestCardInfo(TestCase):
         )
 
     # Test 11: Check Freshness by label added date
+    # Note Config Parser is a patch, so is not used directly but is needed in the called section
+    @requests_mock.mock()
+    @patch(
+        "configparser.ConfigParser.__getitem__",
+        return_value={
+            "comment_errors": "Comment: 28",
+            "status_warnings": "Status Warn: 7",
+            "status_errors": "Status Error: 28",
+        },
+    )
+    @patch("github_interactions.card_info.CardInfo.verify_pointing_correct")
     def test_stale_label_error(self):
         card_ident = 11
         content_id = f"issue_{card_ident}"
@@ -575,6 +576,8 @@ class TestCardInfo(TestCase):
                 repo_name=repo_name,
             )
         )
+        expected_labels = {"label_1": "2025-01-20T12:15:34Z", "label_2": "2025-02-14T15:15:59Z"}
+
         class_response.check_if_stale()
         self.assertEqual(class_response.problem_identified, True)
         self.assertTrue(
