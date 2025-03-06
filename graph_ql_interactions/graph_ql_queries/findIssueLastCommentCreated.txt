@@ -1,4 +1,4 @@
-query findIssueRepo {
+query findIssueLastCommentCreated {
   node(id: "<ISSUE>") {
     ... on Issue {
       number
