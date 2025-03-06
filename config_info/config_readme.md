@@ -73,3 +73,9 @@ stale. These should be of the following format: `Status: n, Status: n`
 This is a list of statuses in use in the project, and a number which indicates the number of 
 days since the label was added on a status change after which it can be considered stale. 
 These should be of the following format: `Status: n, Status: n`
+
+## BOARD.RULES
+
+### allow_unassigned
+This is a list of status columns that mean a ticket can be unassigned, if a ticket is in progress
+then it should have someone assigned to it
