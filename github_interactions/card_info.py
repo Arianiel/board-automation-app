@@ -111,11 +111,11 @@ class CardInfo:
             comment_errors = dict(
                 item.split(": ") for item in config["STALE.SETTINGS"]["comment_errors"].split(", ")
             )
-            status_warnings = dict(
-                item.split(": ") for item in config["STALE.SETTINGS"]["status_warnings"].split(", ")
+            label_warnings = dict(
+                item.split(": ") for item in config["STALE.SETTINGS"]["label_warnings"].split(", ")
             )
-            status_errors = dict(
-                item.split(": ") for item in config["STALE.SETTINGS"]["status_errors"].split(", ")
+            label_errors = dict(
+                item.split(": ") for item in config["STALE.SETTINGS"]["label_errors"].split(", ")
             )
         except KeyError:
             # A Key Error here will mean no stale settings, so nothing to test
@@ -125,11 +125,11 @@ class CardInfo:
         # Incorporate the status setting date for staleness
         if self.status in comment_errors.keys():
             self.check_if_last_comment_stale(comment_errors[self.status])
-        elif self.status in status_errors.keys() or self.status in status_warnings.keys():
+        elif self.status in label_errors.keys() or self.status in label_warnings.keys():
             print("This will need a status check adding.")
             self.check_if_label_status_stale(
-                status_warnings,
-                status_errors,
+                label_warnings,
+                label_errors,
             )
 
     def check_if_last_comment_stale(self, duration):

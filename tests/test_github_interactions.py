@@ -485,8 +485,8 @@ class TestCardInfo(TestCase):
         "configparser.ConfigParser.__getitem__",
         return_value={
             "comment_errors": "Comment: 28",
-            "status_warnings": "Status Check: 7",
-            "status_errors": "Status Check: 28",
+            "label_warnings": "Status Check: 7",
+            "label_errors": "Status Check: 28",
         },
     )
     @patch("github_interactions.card_info.CardInfo.verify_pointing_correct")
@@ -555,16 +555,16 @@ class TestCardInfo(TestCase):
         "configparser.ConfigParser.__getitem__",
         return_value={
             "comment_errors": "Comment: 28",
-            "status_warnings": "Status Check: 7",
-            "status_errors": "Status Check: 28",
+            "label_warnings": "Status Check: 7",
+            "label_errors": "Status Check: 28",
         },
     )
     @patch("github_interactions.card_info.CardInfo.verify_pointing_correct")
     @patch("github_interactions.card_info.CardInfo.check_if_last_comment_stale")
     def test_stale_label_error(self, m, comment, pointing, config_parser):
         card_ident = 11
-        status_warning_at = 7
-        status_error_at = 28
+        label_warning_at = 7
+        label_error_at = 28
         content_id = f"issue_{card_ident}"
         repo_name = "Repo"
         expected_labels = {"Status Error": "Status Error ID"}
@@ -590,8 +590,8 @@ class TestCardInfo(TestCase):
         )
         expected_labels = {}
         today = datetime.datetime.today()
-        stale_warning = today - datetime.timedelta(days=status_warning_at)
-        stale_error = today - datetime.timedelta(days=status_error_at)
+        stale_warning = today - datetime.timedelta(days=label_warning_at)
+        stale_error = today - datetime.timedelta(days=label_error_at)
         date_format = "%Y-%m-%dT%H:%M:%SZ"
 
         # Check One - no issues
@@ -612,7 +612,7 @@ class TestCardInfo(TestCase):
         class_response.check_if_stale()
         self.assertEqual(class_response.problem_identified, True)
         self.assertTrue(
-            f"WARNING: Issue {card_ident} had {label} label added more than {status_warning_at} days ago."
+            f"WARNING: Issue {card_ident} had {label} label added more than {label_warning_at} days ago."
             in class_response.problem_text
         )
 
@@ -625,7 +625,7 @@ class TestCardInfo(TestCase):
         class_response.check_if_stale()
         self.assertEqual(class_response.problem_identified, True)
         self.assertTrue(
-            f"ERROR: Issue {card_ident} had {label} label added more than {status_error_at} days ago."
+            f"ERROR: Issue {card_ident} had {label} label added more than {label_error_at} days ago."
             in class_response.problem_text
         )
 

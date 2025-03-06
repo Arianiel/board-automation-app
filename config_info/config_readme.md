@@ -64,12 +64,12 @@ This is a list of statuses in use in the project, and a number which indicates t
 days since a comment was added after which it can be considered stale. These should be of the
 following format: `Status: n, Status: n`
 
-### status_warnings
+### label_warnings
 This is a list of statuses in use in the project, and a number which indicates the number of 
-days since the status was set after which it can be considered  to be turning stale. These should 
-be of the following format: `Status: n, Status: n`
+days since the label was added on a status change after which it can be considered to be turning 
+stale. These should be of the following format: `Status: n, Status: n`
 
-### status_errors
+### label_errors
 This is a list of statuses in use in the project, and a number which indicates the number of 
-days since the status was set after which it can be considered stale. These should be of the
-following format: `Status: n, Status: n`
+days since the label was added on a status change after which it can be considered stale. 
+These should be of the following format: `Status: n, Status: n`

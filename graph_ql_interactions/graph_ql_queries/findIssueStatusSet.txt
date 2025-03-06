@@ -1,0 +1,20 @@
+query findIssueStatusSet {
+  node(id: "<ISSUE>") {
+    ... on Issue {
+      number
+      id
+      timelineItems(last: 34){
+        totalCount
+        edges {
+            node {
+                ... on MovedColumnsInProjectEvent{
+                    project {
+                        name
+                    }
+                }
+            }
+        }
+      }
+    }
+  }
+}
