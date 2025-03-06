@@ -247,3 +247,12 @@ class TestCardInteractions(TestCase):
             text=build_response(QlCommand.find_labels_added, expected_label_dates=expected_labels),
         )
         self.assertEqual(ci.get_when_labels_were_added_to_issue("something"), expected_labels)
+
+    @requests_mock.mock()
+    def test_get_assignees(self, m):
+        expected_assignees = ["Assignee1", "Assignee2"]
+        m.post(
+            url,
+            text=build_response(QlCommand.find_assignees, expected_assignees=expected_assignees),
+        )
+        self.assertEqual(ci.get_assignees("something"), expected_assignees)

@@ -11,6 +11,7 @@ set_sprint_mutation = gql_queries.open_graph_ql_query_file("UpdateSprintForItemI
 set_points_mutation = gql_queries.open_graph_ql_query_file("UpdatePointsForItemInProject.txt")
 get_last_comment_datetime = gql_queries.open_graph_ql_query_file("findIssueLastCommentCreated.txt")
 get_issue_labels_added = gql_queries.open_graph_ql_query_file("findIssueLabelsAdded.txt")
+get_issue_assignees = gql_queries.open_graph_ql_query_file("findIssueAssignees.txt")
 
 
 def get_cards_in_project(org_name: str = "", project_number: str = ""):
@@ -206,6 +207,15 @@ def get_when_labels_were_added_to_issue(issue_id: str):
                 label_added[label["name"]] = timeline_item["node"]["createdAt"]
                 break
     return label_added
+
+
+def get_assignees(issue_id: str):
+    response = gql_queries.run_query(get_issue_assignees.replace("<ISSUE>", issue_id))
+    assignees = response["data"]["node"]["assignees"]["edges"]
+    assignee_names = []
+    for assignee in assignees:
+        assignee_names.append(assignee["node"]["name"])
+    return assignee_names
 
 
 def set_sprint(item_id: str, sprint_field_id: str, sprint_to_use: str, project_id: str):
