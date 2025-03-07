@@ -629,6 +629,113 @@ class TestCardInfo(TestCase):
             in class_response.problem_text
         )
 
+    # Test 12: No assignee allowed, and none given
+    # Note Config Parser is a patch, so is not used directly but is needed in the called section
+    @requests_mock.mock()
+    @patch(
+        "configparser.ConfigParser.__getitem__",
+        return_value={
+            "allow_unassigned": "unassigned_allowed",
+        },
+    )
+    def test_check_assignees_unassigned_allowed(self, m, config_parser):
+        card_ident = 12
+        repo_name = "Repo"
+        expected_labels = {"5": "5"}
+        sprint = "Sprint"
+        status = "unassigned_allowed"
+        points = 0
+        priority = "Medium"
+        provided_fields = {
+            "Points": points,
+            "Planning Priority": priority,
+            "Status": status,
+            "Sprint": sprint,
+        }
+        class_response = CardInfo(
+            issue_entry(
+                ident=card_ident,
+                content_id=f"issue_{card_ident}",
+                labels=expected_labels,
+                fields=provided_fields,
+                repo_name=repo_name,
+            )
+        )
+        expected_assignees = []
+        m.post(
+            url,
+            text=build_response(QlCommand.find_assignees, expected_assignees=expected_assignees),
+        )
+        class_response.check_assignees()
+        self.assertEqual(class_response.problem_identified, False)
+        expected_assignees.append("Assignee 1")
+        expected_assignees.append("Assignee 2")
+        m.post(
+            url,
+            text=build_response(QlCommand.find_assignees, expected_assignees=expected_assignees),
+        )
+        class_response.check_assignees()
+        self.assertEqual(class_response.problem_identified, False)
+
+    # Test 13: No assignee allowed, and none given
+    # Note Config Parser is a patch, so is not used directly but is needed in the called section
+    @requests_mock.mock()
+    @patch(
+        "configparser.ConfigParser.__getitem__",
+        return_value={
+            "allow_unassigned": "unassigned_allowed",
+        },
+    )
+    def test_check_assignees_when_required(self, m, config_parser):
+        card_ident = 13
+        repo_name = "Repo"
+        expected_labels = {"5": "5"}
+        sprint = "Sprint"
+        status = "assigned_required"
+        points = 0
+        priority = "Medium"
+        provided_fields = {
+            "Points": points,
+            "Planning Priority": priority,
+            "Status": status,
+            "Sprint": sprint,
+        }
+        class_response = CardInfo(
+            issue_entry(
+                ident=card_ident,
+                content_id=f"issue_{card_ident}",
+                labels=expected_labels,
+                fields=provided_fields,
+                repo_name=repo_name,
+            )
+        )
+        expected_assignees = []
+        m.post(
+            url,
+            text=build_response(QlCommand.find_assignees, expected_assignees=expected_assignees),
+        )
+        class_response.check_assignees()
+        self.assertEqual(class_response.problem_identified, True)
+        self.assertTrue(
+            f"ERROR: Issue {card_ident} in {repo_name} with {status} status does not have anyone assigned."
+            in class_response.problem_text
+        )
+        class_response.problem_identified = False
+        expected_assignees.append("Assignee 1")
+        m.post(
+            url,
+            text=build_response(QlCommand.find_assignees, expected_assignees=expected_assignees),
+        )
+        class_response.check_assignees()
+        self.assertEqual(class_response.problem_identified, False)
+        expected_assignees.append("Assignee 2")
+        m.post(
+            url,
+            text=build_response(QlCommand.find_assignees, expected_assignees=expected_assignees),
+        )
+        class_response.check_assignees()
+        self.assertEqual(class_response.problem_identified, False)
+
 
 class TestProjectIncrement(TestCase):
     # Test 1: There's an X in the title

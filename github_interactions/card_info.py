@@ -59,7 +59,7 @@ class CardInfo:
                 pass
         self.allowed_zero_points = []
         self.allowed_no_points = []
-        self.get_label_permissions()
+        self.get_config_settings()
         self.problem_identified = False
         self.problem_text = []
         self.verify_pointing_correct()
@@ -67,13 +67,13 @@ class CardInfo:
     def __str__(self):
         return self.name
 
-    def get_label_permissions(self):
+    def get_config_settings(self):
         # Get the items from the config file
         try:
             self.allowed_zero_points = config["BOARD.CHECKS"]["zero_points_labels"].split(",")
             self.allowed_no_points = config["BOARD.CHECKS"]["no_points_labels"].split(",")
         except KeyError:
-            # A Key Error here will mean an absence of labels which can be ignored as appropriate
+            # A Key Error here will mean an absence of settings which can be ignored as appropriate
             pass
 
     def verify_pointing_correct(self):
@@ -104,6 +104,18 @@ class CardInfo:
                 )
         if problem_text:
             self.problem_text.append(problem_text)
+
+    def check_assignees(self):
+        allow_unassigned = config["BOARD.RULES"]["allow_unassigned"].split(", ")
+        if self.status not in allow_unassigned:
+            print(cards.get_assignees(self.id))
+            if not cards.get_assignees(self.id):
+                print("I am here....")
+                self.problem_identified = True
+                self.problem_text.append(
+                    f"ERROR: Issue {self.number} in {self.repo} with {self.status} status does not "
+                    f"have anyone assigned."
+                )
 
     def check_if_stale(self):
         # Get the values for the stale settings from the config file
