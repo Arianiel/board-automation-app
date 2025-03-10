@@ -1,4 +1,4 @@
-import graph_ql_interactions.graph_ql_functions as gql_queries
+import graph_ql_interactions.github_request_functions as gql_queries
 import graph_ql_interactions.card_interactions as cards
 import github_interactions.project_increment_information as projects
 

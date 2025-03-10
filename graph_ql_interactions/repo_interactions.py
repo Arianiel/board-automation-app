@@ -1,4 +1,4 @@
-import graph_ql_interactions.graph_ql_functions as gql_queries
+import graph_ql_interactions.github_request_functions as gql_queries
 
 repo_label_id_query = gql_queries.open_graph_ql_query_file("findRepoLabelID.txt")
 repo_info_query = gql_queries.open_graph_ql_query_file("findRepoInfo.txt")
@@ -19,9 +19,8 @@ def get_label_id(org_name: str = "", repo_name: str = "", label_name: str = ""):
 
 def get_repo_labels(org_name: str = "", repo_name: str = ""):
     labels = {}
-    repos_query = gql_queries.open_graph_ql_query_file("findRepoInfo.txt")
     result = gql_queries.run_query(
-        repos_query.replace("<ORG_NAME>", org_name).replace("<REPO>", repo_name)
+        repo_info_query.replace("<ORG_NAME>", org_name).replace("<REPO>", repo_name)
     )
     for entry in result["data"]["repository"]["labels"]["nodes"]:
         labels[entry["name"]] = entry["id"]

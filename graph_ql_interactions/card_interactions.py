@@ -1,6 +1,6 @@
 from collections import Counter
 
-import graph_ql_interactions.graph_ql_functions as gql_queries
+import graph_ql_interactions.github_request_functions as gql_queries
 from github_interactions import card_info
 
 card_info_query = gql_queries.open_graph_ql_query_file("findCardInfo.txt")

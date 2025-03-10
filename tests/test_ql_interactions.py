@@ -1,6 +1,6 @@
 from collections import Counter
 from unittest import TestCase
-import graph_ql_interactions.graph_ql_functions as ql
+import graph_ql_interactions.github_request_functions as ql
 import graph_ql_interactions.repo_interactions as ri
 import graph_ql_interactions.card_interactions as ci
 import requests_mock

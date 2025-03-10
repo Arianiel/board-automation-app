@@ -1,5 +1,5 @@
 import re
-import graph_ql_interactions.graph_ql_functions as gql_queries
+import graph_ql_interactions.github_request_functions as gql_queries
 from github_interactions.sprint_information import SprintInfo
 import datetime
 

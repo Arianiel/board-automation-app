@@ -1,0 +1,13 @@
+query findOpenPullRequestsInRepo {
+  repository(owner: "<ORG_NAME>", name: "<REPO>") {
+    name
+    id
+    pullRequests(first: 100, states: OPEN){
+        nodes{
+            title
+            bodyText
+            closed
+        }
+    }
+  }
+}
