@@ -30,7 +30,7 @@ def run_query(
         )
 
 
-def get_open_prs_for_repo(
+def get_content(
     repo_owner: str,
     repo_name: str,
     file_path: str,
@@ -45,7 +45,6 @@ def get_open_prs_for_repo(
     if response.status_code == 200:
         # Get the content data from the response
         content_data = response.json()
-
         # Extract the content and decode it from base64
         content_base64 = content_data.get("content")
         content_bytes = base64.b64decode(content_base64)

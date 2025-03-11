@@ -1,3 +1,4 @@
+import base64
 from collections import Counter
 from unittest import TestCase
 import graph_ql_interactions.github_request_functions as ql
@@ -69,6 +70,20 @@ class TestGraphQlFunctions(TestCase):
         with self.assertRaises(Exception) as context:
             ql.run_query(self.__class__.query)
         self.assertTrue(self.__class__.query in str(context.exception))
+
+    @requests_mock.mock()
+    def test_get_content(self, m):
+        repo_owner = "repo_owner"
+        repo_name = "repo_name"
+        file_path = "file_path"
+        branch = "main"
+        expected_value = "Mock Content"
+        expected_bytes = expected_value.encode("utf-8")
+        expected_64 = base64.b64encode(expected_bytes).decode("utf-8")
+        response = json.dumps({"content": expected_64})
+        content_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}?ref={branch}"
+        m.get(content_url, text=response, status_code=200)
+        self.assertEqual(ql.get_content(repo_owner, repo_name, file_path, branch), expected_value)
 
 
 class TestCardInteractions(TestCase):
