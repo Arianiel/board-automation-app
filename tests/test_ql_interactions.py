@@ -9,7 +9,7 @@ from unittest.mock import mock_open, patch
 from test_helpers import build_response, QlCommand, bad_return, snapshot_name_to_status_lookup
 import json
 
-# The URL to be mocked here is always the GitHub graphQL API
+# The URL to be mocked here is usually the GitHub graphQL API
 url = "https://api.github.com/graphql"
 
 

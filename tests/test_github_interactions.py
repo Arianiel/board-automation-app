@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import requests_mock
 
+from github_interactions.board_checks import BoardChecks
 from tests.test_helpers import (
     issue_entry,
     pull_request_entry,
@@ -343,8 +344,19 @@ class TestCardInfo(TestCase):
         self.assertEqual(class_response.repo, None)
         self.assertEqual(class_response.name, "None")
 
+
+class TestBoardChecks(TestCase):
     # Test 6: Multiple points labels
-    def test_number_of_points_labels(self):
+    @patch(
+        "configparser.ConfigParser.__getitem__",
+        return_value={
+            "no_points_labels": "no_points_labels_allowed",
+            "zero_points_labels": "zero_points_labels_allowed",
+        },
+    )
+    @patch("github_interactions.board_checks.BoardChecks.check_assignees")
+    @patch("github_interactions.board_checks.BoardChecks.check_if_last_comment_stale")
+    def test_number_of_points_labels(self, comment_stale, assignees, config_parser):
         card_ident = 6
         repo_name = "Repo"
         expected_labels = {"1": "label_1_id", "2": "label_2_id"}
@@ -358,23 +370,33 @@ class TestCardInfo(TestCase):
             "Status": status,
             "Sprint": sprint,
         }
-        class_response = CardInfo(
-            issue_entry(
-                ident=card_ident,
-                content_id=f"issue_{card_ident}",
-                labels=expected_labels,
-                fields=provided_fields,
-                repo_name=repo_name,
-            )
+        class_response = BoardChecks(
+            [
+                issue_entry(
+                    ident=card_ident,
+                    content_id=f"issue_{card_ident}",
+                    labels=expected_labels,
+                    fields=provided_fields,
+                    repo_name=repo_name,
+                )
+            ]
         )
-        self.assertEqual(class_response.problem_identified, True)
         self.assertEqual(
             class_response.problem_text,
             [f"ERROR: Multiple Points labels found for issue {card_ident} in {repo_name}"],
         )
 
     # Test 7: No points labels
-    def test_no_points_labels(self):
+    @patch(
+        "configparser.ConfigParser.__getitem__",
+        return_value={
+            "no_points_labels": "no_points_labels_allowed",
+            "zero_points_labels": "zero_points_labels_allowed",
+        },
+    )
+    @patch("github_interactions.board_checks.BoardChecks.check_assignees")
+    @patch("github_interactions.board_checks.BoardChecks.check_if_last_comment_stale")
+    def test_no_points_labels(self, comment_stale, assignees, config_parser):
         card_ident = 7
         repo_name = "Repo"
         expected_labels = {"label_1": "label_1_id", "label_2": "label_2_id"}
@@ -388,16 +410,17 @@ class TestCardInfo(TestCase):
             "Status": status,
             "Sprint": sprint,
         }
-        class_response = CardInfo(
-            issue_entry(
-                ident=card_ident,
-                content_id=f"issue_{card_ident}",
-                labels=expected_labels,
-                fields=provided_fields,
-                repo_name=repo_name,
-            )
+        class_response = BoardChecks(
+            [
+                issue_entry(
+                    ident=card_ident,
+                    content_id=f"issue_{card_ident}",
+                    labels=expected_labels,
+                    fields=provided_fields,
+                    repo_name=repo_name,
+                )
+            ]
         )
-        self.assertEqual(class_response.problem_identified, True)
         self.assertEqual(
             class_response.problem_text,
             [f"ERROR: No Points labels found for issue {card_ident} in {repo_name}"],
@@ -411,7 +434,9 @@ class TestCardInfo(TestCase):
             "zero_points_labels": "zero_points_labels_allowed",
         },
     )
-    def test_no_points_labels_permitted(self, config_parser):
+    @patch("github_interactions.board_checks.BoardChecks.check_assignees")
+    @patch("github_interactions.board_checks.BoardChecks.check_if_last_comment_stale")
+    def test_no_points_labels_permitted(self, comment_stale, assignees, config_parser):
         card_ident = 8
         repo_name = "Repo"
         expected_labels = {
@@ -429,16 +454,18 @@ class TestCardInfo(TestCase):
             "Status": status,
             "Sprint": sprint,
         }
-        class_response = CardInfo(
-            issue_entry(
-                ident=card_ident,
-                content_id=f"issue_{card_ident}",
-                labels=expected_labels,
-                fields=provided_fields,
-                repo_name=repo_name,
-            )
+        class_response = BoardChecks(
+            [
+                issue_entry(
+                    ident=card_ident,
+                    content_id=f"issue_{card_ident}",
+                    labels=expected_labels,
+                    fields=provided_fields,
+                    repo_name=repo_name,
+                )
+            ]
         )
-        self.assertEqual(class_response.problem_identified, False)
+        self.assertEqual(class_response.problem_text, [])
 
     # Test 9: No points labels
     # Note Config Parser is a patch, so is not used directly but is needed in the called section
@@ -449,7 +476,9 @@ class TestCardInfo(TestCase):
             "zero_points_labels": "zero_points_labels_allowed",
         },
     )
-    def test_zero_points_labels_permitted(self, config_parser):
+    @patch("github_interactions.board_checks.BoardChecks.check_assignees")
+    @patch("github_interactions.board_checks.BoardChecks.check_if_last_comment_stale")
+    def test_zero_points_labels_permitted(self, comment_stale, assignees, config_parser):
         card_ident = 9
         repo_name = "Repo"
         expected_labels = {
@@ -467,16 +496,18 @@ class TestCardInfo(TestCase):
             "Status": status,
             "Sprint": sprint,
         }
-        class_response = CardInfo(
-            issue_entry(
-                ident=card_ident,
-                content_id=f"issue_{card_ident}",
-                labels=expected_labels,
-                fields=provided_fields,
-                repo_name=repo_name,
-            )
+        class_response = BoardChecks(
+            [
+                issue_entry(
+                    ident=card_ident,
+                    content_id=f"issue_{card_ident}",
+                    labels=expected_labels,
+                    fields=provided_fields,
+                    repo_name=repo_name,
+                )
+            ]
         )
-        self.assertEqual(class_response.problem_identified, False)
+        self.assertEqual(class_response.problem_text, [])
 
     # Test 10: Check Freshness by comment, ticket should error on the status value
     # Note Config Parser is a patch, so is not used directly but is needed in the called section
@@ -489,8 +520,9 @@ class TestCardInfo(TestCase):
             "label_errors": "Status Check: 28",
         },
     )
-    @patch("github_interactions.card_info.CardInfo.verify_pointing_correct")
-    def test_stale_comment_error(self, m, pointing, config_parser):
+    @patch("github_interactions.board_checks.BoardChecks.check_assignees")
+    @patch("github_interactions.board_checks.BoardChecks.verify_card_pointing_correct")
+    def test_stale_comment_error(self, m, pointing, assignees, config_parser):
         card_ident = 10
         content_id = f"issue_{card_ident}"
         repo_name = "Repo"
@@ -505,15 +537,6 @@ class TestCardInfo(TestCase):
             "Status": status,
             "Sprint": sprint,
         }
-        class_response = CardInfo(
-            issue_entry(
-                ident=card_ident,
-                content_id=content_id,
-                labels=expected_labels,
-                fields=provided_fields,
-                repo_name=repo_name,
-            )
-        )
         today = datetime.datetime.today()
         recent_comment_date = today - datetime.timedelta(days=5)
         turning_comment_date = today - datetime.timedelta(days=28)
@@ -525,24 +548,36 @@ class TestCardInfo(TestCase):
                 QlCommand.find_last_comment, created_at=recent_comment_date.strftime(date_format)
             ),
         )
-        class_response.check_if_stale()
-        self.assertEqual(class_response.problem_identified, False)
+        class_response = BoardChecks(
+            [
+                issue_entry(
+                    ident=card_ident,
+                    content_id=content_id,
+                    labels=expected_labels,
+                    fields=provided_fields,
+                    repo_name=repo_name,
+                )
+            ]
+        )
+        self.assertEqual(class_response.problem_text, [])
         m.post(
             url,
             text=build_response(
                 QlCommand.find_last_comment, created_at=turning_comment_date.strftime(date_format)
             ),
         )
-        class_response.check_if_stale()
-        self.assertEqual(class_response.problem_identified, True)
+        class_response.update_checks()
+        self.assertTrue(
+            f"ERROR: Issue {card_ident} in {status} last had a comment added 28 days or more ago."
+            in class_response.problem_text
+        )
         m.post(
             url,
             text=build_response(
                 QlCommand.find_last_comment, created_at=old_comment_date.strftime(date_format)
             ),
         )
-        class_response.check_if_stale()
-        self.assertEqual(class_response.problem_identified, True)
+        class_response.update_checks()
         self.assertTrue(
             f"ERROR: Issue {card_ident} in {status} last had a comment added 28 days or more ago."
             in class_response.problem_text
@@ -559,9 +594,10 @@ class TestCardInfo(TestCase):
             "label_errors": "Status Check: 28",
         },
     )
-    @patch("github_interactions.card_info.CardInfo.verify_pointing_correct")
-    @patch("github_interactions.card_info.CardInfo.check_if_last_comment_stale")
-    def test_stale_label_error(self, m, comment, pointing, config_parser):
+    @patch("github_interactions.board_checks.BoardChecks.check_assignees")
+    @patch("github_interactions.board_checks.BoardChecks.verify_card_pointing_correct")
+    @patch("github_interactions.board_checks.BoardChecks.check_if_last_comment_stale")
+    def test_stale_label_error(self, m, comment, pointing, assignees, config_parser):
         card_ident = 11
         label_warning_at = 7
         label_error_at = 28
@@ -579,15 +615,6 @@ class TestCardInfo(TestCase):
             "Status": status,
             "Sprint": sprint,
         }
-        class_response = CardInfo(
-            issue_entry(
-                ident=card_ident,
-                content_id=content_id,
-                labels=expected_labels,
-                fields=provided_fields,
-                repo_name=repo_name,
-            )
-        )
         expected_labels = {}
         today = datetime.datetime.today()
         stale_warning = today - datetime.timedelta(days=label_warning_at)
@@ -600,8 +627,18 @@ class TestCardInfo(TestCase):
             url,
             text=build_response(QlCommand.find_labels_added, expected_label_dates=expected_labels),
         )
-        class_response.check_if_stale()
-        self.assertEqual(class_response.problem_identified, False)
+        class_response = BoardChecks(
+            [
+                issue_entry(
+                    ident=card_ident,
+                    content_id=content_id,
+                    labels=expected_labels,
+                    fields=provided_fields,
+                    repo_name=repo_name,
+                )
+            ]
+        )
+        self.assertEqual(class_response.problem_text, [])
 
         # Check Two - Warning
         expected_labels["Status Check"] = stale_warning.strftime(date_format)
@@ -609,8 +646,7 @@ class TestCardInfo(TestCase):
             url,
             text=build_response(QlCommand.find_labels_added, expected_label_dates=expected_labels),
         )
-        class_response.check_if_stale()
-        self.assertEqual(class_response.problem_identified, True)
+        class_response.update_checks()
         self.assertTrue(
             f"WARNING: Issue {card_ident} had {label} label added more than {label_warning_at} days ago."
             in class_response.problem_text
@@ -622,8 +658,7 @@ class TestCardInfo(TestCase):
             url,
             text=build_response(QlCommand.find_labels_added, expected_label_dates=expected_labels),
         )
-        class_response.check_if_stale()
-        self.assertEqual(class_response.problem_identified, True)
+        class_response.update_checks()
         self.assertTrue(
             f"ERROR: Issue {card_ident} had {label} label added more than {label_error_at} days ago."
             in class_response.problem_text
@@ -652,30 +687,31 @@ class TestCardInfo(TestCase):
             "Status": status,
             "Sprint": sprint,
         }
-        class_response = CardInfo(
-            issue_entry(
-                ident=card_ident,
-                content_id=f"issue_{card_ident}",
-                labels=expected_labels,
-                fields=provided_fields,
-                repo_name=repo_name,
-            )
-        )
         expected_assignees = []
         m.post(
             url,
             text=build_response(QlCommand.find_assignees, expected_assignees=expected_assignees),
         )
-        class_response.check_assignees()
-        self.assertEqual(class_response.problem_identified, False)
+        class_response = BoardChecks(
+            [
+                issue_entry(
+                    ident=card_ident,
+                    content_id=f"issue_{card_ident}",
+                    labels=expected_labels,
+                    fields=provided_fields,
+                    repo_name=repo_name,
+                )
+            ]
+        )
+        self.assertEqual(class_response.problem_text, [])
         expected_assignees.append("Assignee 1")
         expected_assignees.append("Assignee 2")
         m.post(
             url,
             text=build_response(QlCommand.find_assignees, expected_assignees=expected_assignees),
         )
-        class_response.check_assignees()
-        self.assertEqual(class_response.problem_identified, False)
+        class_response.update_checks()
+        self.assertEqual(class_response.problem_text, [])
 
     # Test 13: No assignee allowed, and none given
     # Note Config Parser is a patch, so is not used directly but is needed in the called section
@@ -700,41 +736,41 @@ class TestCardInfo(TestCase):
             "Status": status,
             "Sprint": sprint,
         }
-        class_response = CardInfo(
-            issue_entry(
-                ident=card_ident,
-                content_id=f"issue_{card_ident}",
-                labels=expected_labels,
-                fields=provided_fields,
-                repo_name=repo_name,
-            )
-        )
         expected_assignees = []
         m.post(
             url,
             text=build_response(QlCommand.find_assignees, expected_assignees=expected_assignees),
         )
-        class_response.check_assignees()
-        self.assertEqual(class_response.problem_identified, True)
+        class_response = BoardChecks(
+            [
+                issue_entry(
+                    ident=card_ident,
+                    content_id=f"issue_{card_ident}",
+                    labels=expected_labels,
+                    fields=provided_fields,
+                    repo_name=repo_name,
+                )
+            ]
+        )
         self.assertTrue(
             f"ERROR: Issue {card_ident} in {repo_name} with {status} status does not have anyone assigned."
             in class_response.problem_text
         )
-        class_response.problem_identified = False
+        class_response.problem_text = []
         expected_assignees.append("Assignee 1")
         m.post(
             url,
             text=build_response(QlCommand.find_assignees, expected_assignees=expected_assignees),
         )
-        class_response.check_assignees()
-        self.assertEqual(class_response.problem_identified, False)
+        class_response.update_checks()
+        self.assertEqual(class_response.problem_text, [])
         expected_assignees.append("Assignee 2")
         m.post(
             url,
             text=build_response(QlCommand.find_assignees, expected_assignees=expected_assignees),
         )
-        class_response.check_assignees()
-        self.assertEqual(class_response.problem_identified, False)
+        class_response.update_checks()
+        self.assertEqual(class_response.problem_text, [])
 
 
 class TestProjectIncrement(TestCase):
