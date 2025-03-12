@@ -17,11 +17,11 @@ class BoardChecks:
             self.cards_list.append(CardInfo(card))
         self.allowed_zero_points = []
         self.allowed_no_points = []
-        self.get_config_settings()
         self.comment_errors = {}
         self.label_warnings = {}
         self.label_errors = {}
-        self.get_stale_settings()
+        self.allow_unassigned = {}
+        self.get_config_settings()
         self.problem_text = []
         self.do_the_checks()
 
@@ -43,7 +43,6 @@ class BoardChecks:
             # A Key Error here will mean an absence of settings which can be ignored as appropriate
             pass
 
-    def get_stale_settings(self):
         # Get the values for the stale settings from the config file
         try:
             self.comment_errors = dict(
@@ -57,6 +56,12 @@ class BoardChecks:
             )
         except KeyError:
             # A Key Error here will mean no stale settings, so nothing to test
+            pass
+
+        # Get the list of labels which indicate tickets can be unassigned
+        try:
+            self.allow_unassigned = config["BOARD.RULES"]["allow_unassigned"].split(", ")
+        except KeyError:
             pass
 
     def verify_card_pointing_correct(self, labels, number, repo):
@@ -80,8 +85,7 @@ class BoardChecks:
             self.problem_text.append(problem_text)
 
     def check_assignees(self, status, ident, number, repo):
-        allow_unassigned = config["BOARD.RULES"]["allow_unassigned"].split(", ")
-        if status not in allow_unassigned:
+        if status not in self.allow_unassigned:
             if not card_i.get_assignees(ident):
                 self.problem_text.append(
                     f"ERROR: Issue {number} in {repo} with {status} status does not "
