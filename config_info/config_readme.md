@@ -57,8 +57,6 @@ involved. This should be a comma separated list of labels which can be applied t
 would mean they can have no point labels applied. An example entry could be:
 `No Points Necessary, Duplicate, Wontfix`
 
-## STALE.SETTINGS
-
 ### comment_errors
 This is a list of statuses in use in the project, and a number which indicates the number of 
 days since a comment was added after which it can be considered stale. These should be of the
@@ -74,8 +72,22 @@ This is a list of statuses in use in the project, and a number which indicates t
 days since the label was added on a status change after which it can be considered stale. 
 These should be of the following format: `Status: n, Status: n`
 
-## BOARD.RULES
-
 ### allow_unassigned
 This is a list of status columns that mean a ticket can be unassigned, if a ticket is in progress
 then it should have someone assigned to it
+
+### release_notes_repo
+The name of the repo with the release notes to check in, only issues in this repo will be considered
+
+### release_notes_file_path
+This is the path within the repo to find the appropriate file, which should be a markdown
+file, e.g. "release_notes/ReleaseNotes.md"
+
+### release_notes_branch
+The name of the main branch to use for this, no default is provided
+
+### need_notes
+This is a list of status columns which need to have release notes as a comma separated list
+
+### notes_exempt
+A comma separated list of label names which allow there to be no release notes for the associated issue

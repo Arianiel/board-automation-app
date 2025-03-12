@@ -1,7 +1,11 @@
 import configparser
 import os
 from datetime import datetime
-from github_interactions.card_info import CardInfo
+from graph_ql_interactions.github_request_functions import (
+    get_content,
+    open_graph_ql_query_file,
+    run_query,
+)
 
 import graph_ql_interactions.card_interactions as card_i
 
@@ -12,24 +16,32 @@ config.read(os.path.join(os.path.dirname(__file__), "..", "config_info", "config
 class BoardChecks:
     def __init__(self, cards):
         self.cards = cards
-        self.cards_list = []
-        for card in self.cards:
-            self.cards_list.append(CardInfo(card))
         self.allowed_zero_points = []
         self.allowed_no_points = []
         self.comment_errors = {}
         self.label_warnings = {}
         self.label_errors = {}
         self.allow_unassigned = {}
+        self.org_name = ""
+        self.release_notes_repo = ""
+        self.release_notes_file_path = ""
+        self.release_notes_branch = ""
+        self.release_notes = ""
+        self.status_needing_release_notes = []
+        self.release_note_exempt_labels = []
         self.get_config_settings()
+        self.prs = {}
         self.problem_text = []
         self.do_the_checks()
 
     def do_the_checks(self):
-        for card in self.cards_list:
+        self.get_present_release_notes()
+        self.get_release_note_prs()
+        for card in self.cards:
             self.verify_card_pointing_correct(card.labels, card.number, card.repo)
             self.check_if_stale(card.status, card.id, card.number)
             self.check_assignees(card.status, card.id, card.number, card.repo)
+            self.check_release_notes(card)
 
     def update_checks(self):
         self.do_the_checks()
@@ -46,13 +58,13 @@ class BoardChecks:
         # Get the values for the stale settings from the config file
         try:
             self.comment_errors = dict(
-                item.split(": ") for item in config["STALE.SETTINGS"]["comment_errors"].split(", ")
+                item.split(": ") for item in config["BOARD.CHECKS"]["comment_errors"].split(",")
             )
             self.label_warnings = dict(
-                item.split(": ") for item in config["STALE.SETTINGS"]["label_warnings"].split(", ")
+                item.split(": ") for item in config["BOARD.CHECKS"]["label_warnings"].split(",")
             )
             self.label_errors = dict(
-                item.split(": ") for item in config["STALE.SETTINGS"]["label_errors"].split(", ")
+                item.split(": ") for item in config["BOARD.CHECKS"]["label_errors"].split(",")
             )
         except KeyError:
             # A Key Error here will mean no stale settings, so nothing to test
@@ -60,7 +72,18 @@ class BoardChecks:
 
         # Get the list of labels which indicate tickets can be unassigned
         try:
-            self.allow_unassigned = config["BOARD.RULES"]["allow_unassigned"].split(", ")
+            self.allow_unassigned = config["BOARD.CHECKS"]["allow_unassigned"].split(",")
+        except KeyError:
+            pass
+
+        # Get the information for release note checking
+        try:
+            self.org_name = config["GITHUB.INTERACTION"]["org_name"]
+            self.release_notes_repo = config["BOARD.CHECKS"]["release_notes_repo"]
+            self.release_notes_file_path = config["BOARD.CHECKS"]["release_notes_file_path"]
+            self.release_notes_branch = config["BOARD.CHECKS"]["release_notes_branch"]
+            self.status_needing_release_notes = config["BOARD.CHECKS"]["need_notes"].split(",")
+            self.release_note_exempt_labels = config["BOARD.CHECKS"]["notes_exempt"].split(",")
         except KeyError:
             pass
 
@@ -129,3 +152,75 @@ class BoardChecks:
                         f" more than {int(warning_list[label])} days ago."
                     )
                     return
+
+    def get_present_release_notes(self):
+        self.release_notes = get_content(
+            repo_owner=self.org_name,
+            repo_name=self.release_notes_repo,
+            file_path=self.release_notes_file_path,
+            branch=self.release_notes_branch,
+        )
+
+    def get_release_note_prs(self):
+        repos_query = open_graph_ql_query_file("findOpenPullRequestsInRepo.txt")
+        result = run_query(
+            repos_query.replace("<ORG_NAME>", self.org_name).replace(
+                "<REPO>", self.release_notes_repo
+            )
+        )
+        for value in result["data"]["repository"]["pullRequests"]["nodes"]:
+            self.prs[value["title"]] = value["bodyText"]
+
+    def check_release_notes(self, card):
+        # if card.status in self.status_needing_release_notes:
+        #     print(f"========={card.name}==========")
+        #     print(list(set(card.labels) & set(self.release_note_exempt_labels)))
+
+        if card.type != "ISSUE":
+            return
+        if card.repo != self.release_notes_repo:
+            return
+        if card.status in self.status_needing_release_notes:
+            # TODO
+            print(f"******{card.name}******")
+            print(list(set(card.labels) & set(self.release_note_exempt_labels)))
+            if not list(set(card.labels) & set(self.release_note_exempt_labels)):
+                print(f"{card.number} needs release notes")
+                card_in_release_notes = False
+                card_in_prs = False
+                if card.name in self.release_notes:
+                    card_in_release_notes = True
+                    print(f"{card.name} is on main branch.")
+                for pr in self.prs.keys():
+                    if card.name in pr:
+                        card_in_prs = True
+                        print(f"{card.name} has an associated PR by title")
+                    if card.name in self.prs[pr]:
+                        card_in_prs = True
+                        print(f"{card.name} has an associated PR by body")
+                # Hard coding as this is complicated, and want to have something that works ASAP
+                if card_in_release_notes and card_in_prs:
+                    self.problem_text.append(
+                        f"ERROR: Issue {card.number} is {card.status} and has both release notes "
+                        f"and open PRs."
+                    )
+                    return
+                if not card_in_release_notes and not card_in_prs:
+                    self.problem_text.append(
+                        f"ERROR: Issue {card.number} is {card.status} and has no release notes or "
+                        f"PRs for release notes."
+                    )
+                    return
+                if card.status == "Done":
+                    if not card_in_release_notes and card_in_prs:
+                        self.problem_text.append(
+                            f"ERROR: Issue {card.number} is {card.status} and has open PRs for "
+                            f"release notes."
+                        )
+
+                if card.status == "Review":
+                    if card_in_release_notes and not card_in_prs:
+                        self.problem_text.append(
+                            f"ERROR: Issue {card.number} is {card.status} and has an entry in the "
+                            f"release notes without being completed."
+                        )

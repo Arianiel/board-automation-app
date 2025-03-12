@@ -196,8 +196,12 @@ def get_when_last_commented_created_on_issue(issue_id: str):
 
 def get_when_labels_were_added_to_issue(issue_id: str):
     response = gql_queries.run_query(get_issue_labels_added.replace("<ISSUE>", issue_id))
-    labels = response["data"]["node"]["labels"]["nodes"]
-    labels_timeline = response["data"]["node"]["timelineItems"]["edges"]
+    try:
+        labels = response["data"]["node"]["labels"]["nodes"]
+        labels_timeline = response["data"]["node"]["timelineItems"]["edges"]
+    except KeyError:
+        labels = []
+        labels_timeline = []
     labels_timeline.reverse()
     label_added = {}
     for label in labels:
@@ -210,8 +214,13 @@ def get_when_labels_were_added_to_issue(issue_id: str):
 
 
 def get_assignees(issue_id: str):
+    if issue_id is None:
+        return []
     response = gql_queries.run_query(get_issue_assignees.replace("<ISSUE>", issue_id))
-    assignees = response["data"]["node"]["assignees"]["edges"]
+    try:
+        assignees = response["data"]["node"]["assignees"]["edges"]
+    except KeyError:
+        assignees = []
     assignee_names = []
     for assignee in assignees:
         assignee_names.append(assignee["node"]["name"])
