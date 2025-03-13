@@ -391,7 +391,7 @@ class TestBoardChecks(TestCase):
         )
         self.assertEqual(
             class_response.problem_text,
-            [f"ERROR: Multiple Points labels found for issue {card_ident} in {repo_name}"],
+            [f"ERROR: Issue {card_ident} in {repo_name} has multiple points labels"],
         )
 
     # Test 7: No points labels
@@ -439,7 +439,7 @@ class TestBoardChecks(TestCase):
         )
         self.assertEqual(
             class_response.problem_text,
-            [f"ERROR: No Points labels found for issue {card_ident} in {repo_name}"],
+            [f"ERROR: Issue {card_ident} in {repo_name} has no points labels and it should have"],
         )
 
     # Test 8: No points labels

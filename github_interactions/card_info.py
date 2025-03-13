@@ -32,6 +32,7 @@ class CardInfo:
         self.status = None
         self.sprint = None
         self.points = 0
+        self.priority = None
         for value in field_values:
             try:
                 match value["field"]["name"]:

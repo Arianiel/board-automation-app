@@ -26,46 +26,68 @@ class BoardChecks:
         self.get_release_note_prs()
         for card in self.cards:
             if card.type != "ISSUE":
+                # Not checking on PRs
                 continue
             if card.repo != config["BOARD.CHECKS"]["release_notes_repo"]:
+                # Limiting the repo to begin with to those in the release notes being considered
                 continue
-            self.verify_card_pointing_correct(card.labels, card.number, card.repo)
-            self.check_if_stale(card.status, card.id, card.number)
-            self.check_assignees(card.status, card.id, card.number, card.repo)
+            if card.status is None:
+                # If there is no status it is not properly in the system
+                continue
+            if card.sprint is None:
+                # If it has no sprint there is no scheduling aspect so will not check
+                continue
+            self.verify_card_pointing_correct(card)
+            self.check_if_stale(card)
+            self.check_assignees(card)
             self.check_release_notes(card)
 
     def update_checks(self):
         self.do_the_checks()
 
-    def verify_card_pointing_correct(self, labels, number, repo):
+    def verify_card_pointing_correct(self, card):
+        if card.priority is None:
+            # If everything is there except this then it should mean that it has yet to be
+            # prioritised, so can be assumed to be a future sprint and therefore doesn't need points
+            return
         points_label_count = 0
         zero_point_label = False
         problem_text = None
-        for label in labels:
+        for label in card.labels:
             if label.isdigit():
                 points_label_count += 1
             if label == "0":
                 zero_point_label = True
         if points_label_count > 1:
-            problem_text = f"ERROR: Multiple Points labels found for issue {number} in {repo}"
+            problem_text = f"ERROR: Issue {card.number} in {card.repo} has multiple points labels"
         elif zero_point_label:
-            if not list(set(labels) & set(config["BOARD.CHECKS"]["zero_points_labels"].split(","))):
-                problem_text = f"ERROR: Zero-point label found for issue {number} in {repo}"
+            if not list(
+                set(card.labels) & set(config["BOARD.CHECKS"]["zero_points_labels"].split(","))
+            ):
+                problem_text = (
+                    f"ERROR: Issue {card.number} in {card.repo} has a zero-point label "
+                    f"and nothing to indicate this is valid"
+                )
         elif points_label_count == 0:
-            if not list(set(labels) & set(config["BOARD.CHECKS"]["no_points_labels"].split(","))):
-                problem_text = f"ERROR: No Points labels found for issue {number} in {repo}"
+            if not list(
+                set(card.labels) & set(config["BOARD.CHECKS"]["no_points_labels"].split(","))
+            ):
+                problem_text = (
+                    f"ERROR: Issue {card.number} in {card.repo} has no points labels "
+                    f"and it should have"
+                )
         if problem_text:
             self.problem_text.append(problem_text)
 
-    def check_assignees(self, status, ident, number, repo):
-        if status not in config["BOARD.CHECKS"]["allow_unassigned"].split(","):
-            if not card_i.get_assignees(ident):
+    def check_assignees(self, card):
+        if card.status not in config["BOARD.CHECKS"]["allow_unassigned"].split(","):
+            if not card_i.get_assignees(card.id):
                 self.problem_text.append(
-                    f"ERROR: Issue {number} in {repo} with {status} status does not "
+                    f"ERROR: Issue {card.number} in {card.repo} with {card.status} status does not "
                     f"have anyone assigned."
                 )
 
-    def check_if_stale(self, status, ident, number):
+    def check_if_stale(self, card):
         # Based on self.status and intersections with the settings returned do the stale checks
         comment_errors = dict(
             item.split(":") for item in config["BOARD.CHECKS"]["comment_errors"].split(",")
@@ -76,10 +98,12 @@ class BoardChecks:
         label_errors = dict(
             item.split(":") for item in config["BOARD.CHECKS"]["label_errors"].split(",")
         )
-        if status in comment_errors.keys():
-            self.check_if_last_comment_stale(comment_errors[status], ident, number, status)
-        elif status in label_errors.keys() or status in label_warnings.keys():
-            self.check_if_label_status_stale(label_warnings, label_errors, ident, number)
+        if card.status in comment_errors.keys():
+            self.check_if_last_comment_stale(
+                comment_errors[card.status], card.id, card.number, card.status
+            )
+        elif card.status in label_errors.keys() or card.status in label_warnings.keys():
+            self.check_if_label_status_stale(label_warnings, label_errors, card.id, card.number)
 
     def check_if_last_comment_stale(self, duration, ident, number, status):
         last_comment = datetime.strptime(
@@ -135,23 +159,16 @@ class BoardChecks:
         #     print(f"========={card.name}==========")
         #     print(list(set(card.labels) & set(self.release_note_exempt_labels)))
         if card.status in config["BOARD.CHECKS"]["need_notes"].split(","):
-            # TODO
-            print(f"******{card.name}******")
-            print(list(set(card.labels) & set(config["BOARD.CHECKS"]["notes_exempt"].split(","))))
             if not list(set(card.labels) & set(config["BOARD.CHECKS"]["notes_exempt"].split(","))):
-                print(f"{card.number} needs release notes")
                 card_in_release_notes = False
                 card_in_prs = False
                 if card.name in self.release_notes:
                     card_in_release_notes = True
-                    print(f"{card.name} is on main branch.")
                 for pr in self.prs.keys():
                     if card.name in pr:
                         card_in_prs = True
-                        print(f"{card.name} has an associated PR by title")
                     if card.name in self.prs[pr]:
                         card_in_prs = True
-                        print(f"{card.name} has an associated PR by body")
                 # Hard coding as this is complicated, and want to have something that works ASAP
                 if card_in_release_notes and card_in_prs:
                     self.problem_text.append(
