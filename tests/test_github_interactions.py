@@ -352,11 +352,17 @@ class TestBoardChecks(TestCase):
         return_value={
             "no_points_labels": "no_points_labels_allowed",
             "zero_points_labels": "zero_points_labels_allowed",
+            "release_notes_repo": "Repo",
         },
     )
     @patch("github_interactions.board_checks.BoardChecks.check_assignees")
-    @patch("github_interactions.board_checks.BoardChecks.check_if_last_comment_stale")
-    def test_number_of_points_labels(self, comment_stale, assignees, config_parser):
+    @patch("github_interactions.board_checks.BoardChecks.check_if_stale")
+    @patch("github_interactions.board_checks.BoardChecks.check_release_notes")
+    @patch("github_interactions.board_checks.BoardChecks.get_present_release_notes")
+    @patch("github_interactions.board_checks.BoardChecks.get_release_note_prs")
+    def test_number_of_points_labels(
+        self, prs, release_notes, check_release_notes, check_stale, assignees, config_parser
+    ):
         card_ident = 6
         repo_name = "Repo"
         expected_labels = {"1": "label_1_id", "2": "label_2_id"}
@@ -372,12 +378,14 @@ class TestBoardChecks(TestCase):
         }
         class_response = BoardChecks(
             [
-                issue_entry(
-                    ident=card_ident,
-                    content_id=f"issue_{card_ident}",
-                    labels=expected_labels,
-                    fields=provided_fields,
-                    repo_name=repo_name,
+                CardInfo(
+                    issue_entry(
+                        ident=card_ident,
+                        content_id=f"issue_{card_ident}",
+                        labels=expected_labels,
+                        fields=provided_fields,
+                        repo_name=repo_name,
+                    )
                 )
             ]
         )
@@ -392,11 +400,17 @@ class TestBoardChecks(TestCase):
         return_value={
             "no_points_labels": "no_points_labels_allowed",
             "zero_points_labels": "zero_points_labels_allowed",
+            "release_notes_repo": "Repo",
         },
     )
     @patch("github_interactions.board_checks.BoardChecks.check_assignees")
-    @patch("github_interactions.board_checks.BoardChecks.check_if_last_comment_stale")
-    def test_no_points_labels(self, comment_stale, assignees, config_parser):
+    @patch("github_interactions.board_checks.BoardChecks.check_if_stale")
+    @patch("github_interactions.board_checks.BoardChecks.check_release_notes")
+    @patch("github_interactions.board_checks.BoardChecks.get_present_release_notes")
+    @patch("github_interactions.board_checks.BoardChecks.get_release_note_prs")
+    def test_no_points_labels(
+        self, release_notes, prs, check_notes, check_stale, assignees, config_parser
+    ):
         card_ident = 7
         repo_name = "Repo"
         expected_labels = {"label_1": "label_1_id", "label_2": "label_2_id"}
@@ -412,12 +426,14 @@ class TestBoardChecks(TestCase):
         }
         class_response = BoardChecks(
             [
-                issue_entry(
-                    ident=card_ident,
-                    content_id=f"issue_{card_ident}",
-                    labels=expected_labels,
-                    fields=provided_fields,
-                    repo_name=repo_name,
+                CardInfo(
+                    issue_entry(
+                        ident=card_ident,
+                        content_id=f"issue_{card_ident}",
+                        labels=expected_labels,
+                        fields=provided_fields,
+                        repo_name=repo_name,
+                    )
                 )
             ]
         )
@@ -432,11 +448,17 @@ class TestBoardChecks(TestCase):
         return_value={
             "no_points_labels": "no_points_labels_allowed",
             "zero_points_labels": "zero_points_labels_allowed",
+            "release_notes_repo": "Repo",
         },
     )
     @patch("github_interactions.board_checks.BoardChecks.check_assignees")
-    @patch("github_interactions.board_checks.BoardChecks.check_if_last_comment_stale")
-    def test_no_points_labels_permitted(self, comment_stale, assignees, config_parser):
+    @patch("github_interactions.board_checks.BoardChecks.check_if_stale")
+    @patch("github_interactions.board_checks.BoardChecks.check_release_notes")
+    @patch("github_interactions.board_checks.BoardChecks.get_present_release_notes")
+    @patch("github_interactions.board_checks.BoardChecks.get_release_note_prs")
+    def test_no_points_labels_permitted(
+        self, release_notes, prs, check_notes, comment_stale, assignees, config_parser
+    ):
         card_ident = 8
         repo_name = "Repo"
         expected_labels = {
@@ -456,12 +478,14 @@ class TestBoardChecks(TestCase):
         }
         class_response = BoardChecks(
             [
-                issue_entry(
-                    ident=card_ident,
-                    content_id=f"issue_{card_ident}",
-                    labels=expected_labels,
-                    fields=provided_fields,
-                    repo_name=repo_name,
+                CardInfo(
+                    issue_entry(
+                        ident=card_ident,
+                        content_id=f"issue_{card_ident}",
+                        labels=expected_labels,
+                        fields=provided_fields,
+                        repo_name=repo_name,
+                    )
                 )
             ]
         )
@@ -474,11 +498,17 @@ class TestBoardChecks(TestCase):
         return_value={
             "no_points_labels": "no_points_labels_allowed",
             "zero_points_labels": "zero_points_labels_allowed",
+            "release_notes_repo": "Repo",
         },
     )
     @patch("github_interactions.board_checks.BoardChecks.check_assignees")
-    @patch("github_interactions.board_checks.BoardChecks.check_if_last_comment_stale")
-    def test_zero_points_labels_permitted(self, comment_stale, assignees, config_parser):
+    @patch("github_interactions.board_checks.BoardChecks.check_if_stale")
+    @patch("github_interactions.board_checks.BoardChecks.check_release_notes")
+    @patch("github_interactions.board_checks.BoardChecks.get_present_release_notes")
+    @patch("github_interactions.board_checks.BoardChecks.get_release_note_prs")
+    def test_zero_points_labels_permitted(
+        self, prs, release_notes, check_notes, stale, assignees, config_parser
+    ):
         card_ident = 9
         repo_name = "Repo"
         expected_labels = {
@@ -498,12 +528,14 @@ class TestBoardChecks(TestCase):
         }
         class_response = BoardChecks(
             [
-                issue_entry(
-                    ident=card_ident,
-                    content_id=f"issue_{card_ident}",
-                    labels=expected_labels,
-                    fields=provided_fields,
-                    repo_name=repo_name,
+                CardInfo(
+                    issue_entry(
+                        ident=card_ident,
+                        content_id=f"issue_{card_ident}",
+                        labels=expected_labels,
+                        fields=provided_fields,
+                        repo_name=repo_name,
+                    )
                 )
             ]
         )
@@ -518,11 +550,17 @@ class TestBoardChecks(TestCase):
             "comment_errors": "Comment: 28",
             "label_warnings": "Status Check: 7",
             "label_errors": "Status Check: 28",
+            "release_notes_repo": "Repo",
         },
     )
     @patch("github_interactions.board_checks.BoardChecks.check_assignees")
     @patch("github_interactions.board_checks.BoardChecks.verify_card_pointing_correct")
-    def test_stale_comment_error(self, m, pointing, assignees, config_parser):
+    @patch("github_interactions.board_checks.BoardChecks.check_release_notes")
+    @patch("github_interactions.board_checks.BoardChecks.get_present_release_notes")
+    @patch("github_interactions.board_checks.BoardChecks.get_release_note_prs")
+    def test_stale_comment_error(
+        self, m, prs, release_notes, check_notes, pointing, assignees, config_parser
+    ):
         card_ident = 10
         content_id = f"issue_{card_ident}"
         repo_name = "Repo"
@@ -550,12 +588,14 @@ class TestBoardChecks(TestCase):
         )
         class_response = BoardChecks(
             [
-                issue_entry(
-                    ident=card_ident,
-                    content_id=content_id,
-                    labels=expected_labels,
-                    fields=provided_fields,
-                    repo_name=repo_name,
+                CardInfo(
+                    issue_entry(
+                        ident=card_ident,
+                        content_id=content_id,
+                        labels=expected_labels,
+                        fields=provided_fields,
+                        repo_name=repo_name,
+                    )
                 )
             ]
         )
@@ -592,18 +632,20 @@ class TestBoardChecks(TestCase):
             "comment_errors": "Comment: 28",
             "label_warnings": "Status Check: 7",
             "label_errors": "Status Check: 28",
+            "release_notes_repo": "Repo",
         },
     )
     @patch("github_interactions.board_checks.BoardChecks.check_assignees")
     @patch("github_interactions.board_checks.BoardChecks.verify_card_pointing_correct")
-    @patch("github_interactions.board_checks.BoardChecks.check_if_last_comment_stale")
-    def test_stale_label_error(self, m, comment, pointing, assignees, config_parser):
+    @patch("github_interactions.board_checks.BoardChecks.check_release_notes")
+    @patch("github_interactions.board_checks.BoardChecks.get_present_release_notes")
+    @patch("github_interactions.board_checks.BoardChecks.get_release_note_prs")
+    def test_stale_label_error(self, m, prs, notes, check_notes, points, assignees, config_parser):
         card_ident = 11
         label_warning_at = 7
         label_error_at = 28
         content_id = f"issue_{card_ident}"
         repo_name = "Repo"
-        expected_labels = {"Status Error": "Status Error ID"}
         sprint = "Sprint"
         status = "Status Check"
         points = 0
@@ -629,12 +671,14 @@ class TestBoardChecks(TestCase):
         )
         class_response = BoardChecks(
             [
-                issue_entry(
-                    ident=card_ident,
-                    content_id=content_id,
-                    labels=expected_labels,
-                    fields=provided_fields,
-                    repo_name=repo_name,
+                CardInfo(
+                    issue_entry(
+                        ident=card_ident,
+                        content_id=content_id,
+                        labels=expected_labels,
+                        fields=provided_fields,
+                        repo_name=repo_name,
+                    )
                 )
             ]
         )
@@ -667,13 +711,20 @@ class TestBoardChecks(TestCase):
     # Test 12: No assignee allowed, and none given
     # Note Config Parser is a patch, so is not used directly but is needed in the called section
     @requests_mock.mock()
+    @patch("github_interactions.board_checks.BoardChecks.get_present_release_notes")
+    @patch("github_interactions.board_checks.BoardChecks.get_release_note_prs")
+    @patch("github_interactions.board_checks.BoardChecks.check_if_stale")
+    @patch("github_interactions.board_checks.BoardChecks.check_release_notes")
     @patch(
         "configparser.ConfigParser.__getitem__",
         return_value={
             "allow_unassigned": "unassigned_allowed",
+            "release_notes_repo": "Repo",
         },
     )
-    def test_check_assignees_unassigned_allowed(self, m, config_parser):
+    def test_check_assignees_unassigned_allowed(
+        self, m, config_parser, check_notes, check_stale, prs, release_notes
+    ):
         card_ident = 12
         repo_name = "Repo"
         expected_labels = {"5": "5"}
@@ -694,12 +745,14 @@ class TestBoardChecks(TestCase):
         )
         class_response = BoardChecks(
             [
-                issue_entry(
-                    ident=card_ident,
-                    content_id=f"issue_{card_ident}",
-                    labels=expected_labels,
-                    fields=provided_fields,
-                    repo_name=repo_name,
+                CardInfo(
+                    issue_entry(
+                        ident=card_ident,
+                        content_id=f"issue_{card_ident}",
+                        labels=expected_labels,
+                        fields=provided_fields,
+                        repo_name=repo_name,
+                    )
                 )
             ]
         )
@@ -716,13 +769,20 @@ class TestBoardChecks(TestCase):
     # Test 13: No assignee allowed, and none given
     # Note Config Parser is a patch, so is not used directly but is needed in the called section
     @requests_mock.mock()
+    @patch("github_interactions.board_checks.BoardChecks.get_present_release_notes")
+    @patch("github_interactions.board_checks.BoardChecks.get_release_note_prs")
+    @patch("github_interactions.board_checks.BoardChecks.check_if_stale")
+    @patch("github_interactions.board_checks.BoardChecks.check_release_notes")
     @patch(
         "configparser.ConfigParser.__getitem__",
         return_value={
             "allow_unassigned": "unassigned_allowed",
+            "release_notes_repo": "Repo",
         },
     )
-    def test_check_assignees_when_required(self, m, config_parser):
+    def test_check_assignees_when_required(
+        self, m, config_parser, check_notes, check_stale, release_notes, prs
+    ):
         card_ident = 13
         repo_name = "Repo"
         expected_labels = {"5": "5"}
@@ -743,12 +803,14 @@ class TestBoardChecks(TestCase):
         )
         class_response = BoardChecks(
             [
-                issue_entry(
-                    ident=card_ident,
-                    content_id=f"issue_{card_ident}",
-                    labels=expected_labels,
-                    fields=provided_fields,
-                    repo_name=repo_name,
+                CardInfo(
+                    issue_entry(
+                        ident=card_ident,
+                        content_id=f"issue_{card_ident}",
+                        labels=expected_labels,
+                        fields=provided_fields,
+                        repo_name=repo_name,
+                    )
                 )
             ]
         )
