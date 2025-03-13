@@ -9,6 +9,7 @@ import graph_ql_interactions.card_interactions as cards
 import graph_ql_interactions.repo_interactions as repos
 import github_interactions.repo_information as repo_info
 import github_interactions.project_increment_information as projects
+from github_interactions.board_checks import BoardChecks
 
 pm_logger = logging.getLogger("board_automation")
 
@@ -247,6 +248,11 @@ class AutomationInfo:
         data += build_html_table(info)
         data += "</body></html>"
         return data
+
+    def check_board_rules_for_sprints(self):
+        return BoardChecks(
+            cards.get_cards_in_sprint(self.org_name, self.project_number, self.current_sprint)
+        )
 
     def move_tickets_to_next_sprint(self):
         cards.update_sprint_for_all_open_cards(

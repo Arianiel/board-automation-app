@@ -82,10 +82,18 @@ def get_cards_and_points_snapshot_for_sprint(
     return snapshot
 
 
+def get_cards_in_sprint(org_name: str = "", project_number: str = "", sprint: str = ""):
+    cards_in_project = get_cards_in_project(org_name=org_name, project_number=project_number)
+    cards_in_sprint = []
+    for card in cards_in_project:
+        if card.sprint == sprint:
+            cards_in_sprint.append(card)
+    return cards_in_sprint
+
+
 def get_card_list_snapshot_for_sprint(
     org_name: str = "", project_number: str = "", sprint: str = ""
 ):
-    cards_in_project = get_cards_in_project(org_name=org_name, project_number=project_number)
     snapshot = {
         "ready": [],
         "rework": [],
@@ -94,24 +102,25 @@ def get_card_list_snapshot_for_sprint(
         "review": [],
         "done": [],
     }
-    for card in cards_in_project:
-        if card.sprint == sprint:
-            match card.status:
-                case "Backlog":
-                    snapshot["ready"].append({"number": card.number, "repo": card.repo})
-                    if "rework" in card.labels:
-                        snapshot["rework"].append({"number": card.number, "repo": card.repo})
-                case "In Progress":
-                    snapshot["in_progress"].append({"number": card.number, "repo": card.repo})
-                case "Impeded":
-                    snapshot["impeded"].append({"number": card.number, "repo": card.repo})
-                case "Review":
-                    snapshot["review"].append({"number": card.number, "repo": card.repo})
-                case "Done":
-                    snapshot["done"].append({"number": card.number, "repo": card.repo})
-                case _:
-                    # This is not a status I'm interested in, and probably shouldn't exist
-                    pass
+    for card in get_cards_in_sprint(
+        org_name=org_name, project_number=project_number, sprint=sprint
+    ):
+        match card.status:
+            case "Backlog":
+                snapshot["ready"].append({"number": card.number, "repo": card.repo})
+                if "rework" in card.labels:
+                    snapshot["rework"].append({"number": card.number, "repo": card.repo})
+            case "In Progress":
+                snapshot["in_progress"].append({"number": card.number, "repo": card.repo})
+            case "Impeded":
+                snapshot["impeded"].append({"number": card.number, "repo": card.repo})
+            case "Review":
+                snapshot["review"].append({"number": card.number, "repo": card.repo})
+            case "Done":
+                snapshot["done"].append({"number": card.number, "repo": card.repo})
+            case _:
+                # This is not a status I'm interested in, and probably shouldn't exist
+                pass
     return snapshot
 
 

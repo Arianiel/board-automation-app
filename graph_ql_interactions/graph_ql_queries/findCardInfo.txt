@@ -19,6 +19,15 @@ query findCardInfo {
                                     repository {
                                         name
                                     }
+                                    assignees (first: 10) {
+                                        edges {
+                                            node {
+                                                id
+                                                login
+                                                name
+                                            }
+                                        }
+                                    }
                                 }
                                 ... on DraftIssue {
                                     title

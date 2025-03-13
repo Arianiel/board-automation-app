@@ -7,6 +7,7 @@ class CardInfo:
         except KeyError:
             self.id = None
         self.labels = []
+        self.assignees = []
         match self.type:
             case "DRAFT_ISSUE":
                 self.number = card["content"]["title"]
@@ -19,6 +20,11 @@ class CardInfo:
                         self.labels.append(label["name"])
                 except KeyError:
                     # Section is empty ignore it
+                    pass
+                try:
+                    for assignee in card["content"]["assignees"]["edges"]:
+                        self.assignees.append(assignee["node"]["name"])
+                except KeyError:
                     pass
             case "PULL_REQUEST":
                 # These are not handled yet

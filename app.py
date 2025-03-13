@@ -1,4 +1,6 @@
 import asyncio
+from pathlib import Path
+
 import tornado
 from github_interactions import automation_information, update_item_info
 import os
@@ -9,10 +11,22 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 
 # Set up the logging as soon as possible
-pm_log_filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'log', 'board_automation.log')
-pm_logger = logging.getLogger('board_automation')
-pm_handler = TimedRotatingFileHandler(pm_log_filepath, when='midnight', backupCount=30)
-pm_handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
+pm_log_filepath = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "log", "board_automation.log"
+)
+output_file = Path("/some/path/file.txt")
+output_file.parent.mkdir(exist_ok=True, parents=True)
+output_file.write_text("some text")
+
+if not os.path.exists(pm_log_filepath):
+    file = Path(pm_log_filepath)
+    file.parent.mkdir(exist_ok=True, parents=True)
+    file = open(pm_log_filepath, "w+")
+    file.close()
+
+pm_logger = logging.getLogger("board_automation")
+pm_handler = TimedRotatingFileHandler(pm_log_filepath, when="midnight", backupCount=30)
+pm_handler.setFormatter(logging.Formatter("%(asctime)s %(message)s"))
 pm_logger.setLevel(logging.INFO)
 pm_logger.addHandler(pm_handler)
 
@@ -61,15 +75,23 @@ class MainHandler(tornado.web.RequestHandler):
 
 class SprintHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "sprint_data.html"),
-                    current_sprint=working_information.current_sprint, next_sprint=working_information.next_sprint,
-                    misc_message=working_information.html_message)
+        self.render(
+            os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "sprint_data.html"),
+            current_sprint=working_information.current_sprint,
+            next_sprint=working_information.next_sprint,
+            misc_message=working_information.html_message,
+        )
 
     def post(self):
         working_information.update_sprints()
-        self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "updated_sprint_data.html"),
-                    current_sprint=working_information.current_sprint, next_sprint=working_information.next_sprint,
-                    misc_message=working_information.html_message)
+        self.render(
+            os.path.join(
+                os.path.dirname(__file__), "pi_and_sprint_actions", "updated_sprint_data.html"
+            ),
+            current_sprint=working_information.current_sprint,
+            next_sprint=working_information.next_sprint,
+            misc_message=working_information.html_message,
+        )
 
 
 class MoveTicketsHandler(tornado.web.RequestHandler):
@@ -81,21 +103,24 @@ class MoveTicketsHandler(tornado.web.RequestHandler):
 class ColumnFrequencyHandler(tornado.web.RequestHandler):
     def get(self):
         snapshot = working_information.get_cards_snapshot()
-        self.render(os.path.join(os.path.dirname(__file__), "pi_and_sprint_actions", "column_count_and_points.html"),
-                    misc_message=working_information.html_message,
-                    ready_count=snapshot["ready"]["count"],
-                    ready_points=snapshot["ready"]["points"],
-                    rework_count=snapshot["rework"]["count"],
-                    rework_points=snapshot["rework"]["points"],
-                    in_progress_count=snapshot["in_progress"]["count"],
-                    in_progress_points=snapshot["in_progress"]["points"],
-                    impeded_count=snapshot["impeded"]["count"],
-                    impeded_points=snapshot["impeded"]["points"],
-                    review_count=snapshot["review"]["count"],
-                    review_points=snapshot["review"]["points"],
-                    done_count=snapshot["done"]["count"],
-                    done_points=snapshot["done"]["points"]
-                    )
+        self.render(
+            os.path.join(
+                os.path.dirname(__file__), "pi_and_sprint_actions", "column_count_and_points.html"
+            ),
+            misc_message=working_information.html_message,
+            ready_count=snapshot["ready"]["count"],
+            ready_points=snapshot["ready"]["points"],
+            rework_count=snapshot["rework"]["count"],
+            rework_points=snapshot["rework"]["points"],
+            in_progress_count=snapshot["in_progress"]["count"],
+            in_progress_points=snapshot["in_progress"]["points"],
+            impeded_count=snapshot["impeded"]["count"],
+            impeded_points=snapshot["impeded"]["points"],
+            review_count=snapshot["review"]["count"],
+            review_points=snapshot["review"]["points"],
+            done_count=snapshot["done"]["count"],
+            done_points=snapshot["done"]["points"],
+        )
 
 
 class ColumnEntriesHandler(tornado.web.RequestHandler):
@@ -108,6 +133,11 @@ class PlanningPrioritiesHandler(tornado.web.RequestHandler):
     def get(self):
         # snapshot = working_information.get_cards_snapshot()
         self.write(working_information.get_planning_priority_snapshot())
+
+
+class ProjectBoardChecksHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write(working_information.check_board_rules_for_sprints())
 
 
 class WebhookError(Exception):
@@ -128,7 +158,7 @@ def verify_signature(payload_body, secret_token, signature_header):
     """
     if not signature_header:
         raise WebhookError(status_code=403, detail="x-hub-signature-256 header is missing!")
-    hash_object = hmac.new(secret_token.encode('utf-8'), msg=payload_body, digestmod=hashlib.sha256)
+    hash_object = hmac.new(secret_token.encode("utf-8"), msg=payload_body, digestmod=hashlib.sha256)
     expected_signature = "sha256=" + hash_object.hexdigest()
     if not hmac.compare_digest(expected_signature, signature_header):
         raise WebhookError(status_code=403, detail="Request signatures didn't match!")
@@ -146,7 +176,9 @@ class WebhookHandler(tornado.web.RequestHandler):
         # This is assuming a post from GitHub, other sources will not do much
         match request["action"]:
             case "unlabeled":
-                pm_logging("Label removed, nothing to do: {}".format(request["label"]["name"]), "debug")
+                pm_logging(
+                    "Label removed, nothing to do: {}".format(request["label"]["name"]), "debug"
+                )
             case "labeled":
                 label_added(request)
             case "edited":
@@ -159,8 +191,12 @@ class WebhookHandler(tornado.web.RequestHandler):
                             pm_logger.exception(request)
                             status_changed(request)
                         case _:
-                            pm_logging("Nothing decided yet for: {}".
-                                       format(request["changes"]["field_value"]["field_name"]), "debug")
+                            pm_logging(
+                                "Nothing decided yet for: {}".format(
+                                    request["changes"]["field_value"]["field_name"]
+                                ),
+                                "debug",
+                            )
                 except KeyError as e:
                     pm_logging("Error matching the request: {}".format(e), "error")
             case _:
@@ -193,41 +229,66 @@ def status_changed(info):
                 # Nothing to do for Done
                 pass
             case "In Progress":
-                current_issue.remove_label(working_information.repos[current_issue.repo_name].labels["in progress"])
+                current_issue.remove_label(
+                    working_information.repos[current_issue.repo_name].labels["in progress"]
+                )
             case "Impeded":
-                current_issue.remove_label(working_information.repos[current_issue.repo_name].labels["impeded"])
+                current_issue.remove_label(
+                    working_information.repos[current_issue.repo_name].labels["impeded"]
+                )
             case "Review":
-                current_issue.remove_label(working_information.repos[current_issue.repo_name].labels["review"])
-                current_issue.remove_label(working_information.repos[current_issue.repo_name].labels["under review"])
+                current_issue.remove_label(
+                    working_information.repos[current_issue.repo_name].labels["review"]
+                )
+                current_issue.remove_label(
+                    working_information.repos[current_issue.repo_name].labels["under review"]
+                )
             case "Backlog":
                 # Nothing to do for Backlog here
                 pass
             case _:
-                pm_logging("Nothing planned for going from this status: {}".format(status_from), "debug")
+                pm_logging(
+                    "Nothing planned for going from this status: {}".format(status_from), "debug"
+                )
         match status_to:
             case "Done":
                 # Nothing to do for Done
                 pass
             case "In Progress":
-                current_issue.add_label(working_information.repos[current_issue.repo_name].labels["in progress"])
+                current_issue.add_label(
+                    working_information.repos[current_issue.repo_name].labels["in progress"]
+                )
                 if status_from == "Review":
-                    current_issue.add_label(working_information.repos[current_issue.repo_name].labels["rework"])
+                    current_issue.add_label(
+                        working_information.repos[current_issue.repo_name].labels["rework"]
+                    )
             case "Impeded":
-                current_issue.add_label(working_information.repos[current_issue.repo_name].labels["impeded"])
+                current_issue.add_label(
+                    working_information.repos[current_issue.repo_name].labels["impeded"]
+                )
             case "Review":
-                current_issue.add_label(working_information.repos[current_issue.repo_name].labels["review"])
+                current_issue.add_label(
+                    working_information.repos[current_issue.repo_name].labels["review"]
+                )
             case "Backlog":
                 if status_from == "Review":
-                    current_issue.add_label(working_information.repos[current_issue.repo_name].labels["rework"])
+                    current_issue.add_label(
+                        working_information.repos[current_issue.repo_name].labels["rework"]
+                    )
             case _:
-                pm_logging("Nothing planned for going to this status: {}".format(status_to), "debug")
+                pm_logging(
+                    "Nothing planned for going to this status: {}".format(status_to), "debug"
+                )
 
 
 def label_added(info):
     pm_logging("Label added: {}".format(info["label"]["name"]), "info")
     current_issue = update_item_info.IssueToUpdate(info["issue"]["node_id"])
-    current_issue.set_project(working_information.available_program_increments[working_information.current_project],
-                              working_information.current_sprint, working_information.next_sprint)
+    current_issue.set_project(
+        working_information.available_program_increments[working_information.current_project],
+        working_information.current_sprint,
+        working_information.next_sprint,
+    )
     label_name = info["label"]["name"]
     if label_name in points_labels:
         pm_logging("Points label, need to apply this in time", "debug")
@@ -253,22 +314,26 @@ def label_added(info):
 
 
 def make_app():
-    return tornado.web.Application([
-        (r"/", MainHandler),
-        (r"/burndown", BurndownHandler),
-        (r"/webhook", WebhookHandler),
-        (r"/sprint", SprintHandler),
-        (r"/col_no_points", ColumnFrequencyHandler),
-        (r"/col_entries", ColumnEntriesHandler),
-        (r"/plan_priorities", PlanningPrioritiesHandler),
-        (r"/move_open_tickets", MoveTicketsHandler),
-    ])
+    return tornado.web.Application(
+        [
+            (r"/", MainHandler),
+            (r"/burndown", BurndownHandler),
+            (r"/webhook", WebhookHandler),
+            (r"/sprint", SprintHandler),
+            (r"/col_no_points", ColumnFrequencyHandler),
+            (r"/col_entries", ColumnEntriesHandler),
+            (r"/plan_priorities", PlanningPrioritiesHandler),
+            (r"/move_open_tickets", MoveTicketsHandler),
+            (r"/projectboardchecks", ProjectBoardChecksHandler),
+        ]
+    )
 
 
 async def main():
     app = make_app()
     app.listen(port, host)
     await asyncio.Event().wait()
+
 
 if __name__ == "__main__":
     try:

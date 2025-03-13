@@ -391,7 +391,7 @@ class TestBoardChecks(TestCase):
         )
         self.assertEqual(
             class_response.problem_text,
-            [f"ERROR: Issue {card_ident} in {repo_name} has multiple points labels"],
+            [f"ERROR: Issue {card_ident} in {repo_name} assigned to [] has multiple points labels"],
         )
 
     # Test 7: No points labels
@@ -439,7 +439,9 @@ class TestBoardChecks(TestCase):
         )
         self.assertEqual(
             class_response.problem_text,
-            [f"ERROR: Issue {card_ident} in {repo_name} has no points labels and it should have"],
+            [
+                f"ERROR: Issue {card_ident} in {repo_name} assigned to [] has no points labels and it should have"
+            ],
         )
 
     # Test 8: No points labels
@@ -608,7 +610,7 @@ class TestBoardChecks(TestCase):
         )
         class_response.update_checks()
         self.assertTrue(
-            f"ERROR: Issue {card_ident} in {status} last had a comment added 28 days or more ago."
+            f"ERROR: Issue {card_ident} in {status} assigned to [] last had a comment added 28 days or more ago."
             in class_response.problem_text
         )
         m.post(
@@ -619,7 +621,7 @@ class TestBoardChecks(TestCase):
         )
         class_response.update_checks()
         self.assertTrue(
-            f"ERROR: Issue {card_ident} in {status} last had a comment added 28 days or more ago."
+            f"ERROR: Issue {card_ident} in {status} assigned to [] last had a comment added 28 days or more ago."
             in class_response.problem_text
         )
 
@@ -692,7 +694,7 @@ class TestBoardChecks(TestCase):
         )
         class_response.update_checks()
         self.assertTrue(
-            f"WARNING: Issue {card_ident} had {label} label added more than {label_warning_at} days ago."
+            f"WARNING: Issue {card_ident} assigned to [] had {label} label added more than {label_warning_at} days ago."
             in class_response.problem_text
         )
 
@@ -704,7 +706,7 @@ class TestBoardChecks(TestCase):
         )
         class_response.update_checks()
         self.assertTrue(
-            f"ERROR: Issue {card_ident} had {label} label added more than {label_error_at} days ago."
+            f"ERROR: Issue {card_ident} assigned to [] had {label} label added more than {label_error_at} days ago."
             in class_response.problem_text
         )
 
