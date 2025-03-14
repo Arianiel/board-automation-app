@@ -304,6 +304,11 @@ class PlanningPrioritiesHandler(tornado.web.RequestHandler):
     def get(self):
         # snapshot = working_information.get_cards_snapshot()
         self.write(current_project.get_planning_priority_snapshot())
+        
+        
+class ProjectBoardChecksHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write(current_project.check_board_rules_for_sprints())
 
 
 if __name__ == '__main__':
@@ -326,6 +331,7 @@ if __name__ == '__main__':
             (r"/col_entries", ColumnEntriesHandler),
             (r"/auto", AutomationHandler),
             (r"/plan_priorities", PlanningPrioritiesHandler),
+            (r"/projectboardchecks", ProjectBoardChecksHandler),
         ])
         http_server = tornado.httpserver.HTTPServer(application, ssl_options={
             "certfile": r"C:\Users\ibexbuilder\dataweb2_isis_rl_ac_uk.crt",
