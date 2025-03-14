@@ -252,7 +252,7 @@ class AutomationInfo:
     def check_board_rules_for_sprints(self):
         return BoardChecks(
             cards.get_cards_in_sprint(self.org_name, self.project_number, self.current_sprint)
-        )
+        ).get_json()
 
     def move_tickets_to_next_sprint(self):
         cards.update_sprint_for_all_open_cards(
