@@ -23,7 +23,10 @@ class CardInfo:
                     pass
                 try:
                     for assignee in card["content"]["assignees"]["edges"]:
-                        self.assignees.append(assignee["node"]["name"])
+                        if assignee["node"]["name"] is None:
+                            self.assignees.append(assignee["node"]["login"])
+                        else:
+                            self.assignees.append(assignee["node"]["name"])
                 except KeyError:
                     pass
             case "PULL_REQUEST":
