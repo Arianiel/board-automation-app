@@ -1,4 +1,5 @@
 from collections import Counter
+from datetime import datetime
 
 import graph_ql_interactions.github_request_functions as gql_queries
 from github_interactions import card_info
@@ -198,8 +199,8 @@ def get_when_last_commented_created_on_issue(issue_id: str):
         last_comment_datetime = gql_queries.run_query(
             get_last_comment_datetime.replace("<ISSUE>", issue_id)
         )["data"]["node"]["comments"]["nodes"][0]["createdAt"]
-    except TypeError:
-        last_comment_datetime = "today"
+    except (TypeError, IndexError):
+        last_comment_datetime = datetime.today().strftime("%Y-%m-%dT%H:%M:%SZ")
     return last_comment_datetime
 
 
