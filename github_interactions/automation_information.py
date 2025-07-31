@@ -174,7 +174,7 @@ class AutomationInfo:
         for result_project in result_projects:
             # Matching the title style and using the offset to help define if it is a PI or not
             try:
-                is_pi = re.compile("PI_\d\d\d\d_\d\d").match(result_project["title"]).span()[0]
+                is_pi = re.compile(r"PI_\d\d\d\d_\d\d").match(result_project["title"]).span()[0]
             except AttributeError:
                 is_pi = -1
             if is_pi >= 0 and not result_project["template"] and not result_project["closed"]:
@@ -202,6 +202,10 @@ class AutomationInfo:
         for i in range(len(self.pi_starts) - 1):
             if self.pi_starts[i] <= self.today < self.pi_starts[i + 1]:
                 current_pi_index = i
+
+        if (len(self.pi_starts) - 1) == 0:
+            print("The length is 0")
+            current_pi_index = -1
 
         if current_pi_index is None:
             return
