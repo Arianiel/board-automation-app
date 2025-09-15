@@ -38,11 +38,10 @@ class BoardChecks:
         self.get_present_release_notes()
         self.get_release_note_prs()
         for card in self.cards:
+            # todo
+            print(f"Checking on {card.number} with identity {card.id}")
             if card.type != "ISSUE":
                 # Not checking on PRs
-                continue
-            if card.repo != config["BOARD.CHECKS"]["release_notes_repo"]:
-                # Limiting the repo to begin with to those in the release notes being considered
                 continue
             if card.status is None:
                 # If there is no status it is not properly in the system
@@ -50,10 +49,12 @@ class BoardChecks:
             if card.sprint is None:
                 # If it has no sprint there is no scheduling aspect so will not check
                 continue
-            self.verify_card_pointing_correct(card)
             self.check_if_stale(card)
             self.check_assignees(card)
-            self.check_release_notes(card)
+            if card.repo == config["BOARD.CHECKS"]["release_notes_repo"]:
+                # Limiting the repo to begin with to those in the release notes being considered
+                self.check_release_notes(card)
+                self.verify_card_pointing_correct(card)
         self.last_update = datetime.now()
         self.summary["total_num"] = self.error_count + self.warning_count
         self.summary["error_num"] = self.error_count
@@ -123,14 +124,93 @@ class BoardChecks:
         label_errors = dict(
             item.split(":") for item in config["BOARD.CHECKS"]["label_errors"].split(",")
         )
-        if card.status in comment_errors.keys():
-            self.check_if_last_comment_stale(
-                comment_errors[card.status], card.id, card.number, card.status, card.assignees
+        comment_check = {k: comment_errors[k] for k in (comment_errors.keys() & card.labels)}
+        error_check = {k: label_errors[k] for k in (label_errors.keys() & card.labels)}
+        warning_check = {k: label_warnings[k] for k in (label_warnings.keys() & card.labels)}
+
+        if comment_check:
+            for check in comment_check:
+                # todo
+                print(f"I'm checking for comments on {card.number} by label")
+                if self.check_if_last_comment_stale(
+                    comment_errors[check], card.id, card.number, card.status, card.assignees
+                ):
+                    self.error_count += 1
+                    return
+                else:
+                    label_errors.pop(check)
+                    label_warnings.pop(check)
+        else:
+            # Check on status just in case labels are missing
+            # todo
+            print(
+                f"{card.number} has a status of {card.status.lower()}, which is being looked for in"
+                f" {comment_errors.keys()}"
             )
-        elif card.status in label_errors.keys() or card.status in label_warnings.keys():
-            self.check_if_label_status_stale(
-                label_warnings, label_errors, card.id, card.number, card.assignees
-            )
+            if card.status.lower() in comment_errors.keys():
+                # todo
+                print(f"I'm checking for comments on {card.number}")
+                if self.check_if_last_comment_stale(
+                    comment_errors[card.status.lower()],
+                    card.id,
+                    card.number,
+                    card.status,
+                    card.assignees,
+                ):
+                    self.error_count += 1
+                    return
+                else:
+                    label_errors.pop(card.status.lower())
+                    label_warnings.pop(card.status.lower())
+
+        # todo
+        print(label_errors)
+
+        start_error_count = self.error_count
+        if error_check:
+            if self.check_if_label_status_stale(
+                "ERROR",
+                label_errors,
+                card.id,
+                card.number,
+                card.assignees,
+            ):
+                self.error_count += 1
+                return
+        else:
+            if card.status.lower() in label_errors.keys():
+                if self.check_if_label_status_stale(
+                    "ERROR",
+                    label_errors,
+                    card.id,
+                    card.number,
+                    card.assignees,
+                ):
+                    self.error_count += 1
+                    return
+
+        if self.error_count == start_error_count:
+            if warning_check:
+                if self.check_if_label_status_stale(
+                    "Warning",
+                    label_warnings,
+                    card.id,
+                    card.number,
+                    card.assignees,
+                ):
+                    self.warning_count += 1
+                    return
+            else:
+                if card.status.lower() in label_warnings.keys():
+                    if self.check_if_label_status_stale(
+                        "ERROR",
+                        label_warnings,
+                        card.id,
+                        card.number,
+                        card.assignees,
+                    ):
+                        self.error_count += 1
+                        return
 
     def check_if_last_comment_stale(self, duration, ident, number, status, assignees):
         last_comment = datetime.strptime(
@@ -142,30 +222,22 @@ class BoardChecks:
                 f"ERROR: Issue {number} in {status} assigned to {assignees} last had a comment "
                 f"added 28 days or more ago."
             )
-            self.error_count += 1
+            return True
 
-    def check_if_label_status_stale(self, warning_list, error_list, ident, number, assignees):
+    def check_if_label_status_stale(self, status, label_list, ident, number, assignees):
         labels = card_i.get_when_labels_were_added_to_issue(ident)
         today_for_labels = datetime.today()
-        for label in labels:
-            label_in_place_since = (
-                today_for_labels - datetime.strptime(labels[label], "%Y-%m-%dT%H:%M:%SZ")
-            ).days
-            if label in error_list:
-                if label_in_place_since >= int(error_list[label]):
+        for check in label_list:
+            if check in labels:
+                label_in_place_since = (
+                    today_for_labels - datetime.strptime(labels[check], "%Y-%m-%dT%H:%M:%SZ")
+                ).days
+                if label_in_place_since >= int(label_list[check]):
                     self.problem_text.append(
-                        f"ERROR: Issue {number} assigned to {assignees} had {label} label added "
-                        f"more than {int(error_list[label])} days ago."
+                        f"{status}: Issue {number} assigned to {assignees} had {check} label added "
+                        f"more than {int(label_list[check])} days ago."
                     )
-                    self.error_count += 1
-                    return
-                if label_in_place_since >= int(warning_list[label]):
-                    self.problem_text.append(
-                        f"WARNING: Issue {number} assigned to {assignees} had {label} label added"
-                        f" more than {int(warning_list[label])} days ago."
-                    )
-                    self.warning_count += 1
-                    return
+                    return True
 
     def get_present_release_notes(self):
         self.release_notes = get_content(
