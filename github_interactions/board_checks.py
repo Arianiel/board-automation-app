@@ -2,6 +2,7 @@ import configparser
 import json
 import os
 from datetime import datetime
+
 from graph_ql_interactions.github_request_functions import (
     get_content,
     open_graph_ql_query_file,
@@ -38,8 +39,6 @@ class BoardChecks:
         self.get_present_release_notes()
         self.get_release_note_prs()
         for card in self.cards:
-            # todo
-            print(f"Checking on {card.number} with identity {card.id}")
             if card.type != "ISSUE":
                 # Not checking on PRs
                 continue
@@ -130,8 +129,6 @@ class BoardChecks:
 
         if comment_check:
             for check in comment_check:
-                # todo
-                print(f"I'm checking for comments on {card.number} by label")
                 if self.check_if_last_comment_stale(
                     comment_errors[check], card.id, card.number, card.status, card.assignees
                 ):
@@ -141,15 +138,7 @@ class BoardChecks:
                     label_errors.pop(check)
                     label_warnings.pop(check)
         else:
-            # Check on status just in case labels are missing
-            # todo
-            print(
-                f"{card.number} has a status of {card.status.lower()}, which is being looked for in"
-                f" {comment_errors.keys()}"
-            )
             if card.status.lower() in comment_errors.keys():
-                # todo
-                print(f"I'm checking for comments on {card.number}")
                 if self.check_if_last_comment_stale(
                     comment_errors[card.status.lower()],
                     card.id,
@@ -162,9 +151,6 @@ class BoardChecks:
                 else:
                     label_errors.pop(card.status.lower())
                     label_warnings.pop(card.status.lower())
-
-        # todo
-        print(label_errors)
 
         start_error_count = self.error_count
         if error_check:
@@ -179,12 +165,8 @@ class BoardChecks:
                 return
         else:
             if card.status.lower() in label_errors.keys():
-                if self.check_if_label_status_stale(
-                    "ERROR",
-                    label_errors,
-                    card.id,
-                    card.number,
-                    card.assignees,
+                if self.check_stale_status(
+                    card.id, card.status, label_errors, "ERROR", card.number, card.assignees
                 ):
                     self.error_count += 1
                     return
@@ -202,12 +184,8 @@ class BoardChecks:
                     return
             else:
                 if card.status.lower() in label_warnings.keys():
-                    if self.check_if_label_status_stale(
-                        "ERROR",
-                        label_warnings,
-                        card.id,
-                        card.number,
-                        card.assignees,
+                    if self.check_stale_status(
+                        card.id, card.status, label_warnings, "Warning", card.number, card.assignees
                     ):
                         self.error_count += 1
                         return
@@ -300,3 +278,51 @@ class BoardChecks:
                             f"completed."
                         )
                         self.error_count += 1
+
+    def check_stale_status(self, ident, status, label_list, message_status, number, assignees):
+        query = """
+        query findIssueLastFieldChange {
+          node(id: "<ISSUE>") {
+            ... on Issue {
+              number
+              id
+              projectItems(last: 1){
+                totalCount
+                nodes {
+                    ... on ProjectV2Item {
+                        createdAt
+                        fieldValues(last: 20 ) {
+                            nodes {
+                                ... on ProjectV2ItemFieldSingleSelectValue {
+                                    name
+                                    createdAt
+                                }
+                            }
+                        }
+                    }
+                }
+              }
+
+            }
+          }
+        }
+        """
+        field_values = run_query(query.replace("<ISSUE>", ident))["data"]["node"]["projectItems"][
+            "nodes"
+        ][0]["fieldValues"]["nodes"]
+        today_for_status = datetime.today()
+        status_changed_date = datetime.today()
+        for value in field_values:
+            if value:
+                if value["name"] == status:
+                    status_changed_date = datetime.strptime(
+                        value["createdAt"], "%Y-%m-%dT%H:%M:%SZ"
+                    )
+                    continue
+        status_in_place_since = (today_for_status - status_changed_date).days
+        if status_in_place_since >= int(label_list[status.lower()]):
+            self.problem_text.append(
+                f"{message_status}: Issue {number} assigned to {assignees} had {status} added "
+                f"more than {int(label_list[status.lower()])} days ago."
+            )
+            return True
