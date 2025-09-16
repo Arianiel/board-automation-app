@@ -149,8 +149,12 @@ class BoardChecks:
                     self.error_count += 1
                     return
                 else:
-                    label_errors.pop(card.status.lower())
-                    label_warnings.pop(card.status.lower())
+                    try:
+                        label_errors.pop(card.status.lower())
+                        label_warnings.pop(card.status.lower())
+                    except KeyError:
+                        # There is no guarantee that this will be available in other areas
+                        pass
 
         start_error_count = self.error_count
         if error_check:
@@ -171,6 +175,8 @@ class BoardChecks:
                     self.error_count += 1
                     return
 
+        # If the error count is the same, then there is no need to check for warning as an error
+        # has been found
         if self.error_count == start_error_count:
             if warning_check:
                 if self.check_if_label_status_stale(

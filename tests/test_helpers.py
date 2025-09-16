@@ -15,6 +15,7 @@ class QlCommand(Enum):
     find_last_comment = auto()
     find_labels_added = auto()
     find_assignees = auto()
+    find_field_change = auto()
     remove_label = auto()
     set_project = auto()
     update_item_label = auto()
@@ -315,6 +316,27 @@ def build_response(ql_command: QlCommand, **kwargs):
             response = build_label_dates(kwargs["expected_label_dates"])
         case QlCommand.find_assignees:
             response = build_assignees(kwargs["expected_assignees"])
+        case QlCommand.find_field_change:
+            response = {
+                "data": {
+                    "node": {
+                        "projectItems": {
+                            "nodes": [
+                                {
+                                    "fieldValues": {
+                                        "nodes": [
+                                            {
+                                                "name": kwargs["issue_status"],
+                                                "createdAt": kwargs["created_at"],
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
         case __:
             response = ""
     return json.dumps(response)

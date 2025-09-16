@@ -549,9 +549,9 @@ class TestBoardChecks(TestCase):
     @patch(
         "configparser.ConfigParser.__getitem__",
         return_value={
-            "comment_errors": "Comment: 28",
-            "label_warnings": "Status Check: 7",
-            "label_errors": "Status Check: 28",
+            "comment_errors": "comment:28",
+            "label_warnings": "status check:7",
+            "label_errors": "status check:28",
             "release_notes_repo": "Repo",
         },
     )
@@ -631,9 +631,9 @@ class TestBoardChecks(TestCase):
     @patch(
         "configparser.ConfigParser.__getitem__",
         return_value={
-            "comment_errors": "Comment: 28",
-            "label_warnings": "Status Check: 7",
-            "label_errors": "Status Check: 28",
+            "comment_errors": "comment:28",
+            "label_warnings": "status check:7",
+            "label_errors": "status check:28",
             "release_notes_repo": "Repo",
         },
     )
@@ -652,7 +652,7 @@ class TestBoardChecks(TestCase):
         status = "Status Check"
         points = 0
         priority = "Medium"
-        label = "Status Check"
+        label = "status check"
         provided_fields = {
             "Points": points,
             "Planning Priority": priority,
@@ -666,7 +666,7 @@ class TestBoardChecks(TestCase):
         date_format = "%Y-%m-%dT%H:%M:%SZ"
 
         # Check One - no issues
-        expected_labels["Status Check"] = today.strftime(date_format)
+        expected_labels["status check"] = today.strftime(date_format)
         m.post(
             url,
             text=build_response(QlCommand.find_labels_added, expected_label_dates=expected_labels),
@@ -687,19 +687,19 @@ class TestBoardChecks(TestCase):
         self.assertEqual(class_response.problem_text, [])
 
         # Check Two - Warning
-        expected_labels["Status Check"] = stale_warning.strftime(date_format)
+        expected_labels["status check"] = stale_warning.strftime(date_format)
         m.post(
             url,
             text=build_response(QlCommand.find_labels_added, expected_label_dates=expected_labels),
         )
         class_response.update_checks()
         self.assertTrue(
-            f"WARNING: Issue {card_ident} assigned to [] had {label} label added more than {label_warning_at} days ago."
+            f"Warning: Issue {card_ident} assigned to [] had {label} label added more than {label_warning_at} days ago."
             in class_response.problem_text
         )
 
         # Check Three - Error
-        expected_labels["Status Check"] = stale_error.strftime(date_format)
+        expected_labels["status check"] = stale_error.strftime(date_format)
         m.post(
             url,
             text=build_response(QlCommand.find_labels_added, expected_label_dates=expected_labels),

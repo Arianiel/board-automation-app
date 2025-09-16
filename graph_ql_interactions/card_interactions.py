@@ -238,6 +238,19 @@ def get_assignees(issue_id: str):
     return assignee_names
 
 
+def get_when_specified_project_field_was_last_changed(issue_id: str, field_value: str):
+    field_values = gql_queries.run_query(get_field_changes.replace("<ISSUE>", issue_id))["data"][
+        "node"
+    ]["projectItems"]["nodes"][0]["fieldValues"]["nodes"]
+    status_changed_date = datetime.today()
+    for value in field_values:
+        if value:
+            if value["name"] == field_value:
+                status_changed_date = datetime.strptime(value["createdAt"], "%Y-%m-%dT%H:%M:%SZ")
+                continue
+    return status_changed_date
+
+
 def set_sprint(item_id: str, sprint_field_id: str, sprint_to_use: str, project_id: str):
     gql_queries.run_query(
         set_sprint_mutation.replace("<ITEM_ID>", item_id)
@@ -286,16 +299,3 @@ def set_points(item_id: str, points_field_id: str, points: str, project_id: str)
         .replace("<POINTS>", points)
         .replace("<PROJ_ID>", project_id)
     )
-
-
-def get_when_specified_project_field_was_last_changed(issue_id: str, field_value: str):
-    field_values = gql_queries.run_query(get_field_changes.replace("<ISSUE>", issue_id))["data"][
-        "node"
-    ]["projectItems"]["nodes"][0]["fieldValues"]["nodes"]
-    status_changed_date = datetime.today()
-    for value in field_values:
-        if value:
-            if value["name"] == field_value:
-                status_changed_date = datetime.strptime(value["createdAt"], "%Y-%m-%dT%H:%M:%SZ")
-                continue
-    return status_changed_date

@@ -8,6 +8,7 @@ import requests_mock
 from unittest.mock import mock_open, patch
 from test_helpers import build_response, QlCommand, bad_return, snapshot_name_to_status_lookup
 import json
+import datetime
 
 # The URL to be mocked here is usually the GitHub graphQL API
 url = "https://api.github.com/graphql"
@@ -271,3 +272,19 @@ class TestCardInteractions(TestCase):
             text=build_response(QlCommand.find_assignees, expected_assignees=expected_assignees),
         )
         self.assertEqual(ci.get_assignees("something"), expected_assignees)
+
+    @requests_mock.mock()
+    def test_get_when_specified_project_field_was_last_changed(self, m):
+        changed = "2025-02-14T15:15:59Z"
+        status = "status"
+        expected_changed = datetime.datetime.strptime(changed, "%Y-%m-%dT%H:%M:%SZ")
+        m.post(
+            url,
+            text=build_response(
+                QlCommand.find_field_change, created_at=changed, issue_status=status
+            ),
+        )
+        self.assertEqual(
+            ci.get_when_specified_project_field_was_last_changed("something", status),
+            expected_changed,
+        )

@@ -62,7 +62,8 @@ This is a list of labels in use in the project, and a number which indicates the
 since a comment was added after which it can be considered stale. These should be of the following 
 format: `label name:n,label name:n`. Please note the lack of spaces around the `:` and `,` 
 characters. They will be considered in the order given, and should an error be found, no further 
-checks will be undertaken. 
+checks will be undertaken. If a comment error is found this card will not be checked against 
+labels.
 <br/> 
 Note that where labels are not found to match the project fields are currently used for use with
 repos that do not have the labels available.
