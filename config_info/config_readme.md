@@ -58,19 +58,34 @@ would mean they can have no point labels applied. An example entry could be:
 `No Points Necessary, Duplicate, Wontfix`
 
 ### comment_errors
-This is a list of statuses in use in the project, and a number which indicates the number of 
-days since a comment was added after which it can be considered stale. These should be of the
-following format: `Status: n, Status: n`
+This is a list of labels in use in the project, and a number which indicates the number of days 
+since a comment was added after which it can be considered stale. These should be of the following 
+format: `label name:n,label name:n`. Please note the lack of spaces around the `:` and `,` 
+characters. They will be considered in the order given, and should an error be found, no further 
+checks will be undertaken. 
+<br/> 
+Note that where labels are not found to match the project fields are currently used for use with
+repos that do not have the labels available.
 
 ### label_warnings
-This is a list of statuses in use in the project, and a number which indicates the number of 
+This is a list of labels in use in the project, and a number which indicates the number of 
 days since the label was added on a status change after which it can be considered to be turning 
-stale. These should be of the following format: `Status: n, Status: n`
+stale. These should be of the following format: `label name:n,label name:n`. Please note the 
+lack of spaces around the `:` and `,` characters. They will be considered in the order given, 
+and should a warning be found, no further checks will be undertaken. 
+<br/> 
+Note that where labels are not found to match the project fields are currently used for use with
+repos that do not have the labels available.
 
 ### label_errors
-This is a list of statuses in use in the project, and a number which indicates the number of 
+This is a list of labels in use in the project, and a number which indicates the number of 
 days since the label was added on a status change after which it can be considered stale. 
-These should be of the following format: `Status: n, Status: n`
+These should be of the following format: `label name:n,label name:n`. Please note the lack of 
+spaces around the `:` and `,` characters. They will be considered in the order given, and should 
+an error be found, no further checks will be undertaken. 
+<br/> 
+Note that where labels are not found to match the project fields are currently used for use with
+repos that do not have the labels available.
 
 ### allow_unassigned
 This is a list of status columns that mean a ticket can be unassigned, if a ticket is in progress

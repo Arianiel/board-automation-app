@@ -198,7 +198,7 @@ class BoardChecks:
         if (today_to_compare - last_comment).days >= int(duration):
             self.problem_text.append(
                 f"ERROR: Issue {number} in {status} assigned to {assignees} last had a comment "
-                f"added 28 days or more ago."
+                f"added {duration} days or more ago."
             )
             return True
 
@@ -280,49 +280,14 @@ class BoardChecks:
                         self.error_count += 1
 
     def check_stale_status(self, ident, status, label_list, message_status, number, assignees):
-        query = """
-        query findIssueLastFieldChange {
-          node(id: "<ISSUE>") {
-            ... on Issue {
-              number
-              id
-              projectItems(last: 1){
-                totalCount
-                nodes {
-                    ... on ProjectV2Item {
-                        createdAt
-                        fieldValues(last: 20 ) {
-                            nodes {
-                                ... on ProjectV2ItemFieldSingleSelectValue {
-                                    name
-                                    createdAt
-                                }
-                            }
-                        }
-                    }
-                }
-              }
-
-            }
-          }
-        }
-        """
-        field_values = run_query(query.replace("<ISSUE>", ident))["data"]["node"]["projectItems"][
-            "nodes"
-        ][0]["fieldValues"]["nodes"]
         today_for_status = datetime.today()
-        status_changed_date = datetime.today()
-        for value in field_values:
-            if value:
-                if value["name"] == status:
-                    status_changed_date = datetime.strptime(
-                        value["createdAt"], "%Y-%m-%dT%H:%M:%SZ"
-                    )
-                    continue
+        status_changed_date = card_i.get_when_specified_project_field_was_last_changed(
+            ident, status
+        )
         status_in_place_since = (today_for_status - status_changed_date).days
         if status_in_place_since >= int(label_list[status.lower()]):
             self.problem_text.append(
-                f"{message_status}: Issue {number} assigned to {assignees} had {status} added "
+                f"{message_status}: Issue {number} assigned to {assignees} had {status} assigned "
                 f"more than {int(label_list[status.lower()])} days ago."
             )
             return True
