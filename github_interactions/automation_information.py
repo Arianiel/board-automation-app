@@ -157,7 +157,7 @@ class AutomationInfo:
                 card,
                 repos.get_label_id(
                     org_name=self.org_name,
-                    repo_name=cards.get_repo_for_issue(card),
+                    repo_name=card.repo,
                     label_name="proposal",
                 ),
             )

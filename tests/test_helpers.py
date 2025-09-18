@@ -6,7 +6,6 @@ from pandas.core.computation.ops import isnumeric
 
 class QlCommand(Enum):
     find_card_info = auto()
-    find_issue_repo = auto()
     find_orgs = auto()
     find_projects = auto()
     find_project_sprints = auto()
@@ -298,8 +297,6 @@ def build_response(ql_command: QlCommand, **kwargs):
                     )
                 case __:
                     response = ""
-        case QlCommand.find_issue_repo:
-            response = {"data": {"node": {"repository": {"name": kwargs["repo_name"]}}}}
         case QlCommand.find_project_sprints:
             response = build_pi_statuses(
                 kwargs["status_field_id"],
