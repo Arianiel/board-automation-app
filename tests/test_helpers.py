@@ -334,6 +334,10 @@ def build_response(ql_command: QlCommand, **kwargs):
                     }
                 }
             }
+        case QlCommand.find_projects:
+            response = {
+                "data": {"organization": {"projectsV2": {"nodes": kwargs["expected_projects"]}}}
+            }
         case __:
             response = ""
     return json.dumps(response)

@@ -4,6 +4,7 @@ from unittest import TestCase
 import graph_ql_interactions.github_request_functions as ql
 import graph_ql_interactions.repo_interactions as ri
 import graph_ql_interactions.card_interactions as ci
+import graph_ql_interactions.project_interactions as pi
 import requests_mock
 from unittest.mock import mock_open, patch
 from test_helpers import build_response, QlCommand, bad_return, snapshot_name_to_status_lookup
@@ -282,3 +283,15 @@ class TestCardInteractions(TestCase):
             ci.get_when_specified_project_field_was_last_changed("something", status),
             expected_changed,
         )
+
+
+class TestProjectInteractions(TestCase):
+    @requests_mock.mock()
+    def test_get_projects(self, m):
+        expected_projects = [{"title": "Project 1"}, {"title": "Project 2"}]
+        m.post(
+            url,
+            text=build_response(QlCommand.find_projects, expected_projects=expected_projects),
+            status_code=200,
+        )
+        self.assertEqual(pi.get_projects("something"), expected_projects)
