@@ -7,7 +7,6 @@ from github_interactions import card_info
 card_info_query = gql_queries.open_graph_ql_query_file("findCardInfo.txt")
 update_labels = gql_queries.open_graph_ql_query_file("UpdateItemLabel.txt")
 remove_label_mutation = gql_queries.open_graph_ql_query_file("RemoveLabel.txt")
-card_repo_query = gql_queries.open_graph_ql_query_file("findIssueRepo.txt")
 set_sprint_mutation = gql_queries.open_graph_ql_query_file("UpdateSprintForItemInProject.txt")
 set_points_mutation = gql_queries.open_graph_ql_query_file("UpdatePointsForItemInProject.txt")
 get_last_comment_datetime = gql_queries.open_graph_ql_query_file("findIssueInfo.txt")

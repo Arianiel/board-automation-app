@@ -244,12 +244,6 @@ class TestCardInteractions(TestCase):
         )
 
     @requests_mock.mock()
-    def test_get_repo_for_issue(self, m):
-        repo = "repo_name"
-        m.post(url, text=build_response(QlCommand.find_issue_repo, repo_name=repo))
-        self.assertEqual(ci.get_repo_for_issue("something"), repo)
-
-    @requests_mock.mock()
     def test_get_when_last_commented_created_on_issue(self, m):
         created = "2025-02-14T15:15:59Z"
         m.post(url, text=build_response(QlCommand.find_last_comment, created_at=created))
