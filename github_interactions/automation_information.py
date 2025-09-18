@@ -4,11 +4,11 @@ import os
 from burndown_interactions import burndown
 import logging
 import re
-import graph_ql_interactions.github_request_functions as gql_queries
 import graph_ql_interactions.card_interactions as cards
 import graph_ql_interactions.repo_interactions as repos
+import graph_ql_interactions.project_interactions as projects
 import github_interactions.repo_information as repo_info
-import github_interactions.project_increment_information as projects
+import github_interactions.project_increment_information as project_increments
 from github_interactions.board_checks import BoardChecks
 
 pm_logger = logging.getLogger("board_automation")
@@ -165,10 +165,7 @@ class AutomationInfo:
     def update_projects(self):
         # Find the V2 projects owned by the organization
         self.html_message = ""
-        proj_list_query = gql_queries.open_graph_ql_query_file("findProjects.txt")
-        result_projects = gql_queries.run_query(
-            proj_list_query.replace("<ORG_NAME>", self.org_name)
-        )["data"]["organization"]["projectsV2"]["nodes"]
+        result_projects = projects.get_projects(org_name=self.org_name)
 
         # Filter out a dictionary of the PIs
         for result_project in result_projects:
@@ -180,7 +177,7 @@ class AutomationInfo:
             if is_pi >= 0 and not result_project["template"] and not result_project["closed"]:
                 if result_project["title"] not in self.available_program_increments.keys():
                     self.available_program_increments[result_project["title"]] = (
-                        projects.ProjectIncrement(
+                        project_increments.ProjectIncrement(
                             project_id=result_project["id"],
                             number=result_project["number"],
                             title=result_project["title"],
