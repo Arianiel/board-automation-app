@@ -49,6 +49,19 @@ class TestRepoInteractions(TestCase):
         )
         self.assertEqual(ri.get_repo_labels("org_name", repo_name), expected_labels)
 
+    @requests_mock.mock()
+    def test_get_pull_requests(self, m):
+        repo_name = "repo_name"
+        expected_pull_requests = [
+            {"title": "PR Title", "bodyText": "Notes about the PR", "closed": False},
+        ]
+        m.post(
+            url,
+            text=build_response(QlCommand.find_pull_requests, expected_prs=expected_pull_requests),
+            status_code=200,
+        )
+        self.assertEqual(ri.get_pull_requests("org_name", repo_name), expected_pull_requests)
+
 
 class TestGraphQlFunctions(TestCase):
     @patch("builtins.open", mock_open(read_data="data"))
@@ -85,7 +98,10 @@ class TestGraphQlFunctions(TestCase):
         response = json.dumps({"content": expected_64})
         content_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/contents/{file_path}?ref={branch}"
         m.get(content_url, text=response, status_code=200)
-        self.assertEqual(ql.get_content(repo_owner, repo_name, file_path, branch), expected_value)
+        self.assertEqual(
+            ql.get_contents_of_file_in_repo(repo_owner, repo_name, file_path, branch),
+            expected_value,
+        )
 
 
 class TestCardInteractions(TestCase):

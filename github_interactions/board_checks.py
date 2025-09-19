@@ -3,13 +3,10 @@ import json
 import os
 from datetime import datetime
 
-from graph_ql_interactions.github_request_functions import (
-    get_content,
-    open_graph_ql_query_file,
-    run_query,
-)
+from graph_ql_interactions.github_request_functions import get_contents_of_file_in_repo
 
 import graph_ql_interactions.card_interactions as card_i
+import graph_ql_interactions.repo_interactions as repo_i
 
 config = configparser.ConfigParser()
 config.read(os.path.join(os.path.dirname(__file__), "..", "config_info", "config.ini"))
@@ -224,7 +221,7 @@ class BoardChecks:
                     return True
 
     def get_present_release_notes(self):
-        self.release_notes = get_content(
+        self.release_notes = get_contents_of_file_in_repo(
             repo_owner=config["GITHUB.INTERACTION"]["org_name"],
             repo_name=config["BOARD.CHECKS"]["release_notes_repo"],
             file_path=config["BOARD.CHECKS"]["release_notes_file_path"],
@@ -232,13 +229,11 @@ class BoardChecks:
         )
 
     def get_release_note_prs(self):
-        repos_query = open_graph_ql_query_file("findOpenPullRequestsInRepo.txt")
-        result = run_query(
-            repos_query.replace("<ORG_NAME>", config["GITHUB.INTERACTION"]["org_name"]).replace(
-                "<REPO>", config["BOARD.CHECKS"]["release_notes_repo"]
-            )
+        result = repo_i.get_pull_requests(
+            org_name=config["GITHUB.INTERACTION"]["org_name"],
+            repo_name=config["BOARD.CHECKS"]["release_notes_repo"],
         )
-        for value in result["data"]["repository"]["pullRequests"]["nodes"]:
+        for value in result:
             self.prs[value["title"]] = value["bodyText"]
 
     def check_release_notes(self, card):

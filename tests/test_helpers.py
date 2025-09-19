@@ -15,6 +15,7 @@ class QlCommand(Enum):
     find_labels_added = auto()
     find_assignees = auto()
     find_field_change = auto()
+    find_pull_requests = auto()
     remove_label = auto()
     set_project = auto()
     update_item_label = auto()
@@ -265,6 +266,29 @@ def build_assignees(expected_assignees: {}):
     return {"data": {"node": {"assignees": {"edges": edges}}}}
 
 
+def build_field_change(name: str, createdat: str):
+    return {
+        "data": {
+            "node": {
+                "projectItems": {
+                    "nodes": [
+                        {
+                            "fieldValues": {
+                                "nodes": [
+                                    {
+                                        "name": name,
+                                        "createdAt": createdat,
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    }
+
+
 def build_response(ql_command: QlCommand, **kwargs):
     match ql_command:
         case QlCommand.find_repo_label_id:
@@ -314,30 +338,15 @@ def build_response(ql_command: QlCommand, **kwargs):
         case QlCommand.find_assignees:
             response = build_assignees(kwargs["expected_assignees"])
         case QlCommand.find_field_change:
-            response = {
-                "data": {
-                    "node": {
-                        "projectItems": {
-                            "nodes": [
-                                {
-                                    "fieldValues": {
-                                        "nodes": [
-                                            {
-                                                "name": kwargs["issue_status"],
-                                                "createdAt": kwargs["created_at"],
-                                            }
-                                        ]
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            }
+            response = build_field_change(
+                name=kwargs["issue_status"], createdAt=kwargs["created_at"]
+            )
         case QlCommand.find_projects:
             response = {
                 "data": {"organization": {"projectsV2": {"nodes": kwargs["expected_projects"]}}}
             }
+        case QlCommand.find_pull_requests:
+            response = {"data": {"repository": {"pullRequests": {"nodes": kwargs["expected_prs"]}}}}
         case __:
             response = ""
     return json.dumps(response)

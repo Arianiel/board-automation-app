@@ -30,7 +30,7 @@ def run_query(
         )
 
 
-def get_content(
+def get_contents_of_file_in_repo(
     repo_owner: str,
     repo_name: str,
     file_path: str,
