@@ -17,6 +17,7 @@ class QlCommand(Enum):
     find_field_change = auto()
     find_pull_requests = auto()
     find_issue_repo = auto()
+    find_project_field_list = auto()
     remove_label = auto()
     set_project = auto()
     update_item_label = auto()
@@ -290,6 +291,10 @@ def build_field_change(name: str, createdat: str):
     }
 
 
+def build_field_list(expected_field_list: []):
+    return {"data": {"organization": {"projectV2": {"fields": {"nodes": expected_field_list}}}}}
+
+
 def build_response(ql_command: QlCommand, **kwargs):
     match ql_command:
         case QlCommand.find_repo_label_id:
@@ -350,6 +355,8 @@ def build_response(ql_command: QlCommand, **kwargs):
             response = {"data": {"repository": {"pullRequests": {"nodes": kwargs["expected_prs"]}}}}
         case QlCommand.find_issue_repo:
             response = {"data": {"node": {"repository": {"name": kwargs["repo_name"]}}}}
+        case QlCommand.find_project_field_list:
+            response = build_field_list(kwargs["expected_field_list"])
         case __:
             response = ""
     return json.dumps(response)

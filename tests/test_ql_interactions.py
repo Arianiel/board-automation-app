@@ -305,3 +305,16 @@ class TestProjectInteractions(TestCase):
             status_code=200,
         )
         self.assertEqual(pi.get_projects("something"), expected_projects)
+
+    @requests_mock.mock()
+    def test_get_project_field_list(self, m):
+        field_list = [
+            {"name": "field_1", "id": "field_1_id"},
+            {"name": "field_2", "id": "field_2_id"},
+        ]
+        m.post(
+            url,
+            text=build_response(QlCommand.find_project_field_list, expected_field_list=field_list),
+            status_code=200,
+        )
+        self.assertEqual(pi.get_project_field_list(1, "something"), field_list)
