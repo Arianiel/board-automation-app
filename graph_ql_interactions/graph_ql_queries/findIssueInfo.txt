@@ -3,6 +3,9 @@ query findIssueInfo {
         ... on Issue {
             number
             id
+            repository {
+                name
+            }
             assignees (first: 10) {
                 edges {
                     node {

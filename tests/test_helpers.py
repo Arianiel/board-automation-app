@@ -16,6 +16,7 @@ class QlCommand(Enum):
     find_assignees = auto()
     find_field_change = auto()
     find_pull_requests = auto()
+    find_issue_repo = auto()
     remove_label = auto()
     set_project = auto()
     update_item_label = auto()
@@ -339,7 +340,7 @@ def build_response(ql_command: QlCommand, **kwargs):
             response = build_assignees(kwargs["expected_assignees"])
         case QlCommand.find_field_change:
             response = build_field_change(
-                name=kwargs["issue_status"], createdAt=kwargs["created_at"]
+                name=kwargs["issue_status"], createdat=kwargs["created_at"]
             )
         case QlCommand.find_projects:
             response = {
@@ -347,6 +348,8 @@ def build_response(ql_command: QlCommand, **kwargs):
             }
         case QlCommand.find_pull_requests:
             response = {"data": {"repository": {"pullRequests": {"nodes": kwargs["expected_prs"]}}}}
+        case QlCommand.find_issue_repo:
+            response = {"data": {"node": {"repository": {"name": kwargs["repo_name"]}}}}
         case __:
             response = ""
     return json.dumps(response)
