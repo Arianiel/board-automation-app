@@ -215,7 +215,13 @@ class Burndown:
 
         return pd.read_csv(self.burndown_csv)
 
-    def change_sprint(self):
+    def change_sprint(
+        self,
+        current_sprint_name: str,
+        next_sprint_name: str,
+    ):
         # As the titles assume a non-existent file this will overwrite the file contents with
         # just the titles
+        self.current_sprint_name = current_sprint_name
+        self.next_sprint_name = next_sprint_name
         self.add_csv_titles()

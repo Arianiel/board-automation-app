@@ -148,7 +148,10 @@ class AutomationInfo:
         self.update_projects()
         self.set_today()
         self.set_previous_current_and_next_sprint()
-        self.current_burndown.change_sprint()
+        self.current_burndown.change_sprint(
+            self.current_sprint,
+            self.next_sprint,
+        )
         cards_to_refine = cards.get_card_issue_ids_in_sprint(
             org_name=self.org_name, project_number=self.project_number, sprint=self.current_sprint
         )
