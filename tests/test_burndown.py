@@ -137,6 +137,6 @@ class TestBurndown(TestCase):
         )
         open_mock = mock_open()
         with patch("builtins.open", open_mock, create=True):
-            test_class.change_sprint()
+            test_class.change_sprint(current_sprint_name="", next_sprint_name="")
         open_mock.assert_called_with(test_class.burndown_csv, "w")
         open_mock.return_value.write.assert_called_once_with(test_class.csv_headings)
