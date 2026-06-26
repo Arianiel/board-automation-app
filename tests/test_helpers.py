@@ -1,7 +1,7 @@
 import json
 from enum import Enum, auto
 
-from pandas.core.computation.ops import isnumeric
+import pandas
 
 
 class QlCommand(Enum):
@@ -56,7 +56,7 @@ def fields_list(expected_fields: {}):
     """
     fields = []
     for entry in expected_fields.keys():
-        if isnumeric(type(expected_fields[entry])):
+        if pandas.api.types.is_numeric_dtype(type(expected_fields[entry])):
             fields.append({"number": expected_fields[entry], "field": {"name": entry}})
         else:
             fields.append({"name": expected_fields[entry], "field": {"name": entry}})
