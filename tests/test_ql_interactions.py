@@ -70,7 +70,7 @@ class TestGraphQlFunctions(TestCase):
         assert result == "data"
 
     # Values for the run_query class which can be used pass or fail
-    test = {"test": "Antinanco"}
+    test = {"test": "Random"}
     text = json.dumps(test)
     query = "Example"
 

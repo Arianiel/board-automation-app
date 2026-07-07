@@ -9,7 +9,7 @@ import graph_ql_interactions.card_interactions as card_i
 import graph_ql_interactions.repo_interactions as repo_i
 
 config = configparser.ConfigParser()
-config.read(os.path.join(os.path.dirname(__file__), "..", "config_info", "config.ini"))
+config.read(os.path.join(f"{os.path.dirname(__file__)}", "..", "config_info", "config.ini"))
 
 
 class BoardChecks:
@@ -67,14 +67,14 @@ class BoardChecks:
             return
         points_label_count = 0
         zero_point_label = False
-        problem_text = None
+        new_problem_text = None
         for label in card.labels:
             if label.isdigit():
                 points_label_count += 1
             if label == "0":
                 zero_point_label = True
         if points_label_count > 1:
-            problem_text = (
+            new_problem_text = (
                 f"ERROR: Issue {card.title} in {card.repo} assigned to "
                 f"{card.assignees} has multiple points labels"
             )
@@ -83,7 +83,7 @@ class BoardChecks:
             if not list(
                 set(card.labels) & set(config["BOARD.CHECKS"]["zero_points_labels"].split(","))
             ):
-                problem_text = (
+                new_problem_text = (
                     f"ERROR: Issue {card.title} in {card.repo} assigned to {card.assignees} has "
                     f"a zero-point label and nothing to indicate this is valid"
                 )
@@ -92,13 +92,13 @@ class BoardChecks:
             if not list(
                 set(card.labels) & set(config["BOARD.CHECKS"]["no_points_labels"].split(","))
             ):
-                problem_text = (
+                new_problem_text = (
                     f"ERROR: Issue {card.title} in {card.repo} assigned to {card.assignees} has "
                     f"no points labels and it should have"
                 )
                 self.error_count += 1
-        if problem_text:
-            self.problem_text.append(problem_text)
+        if new_problem_text:
+            self.problem_text.append(new_problem_text)
 
     def check_assignees(self, card):
         if card.status not in config["BOARD.CHECKS"]["allow_unassigned"].split(","):
