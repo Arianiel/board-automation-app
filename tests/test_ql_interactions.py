@@ -14,6 +14,20 @@ import datetime
 # The URL to be mocked here is usually the GitHub graphQL API
 url = "https://api.github.com/graphql"
 
+card_list_expected_snapshot = {
+    "ready": [
+        {"number": 1, "repo": "repo_1"},
+        {"number": 2, "repo": "repo_1"},
+        {"number": 1, "repo": "repo_2"},
+        {"number": 2, "repo": "repo_2"},
+    ],
+    "rework": [{"number": 1, "repo": "repo_1"}],
+    "in_progress": [{"number": 3, "repo": "repo_1"}, {"number": 4, "repo": "repo_1"}],
+    "impeded": [{"number": 3, "repo": "repo_2"}],
+    "review": [{"number": 4, "repo": "repo_2"}, {"number": 5, "repo": "repo_1"}],
+    "done": [{"number": 5, "repo": "repo_2"}, {"number": 6, "repo": "repo_3"}],
+}
+
 
 class TestRepoInteractions(TestCase):
     @requests_mock.mock()
@@ -144,31 +158,19 @@ class TestCardInteractions(TestCase):
 
     @requests_mock.mock()
     def test_get_card_list_snapshot_for_sprint(self, m):
-        expected_snapshot = {
-            "ready": [
-                {"number": 1, "repo": "repo_1"},
-                {"number": 2, "repo": "repo_1"},
-                {"number": 1, "repo": "repo_2"},
-                {"number": 2, "repo": "repo_2"},
-            ],
-            "rework": [{"number": 1, "repo": "repo_1"}],
-            "in_progress": [{"number": 3, "repo": "repo_1"}, {"number": 4, "repo": "repo_1"}],
-            "impeded": [{"number": 3, "repo": "repo_2"}],
-            "review": [{"number": 4, "repo": "repo_2"}, {"number": 5, "repo": "repo_1"}],
-            "done": [{"number": 5, "repo": "repo_2"}, {"number": 6, "repo": "repo_3"}],
-        }
         sprint_name = "sprint"
         m.post(
             url,
             text=build_response(
                 QlCommand.find_card_info,
                 card_type="card_list_snapshot",
-                expected_snapshot=expected_snapshot,
+                expected_snapshot=card_list_expected_snapshot,
                 sprint_name=sprint_name,
             ),
         )
         self.assertDictEqual(
-            ci.get_card_list_snapshot_for_sprint("org_name", "0", sprint_name), expected_snapshot
+            ci.get_card_list_snapshot_for_sprint("org_name", "0", sprint_name),
+            card_list_expected_snapshot,
         )
 
     @requests_mock.mock()
@@ -227,32 +229,19 @@ class TestCardInteractions(TestCase):
 
     @requests_mock.mock()
     def test_get_card_issue_ids_in_sprint(self, m):
-        expected_snapshot = {
-            "ready": [
-                {"number": 1, "repo": "repo_1"},
-                {"number": 2, "repo": "repo_1"},
-                {"number": 1, "repo": "repo_2"},
-                {"number": 2, "repo": "repo_2"},
-            ],
-            "rework": [{"number": 1, "repo": "repo_1"}],
-            "in_progress": [{"number": 3, "repo": "repo_1"}, {"number": 4, "repo": "repo_1"}],
-            "impeded": [{"number": 3, "repo": "repo_2"}],
-            "review": [{"number": 4, "repo": "repo_2"}, {"number": 5, "repo": "repo_1"}],
-            "done": [{"number": 5, "repo": "repo_2"}, {"number": 6, "repo": "repo_3"}],
-        }
         sprint_name = "sprint"
         expected_issues = []
-        for entry in expected_snapshot:
+        for entry in card_list_expected_snapshot:
             if entry == "rework":
                 continue
-            for item in expected_snapshot[entry]:
+            for item in card_list_expected_snapshot[entry]:
                 expected_issues.append(f"issue_{item['number']}")
         m.post(
             url,
             text=build_response(
                 QlCommand.find_card_info,
                 card_type="card_list_snapshot",
-                expected_snapshot=expected_snapshot,
+                expected_snapshot=card_list_expected_snapshot,
                 sprint_name=sprint_name,
             ),
         )
