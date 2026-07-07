@@ -948,7 +948,7 @@ class TestSprintInfo(TestCase):
         self.assertEqual(test_class.sprint_day, "01")
         self.assertEqual(test_class.sprint_id, sprint_id)
         self.assertEqual(test_class.sprint_start_date, datetime.datetime(2021, 1, 1, 0, 0))
-        self.assertEqual(str(test_class), str(datetime.datetime(2021, 1, 1, 0, 0)))
+        self.assertEqual(str(test_class), str(f"{datetime.datetime(2021, 1, 1, 0, 0)}"))
 
     # Test 2 - Standard sprint 2020_01_01
     def test_standard_sprint_name(self):
@@ -963,7 +963,7 @@ class TestSprintInfo(TestCase):
         self.assertEqual(test_class.sprint_day, "02")
         self.assertEqual(test_class.sprint_id, sprint_id)
         self.assertEqual(test_class.sprint_start_date, datetime.datetime(2021, 2, 2, 0, 0))
-        self.assertEqual(str(test_class), str(datetime.datetime(2021, 2, 2, 0, 0)))
+        self.assertEqual(str(test_class), str(f"{datetime.datetime(2021, 2, 2, 0, 0)}"))
 
     # Test 3 - Not a date
     def test_incorrect_name(self):
@@ -978,4 +978,4 @@ class TestSprintInfo(TestCase):
         self.assertEqual(test_class.sprint_day, "rint")
         self.assertEqual(test_class.sprint_id, sprint_id)
         self.assertEqual(test_class.sprint_start_date, datetime.datetime(2020, 1, 1, 0, 0))
-        self.assertEqual(str(test_class), str(datetime.datetime(2020, 1, 1, 0, 0)))
+        self.assertEqual(str(test_class), str(f"{datetime.datetime(2020, 1, 1, 0, 0)}"))
