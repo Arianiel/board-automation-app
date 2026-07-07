@@ -14,7 +14,7 @@ from github_interactions.board_checks import BoardChecks
 pm_logger = logging.getLogger("board_automation")
 
 
-def build_html_table(info: {}):
+def build_html_table(info: dict):
     data = "<table><tr>"
     for heading in info.keys():
         data += "<th>" + heading + "</th>"
@@ -46,7 +46,7 @@ class AutomationInfo:
         self.html_message = ""
         # Get values from config.ini
         config = configparser.ConfigParser()
-        config.read(os.path.join(os.path.dirname(__file__), "..", "config_info", "config.ini"))
+        config.read(os.path.join(f"{os.path.dirname(__file__)}", "..", "config_info", "config.ini"))
 
         self.user_name = config["GITHUB.INTERACTION"]["user_name"]
         self.org_name = config["GITHUB.INTERACTION"]["org_name"]
@@ -166,7 +166,7 @@ class AutomationInfo:
             )
 
     def update_projects(self):
-        # Find the V2 projects owned by the organization
+        # Find the V2 projects owned by the organisation
         self.html_message = ""
         result_projects = projects.get_projects(org_name=self.org_name)
 
