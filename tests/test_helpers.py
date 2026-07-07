@@ -83,6 +83,7 @@ def issue_entry(ident: int, content_id: str, labels: {}, fields: {}, repo_name: 
         "content": {
             "id": content_id,
             "number": ident,
+            "title": f"Issue {ident}",
             "labels": {"nodes": labels_list(labels)},
             "repository": {"name": repo_name},
         },

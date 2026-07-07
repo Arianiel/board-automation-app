@@ -305,6 +305,7 @@ class TestCardInfo(TestCase):
             "type": "ISSUE",
             "content": {
                 "number": card_ident,
+                "title": f"Issue_{card_ident}",
                 "labels": {"nodes": []},
                 "repository": {"name": repo_name},
             },
@@ -364,6 +365,7 @@ class TestBoardChecks(TestCase):
         self, prs, release_notes, check_release_notes, check_stale, assignees, config_parser
     ):
         card_ident = 6
+        card_title = f"{card_ident} - Issue {card_ident}"
         repo_name = "Repo"
         expected_labels = {"1": "label_1_id", "2": "label_2_id"}
         sprint = "Sprint"
@@ -391,7 +393,7 @@ class TestBoardChecks(TestCase):
         )
         self.assertEqual(
             class_response.problem_text,
-            [f"ERROR: Issue {card_ident} in {repo_name} assigned to [] has multiple points labels"],
+            [f"ERROR: Issue {card_title} in {repo_name} assigned to [] has multiple points labels"],
         )
 
     # Test 7: No points labels
@@ -412,6 +414,7 @@ class TestBoardChecks(TestCase):
         self, release_notes, prs, check_notes, check_stale, assignees, config_parser
     ):
         card_ident = 7
+        card_title = f"{card_ident} - Issue {card_ident}"
         repo_name = "Repo"
         expected_labels = {"label_1": "label_1_id", "label_2": "label_2_id"}
         sprint = "Sprint"
@@ -440,7 +443,7 @@ class TestBoardChecks(TestCase):
         self.assertEqual(
             class_response.problem_text,
             [
-                f"ERROR: Issue {card_ident} in {repo_name} assigned to [] has no points labels and it should have"
+                f"ERROR: Issue {card_title} in {repo_name} assigned to [] has no points labels and it should have"
             ],
         )
 
@@ -565,6 +568,7 @@ class TestBoardChecks(TestCase):
     ):
         card_ident = 10
         content_id = f"issue_{card_ident}"
+        card_title = f"{card_ident} - Issue {card_ident}"
         repo_name = "Repo"
         expected_labels = {"Status Error": "Status Error ID"}
         sprint = "Sprint"
@@ -610,7 +614,7 @@ class TestBoardChecks(TestCase):
         )
         class_response.update_checks()
         self.assertTrue(
-            f"ERROR: Issue {card_ident} in {status} assigned to [] last had a comment added 28 days or more ago."
+            f"ERROR: Issue {card_title} in {status} assigned to [] last had a comment added 28 days or more ago."
             in class_response.problem_text
         )
         m.post(
@@ -621,7 +625,7 @@ class TestBoardChecks(TestCase):
         )
         class_response.update_checks()
         self.assertTrue(
-            f"ERROR: Issue {card_ident} in {status} assigned to [] last had a comment added 28 days or more ago."
+            f"ERROR: Issue {card_title} in {status} assigned to [] last had a comment added 28 days or more ago."
             in class_response.problem_text
         )
 
@@ -644,6 +648,7 @@ class TestBoardChecks(TestCase):
     @patch("github_interactions.board_checks.BoardChecks.get_release_note_prs")
     def test_stale_label_error(self, m, prs, notes, check_notes, points, assignees, config_parser):
         card_ident = 11
+        card_title = f"{card_ident} - Issue {card_ident}"
         label_warning_at = 7
         label_error_at = 28
         content_id = f"issue_{card_ident}"
@@ -694,7 +699,7 @@ class TestBoardChecks(TestCase):
         )
         class_response.update_checks()
         self.assertTrue(
-            f"Warning: Issue {card_ident} assigned to [] had {label} label added more than {label_warning_at} days ago."
+            f"Warning: Issue {card_title} assigned to [] had {label} label added more than {label_warning_at} days ago."
             in class_response.problem_text
         )
 
@@ -706,7 +711,7 @@ class TestBoardChecks(TestCase):
         )
         class_response.update_checks()
         self.assertTrue(
-            f"ERROR: Issue {card_ident} assigned to [] had {label} label added more than {label_error_at} days ago."
+            f"ERROR: Issue {card_title} assigned to [] had {label} label added more than {label_error_at} days ago."
             in class_response.problem_text
         )
 
@@ -786,6 +791,7 @@ class TestBoardChecks(TestCase):
         self, m, config_parser, check_notes, check_stale, release_notes, prs
     ):
         card_ident = 13
+        card_title = f"{card_ident} - Issue {card_ident}"
         repo_name = "Repo"
         expected_labels = {"5": "5"}
         sprint = "Sprint"
@@ -817,7 +823,7 @@ class TestBoardChecks(TestCase):
             ]
         )
         self.assertTrue(
-            f"ERROR: Issue {card_ident} in {repo_name} with {status} status does not have anyone assigned."
+            f"ERROR: Issue {card_title} in {repo_name} with {status} status does not have anyone assigned."
             in class_response.problem_text
         )
         class_response.problem_text = []
