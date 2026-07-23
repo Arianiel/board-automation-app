@@ -850,6 +850,55 @@ class TestBoardChecks(TestCase):
         class_response.update_checks()
         self.assertEqual(class_response.problem_text, [])
 
+    # Test 14: Don't check points
+    # Note Config Parser is a patch, so is not used directly but is needed in the called section
+    @patch(
+        "configparser.ConfigParser.__getitem__",
+        return_value={
+            "no_points_labels": "no_points_labels_allowed",
+            "zero_points_labels": "zero_points_labels_allowed",
+            "release_notes_repo": "Repo",
+            "check_points_labels": "False",
+        },
+    )
+    @patch("github_interactions.board_checks.BoardChecks.check_assignees")
+    @patch("github_interactions.board_checks.BoardChecks.check_if_stale")
+    @patch("github_interactions.board_checks.BoardChecks.check_release_notes")
+    @patch("github_interactions.board_checks.BoardChecks.get_present_release_notes")
+    @patch("github_interactions.board_checks.BoardChecks.get_release_note_prs")
+    def test_do_not_test_points_labels(
+        self, prs, release_notes, check_notes, stale, assignees, config_parser
+    ):
+        card_ident = 9
+        repo_name = "Repo"
+        expected_labels = {
+            "label_2": "label_2_id",
+        }
+        sprint = "Sprint"
+        status = "Status"
+        points = 0
+        priority = "Medium"
+        provided_fields = {
+            "Points": points,
+            "Planning Priority": priority,
+            "Status": status,
+            "Sprint": sprint,
+        }
+        class_response = BoardChecks(
+            [
+                CardInfo(
+                    issue_entry(
+                        ident=card_ident,
+                        content_id=f"issue_{card_ident}",
+                        labels=expected_labels,
+                        fields=provided_fields,
+                        repo_name=repo_name,
+                    )
+                )
+            ]
+        )
+        self.assertEqual(class_response.problem_text, [])
+
 
 class TestProjectIncrement(TestCase):
     # Test 1: There's an X in the title
