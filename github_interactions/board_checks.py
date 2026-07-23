@@ -204,6 +204,7 @@ class BoardChecks:
                 f"added {duration} days or more ago."
             )
             return True
+        return False
 
     def check_if_label_status_stale(self, status, label_list, ident, title, assignees):
         labels = card_i.get_when_labels_were_added_to_issue(ident)
@@ -219,6 +220,7 @@ class BoardChecks:
                         f"more than {int(label_list[check])} days ago."
                     )
                     return True
+        return False
 
     def get_present_release_notes(self):
         self.release_notes = get_contents_of_file_in_repo(
@@ -292,3 +294,4 @@ class BoardChecks:
                 f"more than {int(label_list[status.lower()])} days ago."
             )
             return True
+        return False
