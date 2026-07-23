@@ -1,6 +1,6 @@
 tornado~=6.5.5
-pandas~=3.0.3
-plotly~=6.8.0
+pandas~=3.0.5
+plotly~=6.9.0
 numpy~=2.5.0
 requests~=2.34.2
 requests-mock~=1.12.1
