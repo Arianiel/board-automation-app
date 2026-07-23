@@ -354,6 +354,7 @@ class TestBoardChecks(TestCase):
             "no_points_labels": "no_points_labels_allowed",
             "zero_points_labels": "zero_points_labels_allowed",
             "release_notes_repo": "Repo",
+            "check_points_labels": "True",
         },
     )
     @patch("github_interactions.board_checks.BoardChecks.check_assignees")
@@ -361,7 +362,7 @@ class TestBoardChecks(TestCase):
     @patch("github_interactions.board_checks.BoardChecks.check_release_notes")
     @patch("github_interactions.board_checks.BoardChecks.get_present_release_notes")
     @patch("github_interactions.board_checks.BoardChecks.get_release_note_prs")
-    def test_number_of_points_labels(
+    def test_number_of_points_labels_and_checking_points_labels(
         self, prs, release_notes, check_release_notes, check_stale, assignees, config_parser
     ):
         card_ident = 6
@@ -403,6 +404,7 @@ class TestBoardChecks(TestCase):
             "no_points_labels": "no_points_labels_allowed",
             "zero_points_labels": "zero_points_labels_allowed",
             "release_notes_repo": "Repo",
+            "check_points_labels": "True",
         },
     )
     @patch("github_interactions.board_checks.BoardChecks.check_assignees")
@@ -410,7 +412,7 @@ class TestBoardChecks(TestCase):
     @patch("github_interactions.board_checks.BoardChecks.check_release_notes")
     @patch("github_interactions.board_checks.BoardChecks.get_present_release_notes")
     @patch("github_interactions.board_checks.BoardChecks.get_release_note_prs")
-    def test_no_points_labels(
+    def test_no_points_labels_and_checking_points_labels(
         self, release_notes, prs, check_notes, check_stale, assignees, config_parser
     ):
         card_ident = 7
@@ -454,6 +456,7 @@ class TestBoardChecks(TestCase):
             "no_points_labels": "no_points_labels_allowed",
             "zero_points_labels": "zero_points_labels_allowed",
             "release_notes_repo": "Repo",
+            "check_points_labels": "True",
         },
     )
     @patch("github_interactions.board_checks.BoardChecks.check_assignees")
@@ -461,7 +464,7 @@ class TestBoardChecks(TestCase):
     @patch("github_interactions.board_checks.BoardChecks.check_release_notes")
     @patch("github_interactions.board_checks.BoardChecks.get_present_release_notes")
     @patch("github_interactions.board_checks.BoardChecks.get_release_note_prs")
-    def test_no_points_labels_permitted(
+    def test_no_points_labels_permitted_and_checking_points_labels(
         self, release_notes, prs, check_notes, comment_stale, assignees, config_parser
     ):
         card_ident = 8
@@ -504,6 +507,7 @@ class TestBoardChecks(TestCase):
             "no_points_labels": "no_points_labels_allowed",
             "zero_points_labels": "zero_points_labels_allowed",
             "release_notes_repo": "Repo",
+            "check_points_labels": "True",
         },
     )
     @patch("github_interactions.board_checks.BoardChecks.check_assignees")
@@ -511,7 +515,7 @@ class TestBoardChecks(TestCase):
     @patch("github_interactions.board_checks.BoardChecks.check_release_notes")
     @patch("github_interactions.board_checks.BoardChecks.get_present_release_notes")
     @patch("github_interactions.board_checks.BoardChecks.get_release_note_prs")
-    def test_zero_points_labels_permitted(
+    def test_zero_points_labels_permitted_and_checking_points_labels(
         self, prs, release_notes, check_notes, stale, assignees, config_parser
     ):
         card_ident = 9
@@ -556,6 +560,7 @@ class TestBoardChecks(TestCase):
             "label_warnings": "status check:7",
             "label_errors": "status check:28",
             "release_notes_repo": "Repo",
+            "check_points_labels": "True",
         },
     )
     @patch("github_interactions.board_checks.BoardChecks.check_assignees")
@@ -639,6 +644,7 @@ class TestBoardChecks(TestCase):
             "label_warnings": "status check:7",
             "label_errors": "status check:28",
             "release_notes_repo": "Repo",
+            "check_points_labels": "True",
         },
     )
     @patch("github_interactions.board_checks.BoardChecks.check_assignees")
@@ -727,6 +733,7 @@ class TestBoardChecks(TestCase):
         return_value={
             "allow_unassigned": "unassigned_allowed",
             "release_notes_repo": "Repo",
+            "check_points_labels": "True",
         },
     )
     def test_check_assignees_unassigned_allowed(
@@ -785,6 +792,7 @@ class TestBoardChecks(TestCase):
         return_value={
             "allow_unassigned": "unassigned_allowed",
             "release_notes_repo": "Repo",
+            "check_points_labels": "True",
         },
     )
     def test_check_assignees_when_required(
