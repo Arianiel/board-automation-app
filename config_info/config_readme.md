@@ -57,6 +57,11 @@ involved. This should be a comma separated list of labels which can be applied t
 would mean they can have no point labels applied. An example entry could be:
 `No Points Necessary, Duplicate, Wontfix`
 
+### check_points_labels
+If the choice to use the above checks on points needs to be changed, for example due to a switch to
+T-Shirt sizing, then setting this to `False` would skip these checks. A setting of `True` will perform
+the two checks above related to `zero_points_labels` and `no_points_labels`.
+
 ### comment_errors
 This is a list of labels in use in the project, and a number which indicates the number of days 
 since a comment was added after which it can be considered stale. These should be of the following 

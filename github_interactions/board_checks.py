@@ -50,6 +50,7 @@ class BoardChecks:
             if card.repo == config["BOARD.CHECKS"]["release_notes_repo"]:
                 # Limiting the repo to begin with to those in the release notes being considered
                 self.check_release_notes(card)
+            if config["BOARD.CHECKS"]["check_points_labels"] == "True":
                 self.verify_card_pointing_correct(card)
         self.last_update = datetime.now()
         self.summary["total_num"] = self.error_count + self.warning_count
