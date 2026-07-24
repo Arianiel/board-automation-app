@@ -52,6 +52,7 @@ class BoardChecks:
                 self.check_release_notes(card)
             if config["BOARD.CHECKS"]["check_points_labels"] == "True":
                 self.verify_card_pointing_correct(card)
+            self.check_statuses_and_labels_match(card)
         self.last_update = datetime.now()
         self.summary["total_num"] = self.error_count + self.warning_count
         self.summary["error_num"] = self.error_count
@@ -295,4 +296,13 @@ class BoardChecks:
                 f"more than {int(label_list[status.lower()])} days ago."
             )
             return True
+        return False
+
+    def check_statuses_and_labels_match(self, card):
+        # TODO
+        print("Checking statuses and labels")
+        print(card.status)
+        print(card.labels)
+        if card.status.lower() in card.labels:
+            print("There's a match for the status in the labels list")
         return False
