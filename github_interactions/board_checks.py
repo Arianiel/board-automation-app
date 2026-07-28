@@ -112,6 +112,8 @@ class BoardChecks:
                 self.error_count += 1
 
     def check_if_stale(self, card):
+        # todo
+        print(f"check_if_stale {card.id}")
         # Based on self.status and intersections with the settings returned do the stale checks
         comment_errors = dict(
             item.split(":") for item in config["BOARD.CHECKS"]["comment_errors"].split(",")
@@ -126,18 +128,31 @@ class BoardChecks:
         error_check = {k: label_errors[k] for k in (label_errors.keys() & card.labels)}
         warning_check = {k: label_warnings[k] for k in (label_warnings.keys() & card.labels)}
 
+        # todo
+        print("My error point checking")
+        print(comment_check)
         if comment_check:
             for check in comment_check:
                 if self.check_if_last_comment_stale(
                     comment_errors[check], card.id, card.title, card.status, card.assignees
                 ):
+                    # todo
+                    print("This is the check for stale comments")
                     self.error_count += 1
                     return
                 else:
+                    # todo
+                    print("This is not the check for stale comments")
                     label_errors.pop(check)
                     label_warnings.pop(check)
         else:
+            # todo
+            print("should it be going in here?")
+            print(card.status)
+            print(comment_errors.keys())
             if card.status.lower() in comment_errors.keys():
+                # todo
+                print("This is not where I need to be checking")
                 if self.check_if_last_comment_stale(
                     comment_errors[card.status.lower()],
                     card.id,
@@ -299,10 +314,12 @@ class BoardChecks:
         return False
 
     def check_statuses_and_labels_match(self, card):
-        # TODO
-        print("Checking statuses and labels")
-        print(card.status)
-        print(card.labels)
-        if card.status.lower() in card.labels:
-            print("There's a match for the status in the labels list")
+        if (card.status.lower() not in card.labels) and (
+            card.status.lower() not in ["done", "backlog"]
+        ):
+            self.problem_text.append(
+                f"Error: Issue {card.title} does not have a suitable label to match the current "
+                f"status of {card.status}"
+            )
+            return True
         return False
