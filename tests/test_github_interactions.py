@@ -585,9 +585,9 @@ class TestBoardChecks(TestCase):
         content_id = f"issue_{card_ident}"
         card_title = f"{card_ident} - Issue {card_ident}"
         repo_name = "Repo"
-        expected_labels = {"status error": "Status Error ID"}
+        expected_labels = {"status error": "Status Error ID", "comment": "comment ID for testing"}
         sprint = "Sprint"
-        status = "Status Error"
+        status = "Comment"
         points = 0
         priority = "Medium"
         provided_fields = {
@@ -601,16 +601,12 @@ class TestBoardChecks(TestCase):
         turning_comment_date = today - datetime.timedelta(days=28)
         old_comment_date = today - datetime.timedelta(days=50)
         date_format = "%Y-%m-%dT%H:%M:%SZ"
-        # todo
-        print(
-            build_response(
-                QlCommand.find_last_comment, created_at=recent_comment_date.strftime(date_format)
-            )
-        )
         m.post(
             url,
             text=build_response(
-                QlCommand.find_last_comment, created_at=recent_comment_date.strftime(date_format)
+                QlCommand.find_last_comment,
+                created_at=recent_comment_date.strftime(date_format),
+                expected_labels=expected_labels,
             ),
         )
         class_response = BoardChecks(
@@ -627,26 +623,15 @@ class TestBoardChecks(TestCase):
             ]
         )
         self.assertEqual(class_response.problem_text, [])
-        # todo
-        print("Moving to the second check here")
-        print(
-            build_response(
-                QlCommand.find_last_comment, created_at=turning_comment_date.strftime(date_format)
-            )
-        )
         m.post(
             url,
             text=build_response(
-                QlCommand.find_last_comment, created_at=turning_comment_date.strftime(date_format)
+                QlCommand.find_last_comment,
+                created_at=turning_comment_date.strftime(date_format),
+                expected_labels=expected_labels,
             ),
         )
         class_response.update_checks()
-        # todo
-        print(
-            f"ERROR: Issue {card_title} in {status} assigned to [] last had a comment added 28 days or more ago."
-            in class_response.problem_text
-        )
-        print(class_response.problem_text)
         self.assertTrue(
             f"ERROR: Issue {card_title} in {status} assigned to [] last had a comment added 28 days or more ago."
             in class_response.problem_text
@@ -654,16 +639,12 @@ class TestBoardChecks(TestCase):
         m.post(
             url,
             text=build_response(
-                QlCommand.find_last_comment, created_at=old_comment_date.strftime(date_format)
+                QlCommand.find_last_comment,
+                created_at=old_comment_date.strftime(date_format),
+                expected_labels=expected_labels,
             ),
         )
         class_response.update_checks()
-        # todo
-        print("Why oh why oh why oh")
-        print(
-            f"ERROR: Issue {card_title} in {status} assigned to [] last had a comment added 28 days or more ago."
-            in class_response.problem_text
-        )
         self.assertTrue(
             f"ERROR: Issue {card_title} in {status} assigned to [] last had a comment added 28 days or more ago."
             in class_response.problem_text
@@ -717,8 +698,6 @@ class TestBoardChecks(TestCase):
             url,
             text=build_response(QlCommand.find_labels_added, expected_label_dates=expected_labels),
         )
-        # todo
-        print(build_response(QlCommand.find_labels_added, expected_label_dates=expected_labels))
         class_response = BoardChecks(
             [
                 CardInfo(

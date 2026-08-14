@@ -339,16 +339,8 @@ def build_response(ql_command: QlCommand, **kwargs):
             )
         case QlCommand.find_last_comment:
             response = {
-                "data": {"node": {"comments": {"nodes": [{"createdAt": kwargs["created_at"]}]}}}
-            }
-            # todo
-            response = {
-                "data": {
-                    "node": {
-                        "labels": {"nodes": [{"name": "status"}]},
-                        "comments": {"nodes": [{"createdAt": "2026-07-23T15:38:07Z"}]},
-                    }
-                }
+                "labels": {"nodes": labels_list(kwargs["expected_labels"])},
+                "data": {"node": {"comments": {"nodes": [{"createdAt": kwargs["created_at"]}]}}},
             }
         case QlCommand.find_labels_added:
             response = build_label_dates(kwargs["expected_label_dates"])
