@@ -19,7 +19,7 @@ class Burndown:
         project_number: str,
         current_sprint_name: str,
         next_sprint_name: str,
-        sprints: None,
+        sprints: dict,
     ):
         self.fig = go.Figure()
         self.org_name = org_name

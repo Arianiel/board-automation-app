@@ -89,6 +89,7 @@ class TestBurndown(TestCase):
         entry = "".join(entry_list)
         open_mock = mock_open()
         with patch("builtins.open", open_mock, create=True):
+            # noinspection bad-argument-type
             test_class.fill_csv_lines(today_to_use, last_entry_day_to_use, df)
         open_mock.assert_called_with(test_class.burndown_csv, "a")
         open_mock.return_value.write.assert_called_with(entry)

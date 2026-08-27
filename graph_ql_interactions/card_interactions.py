@@ -218,8 +218,6 @@ def get_when_labels_were_added_to_issue(issue_id: str):
 
 
 def get_assignees(issue_id: str):
-    if issue_id is None:
-        return []
     response = gql_queries.run_query(get_issue_assignees.replace("<ISSUE>", issue_id))
     try:
         assignees = response["data"]["node"]["assignees"]["edges"]

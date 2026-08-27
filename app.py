@@ -157,7 +157,7 @@ class WebhookError(Exception):
 def verify_signature(payload_body, secret_token, signature_header):
     """Verify that the payload was sent from GitHub by validating SHA256.
 
-    Raise and return 403 if not authorized.
+    Raise and return 403 if not authorised.
 
     Args:
         payload_body: original request body to verify (request.body())
