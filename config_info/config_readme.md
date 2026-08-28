@@ -62,6 +62,21 @@ If the choice to use the above checks on points needs to be changed, for example
 T-Shirt sizing, then setting this to `False` would skip these checks. A setting of `True` will perform
 the two checks above related to `zero_points_labels` and `no_points_labels`.
 
+### t_shirt_sizes_in_use
+Given the potential variety of T-shirt sizes it is likely that many will just use a subset of the values 
+which can be stated using this list. This should be a comma separated list of labels which can be applied 
+to tickets. An example entry could be: `size - S,size - M,size - L,size - XL`
+
+### no_t_shirt_size_needed
+Not all tickets will come with an effort required, as with the points. This should be a comma separated 
+list of labels which can be applied to tickets that would mean they can have no point labels applied. 
+An example entry could be:`No Size Necessary, Duplicate, Wontfix`
+
+### check_t_shirt_size_labels
+Should T-shirt sizes be used to estimate the amount of work needed in an issue then this entry should be 
+set to True. This will ensure that a label matching a value from the `t_shirt_sizes_in_use` list exists 
+on any issue that does not have a label from the `no_t_shirt_size_needed` list
+
 ### comment_errors
 This is a list of labels in use in the project, and a number which indicates the number of days 
 since a comment was added after which it can be considered stale. These should be of the following 
